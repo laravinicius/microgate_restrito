@@ -51,7 +51,6 @@ if (!empty($_GET['error'])) {
                     <div class="bg-brand-dark border border-white/10 rounded-lg overflow-hidden">
                         <!-- Header do Card -->
                         <div class="p-8 border-b border-white/10 text-center">
-                            <img src="./img/microgate2.png" alt="Microgate" class="w-32 h-10 object-contain mx-auto mb-6">
                             <h1 class="text-3xl font-bold text-white mb-2">Área Restrita</h1>
                             <p class="text-gray-400 text-sm">Faça login para acessar o painel</p>
                         </div>
