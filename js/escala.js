@@ -47,7 +47,7 @@
         .catch(err => {
             console.error("[ERRO] Falha ao buscar agenda:", err);
             wrap.innerHTML = `<div class="p-4 text-red-400">Erro de conexão: ${err.message}</div>`;
-            return { data: [] };
+            return { data: [], holidays: [] };
         });
 
     const events = schedule.data || [];
@@ -61,12 +61,19 @@
         eventsByDate[d].push(ev);
     });
 
+    // Feriados (camada separada da escala)
+    const holidays = schedule.holidays || [];
+    const holidaysByDate = {};
+    holidays.forEach(h => {
+        holidaysByDate[h.date] = h; // um feriado por dia (se precisar múltiplos, troque para array)
+    });
+
     // Render: mês atual
-    wrap.appendChild(renderMonth(new Date(targetYear, targetMonth, 1), eventsByDate));
+    wrap.appendChild(renderMonth(new Date(targetYear, targetMonth, 1), eventsByDate, holidaysByDate));
 
     // Render: próximo mês (somente se >= 15)
     if (allowNextMonth) {
-        wrap.appendChild(renderMonth(new Date(targetYear, targetMonth + 1, 1), eventsByDate));
+        wrap.appendChild(renderMonth(new Date(targetYear, targetMonth + 1, 1), eventsByDate, holidaysByDate));
     }
 
     // Select default date: hoje se estiver dentro do range exibido; senão primeiro dia do mês atual
@@ -76,7 +83,7 @@
     selectDate(fmt(defaultDate));
 
     // Render month function
-    function renderMonth(date, eventsMap){
+    function renderMonth(date, eventsMap, holidaysMap){
         const monthName = date.toLocaleString('pt-BR', { month:'long', year:'numeric' });
 
         // CONTAINER DO CARD
@@ -150,6 +157,16 @@
             dayNum.className = 'text-[10px] md:text-xs text-gray-300 font-semibold mb-1 md:mb-2';
             dayNum.textContent = d;
             td.appendChild(dayNum);
+
+            // Feriado (camada separada)
+            if (holidaysMap && holidaysMap[iso]) {
+                const holidayLabel = document.createElement('div');
+                holidayLabel.textContent = 'FERIADO';
+                holidayLabel.className = 'text-[9px] md:text-[10px] font-bold mb-1';
+                holidayLabel.style.color = '#ef4444';
+                holidayLabel.title = (holidaysMap[iso].name || 'Feriado');
+                td.appendChild(holidayLabel);
+            }
 
             // Events list
             const evs = eventsMap[iso] || [];

@@ -8,7 +8,7 @@
     // Gerar lista de meses (6 meses a partir de hoje)
     const months = [];
     const now = new Date();
-    
+
     for (let i = 0; i < 6; i++) {
         const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
         months.push({
@@ -30,7 +30,7 @@
     months.forEach((m, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = idx === 0 
+        btn.className = idx === 0
             ? 'px-4 py-2 rounded-t-lg bg-blue-600 text-white font-semibold whitespace-nowrap transition'
             : 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         btn.textContent = m.label;
@@ -64,10 +64,10 @@
         // Carregar dados do mês
         const start = new Date(year, month, 1);
         const end = new Date(year, month + 1, 0);
-        
+
         const fmt = d => d.toISOString().slice(0, 10);
         let apiUrl = `./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`;
-        
+
         if (window.TARGET_USER_ID) {
             apiUrl += `&user_id=${window.TARGET_USER_ID}`;
         }
@@ -89,8 +89,15 @@
                 eventsByDate[d].push(ev);
             });
 
-            // Render month
-            const monthEl = renderMonth(start, eventsByDate);
+            // ✅ FERIADOS: Map holidays by date
+            const holidays = schedule.holidays || [];
+            const holidaysByDate = {};
+            holidays.forEach(h => {
+                holidaysByDate[h.date] = h; // 1 feriado por dia
+            });
+
+            // Render month (com feriados)
+            const monthEl = renderMonth(start, eventsByDate, holidaysByDate);
             wrap.appendChild(monthEl);
 
             // Re-render Lucide icons
@@ -105,7 +112,7 @@
     }
 
     // Render month function (similar to escala.js)
-    function renderMonth(date, eventsMap) {
+    function renderMonth(date, eventsMap, holidaysMap) {
         const el = document.createElement('div');
         el.className = 'w-full bg-brand-dark border border-white/10 rounded-lg p-2 md:p-6';
 
@@ -152,7 +159,7 @@
 
         // Days
         const fmt = d => d.toISOString().slice(0, 10);
-        
+
         for (let d = 1; d <= daysInMonth; d++) {
             const cur = new Date(date.getFullYear(), date.getMonth(), d);
             const iso = fmt(cur);
@@ -167,15 +174,25 @@
             dayNum.textContent = d;
             td.appendChild(dayNum);
 
+            // ✅ FERIADO (camada separada)
+            if (holidaysMap && holidaysMap[iso]) {
+                const holidayLabel = document.createElement('div');
+                holidayLabel.textContent = 'FERIADO';
+                holidayLabel.className = 'text-[9px] md:text-[10px] font-bold mb-1';
+                holidayLabel.style.color = '#ef4444';
+                holidayLabel.title = (holidaysMap[iso].name || 'Feriado');
+                td.appendChild(holidayLabel);
+            }
+
             // Events
             const evs = eventsMap[iso] || [];
             const list = document.createElement('div');
             list.className = 'flex flex-col gap-1 md:gap-1 text-[8px] md:text-[10px]';
-            
+
             if (evs.length > 0) {
                 evs.slice(0, 2).forEach(e => {
                     const badge = document.createElement('div');
-                    
+
                     let bgColor = '#4b5563';
                     const s = (e.shift || '').toUpperCase();
 
@@ -204,13 +221,13 @@
             }
 
             td.appendChild(list);
-            
+
             // Evento de clique para mostrar todos os técnicos do dia
             td.onclick = async (e) => {
                 e.stopPropagation();
                 await mostrarDiaDetalhado(iso, d);
             };
-            
+
             week.appendChild(td);
             currentCell++;
 
@@ -252,7 +269,7 @@
         container.id = 'day-detail-container';
         container.className = 'mt-8 p-6 bg-brand-dark border border-white/10 rounded-lg';
 
-        // Título
+        // Título (placeholder; será refeito depois do fetch)
         const title = document.createElement('h3');
         title.className = 'text-xl font-bold text-white mb-4 flex items-center justify-between';
         title.innerHTML = `
@@ -269,16 +286,27 @@
             // Buscar dados de todos os técnicos para esse dia
             const apiUrl = `./get_schedule.php?start=${dateStr}&end=${dateStr}`;
             const response = await fetch(apiUrl);
-            
+
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
+
             const data = await response.json();
             const eventos = data.data || [];
+            const holidays = data.holidays || [];
 
-            // Limpar loading
+            // Verifica se esse dia é feriado (opcional: mostrar no detalhe)
+            let holidayText = '';
+            if (holidays.length > 0 && holidays[0]?.date === dateStr) {
+                const name = holidays[0]?.name ? ` - ${holidays[0].name}` : '';
+                holidayText = `<span style="color:#ef4444;font-weight:700;margin-left:10px;">FERIADO${name}</span>`;
+            }
+
+            // Limpar loading + refazer header
             container.innerHTML = `
                 <h3 class="text-xl font-bold text-white mb-4 flex items-center justify-between">
-                    <span>Escala de Todos os Técnicos - ${dayOfMonth}/${dateStr.split('-')[1]}/${dateStr.split('-')[0]}</span>
+                    <span>
+                        Escala de Todos os Técnicos - ${dayOfMonth}/${dateStr.split('-')[1]}/${dateStr.split('-')[0]}
+                        ${holidayText}
+                    </span>
                     <button onclick="document.getElementById('day-detail-container').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:20px;">✕</button>
                 </h3>
             `;
@@ -338,7 +366,7 @@
                     const tdStatus = document.createElement('td');
                     tdStatus.className = 'px-4 py-3';
                     const statusBadge = document.createElement('span');
-                    
+
                     let bgColor = '#4b5563';
                     let textColor = '#d1d5db';
                     const shift = (ev.shift || '').toUpperCase();

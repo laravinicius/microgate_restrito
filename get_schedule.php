@@ -16,66 +16,21 @@ $username = isset($_GET['username']) ? trim($_GET['username']) : null;
 $start = $_GET['start'] ?? null;
 $end = $_GET['end'] ?? null;
 
-$isAdmin = ((int)($_SESSION['is_admin'] ?? 0) === 1);
-
 // Se usuário não admin, força que só veja a própria escala
-if (!$isAdmin) {
+if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
     $user_id = (int)$_SESSION['user_id'];
     $username = null;
 }
 
-// Datas / janela permitida (regra do dia 15 para técnico)
-$tz = new DateTimeZone('America/Sao_Paulo');
-$now = new DateTimeImmutable('now', $tz);
+// Se nem user_id nem username informados, deixar como todos (apenas para admin)
 
-$allowedStartDt = $now->modify('first day of this month')->setTime(0, 0, 0);
-
-if ((int)$now->format('d') >= 15) {
-    // libera até o fim do próximo mês
-    $allowedEndDt = $now->modify('last day of next month')->setTime(23, 59, 59);
-} else {
-    // só mês atual
-    $allowedEndDt = $now->modify('last day of this month')->setTime(23, 59, 59);
-}
-
-// Datas padrão:
-// - Admin: mantém padrão atual (mês atual até fim do mês atual + 2 meses)
-// - Técnico: usa janela permitida (mês atual ou mês atual + próximo)
+// Datas padrão: primeiro dia do mês atual até último dia do mês atual + 2 meses
 if (!$start || !$end) {
-    if ($isAdmin) {
-        $nowUtc = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-        $startDt = $nowUtc->modify('first day of this month')->setTime(0, 0);
-        $endDt = $startDt->modify('+2 months')->modify('last day of this month')->setTime(23, 59, 59);
-        $start = $startDt->format('Y-m-d');
-        $end = $endDt->format('Y-m-d');
-    } else {
-        $start = $allowedStartDt->format('Y-m-d');
-        $end   = $allowedEndDt->format('Y-m-d');
-    }
-} else {
-    // Se vier start/end e NÃO for admin, clampa na janela permitida
-    if (!$isAdmin) {
-        $reqStart = DateTimeImmutable::createFromFormat('Y-m-d', $start, $tz);
-        $reqEnd   = DateTimeImmutable::createFromFormat('Y-m-d', $end, $tz);
-
-        if (!$reqStart || !$reqEnd) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid date format. Use YYYY-MM-DD']);
-            exit;
-        }
-
-        if ($reqStart < $allowedStartDt) $reqStart = $allowedStartDt;
-        if ($reqEnd > $allowedEndDt)     $reqEnd   = $allowedEndDt;
-
-        if ($reqEnd < $reqStart) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Invalid range for current permission window']);
-            exit;
-        }
-
-        $start = $reqStart->format('Y-m-d');
-        $end   = $reqEnd->format('Y-m-d');
-    }
+    $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    $startDt = $now->modify('first day of this month')->setTime(0,0);
+    $endDt = $startDt->modify('+2 months')->modify('last day of this month')->setTime(23,59,59);
+    $start = $startDt->format('Y-m-d');
+    $end = $endDt->format('Y-m-d');
 }
 
 try {
@@ -101,7 +56,24 @@ try {
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
 
-    echo json_encode(['start' => $start, 'end' => $end, 'data' => $rows]);
+    // Feriados no range (camada separada da escala)
+    $hstmt = $pdo->prepare("
+        SELECT date, name
+        FROM holidays
+        WHERE is_active = 1
+          AND date BETWEEN ? AND ?
+        ORDER BY date
+    ");
+    $hstmt->execute([$start, $end]);
+    $holidays = $hstmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'start' => $start,
+        'end' => $end,
+        'data' => $rows,
+        'holidays' => $holidays
+    ]);
+
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'DB error', 'message' => $e->getMessage()]);
