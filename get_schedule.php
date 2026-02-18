@@ -16,21 +16,66 @@ $username = isset($_GET['username']) ? trim($_GET['username']) : null;
 $start = $_GET['start'] ?? null;
 $end = $_GET['end'] ?? null;
 
+$isAdmin = ((int)($_SESSION['is_admin'] ?? 0) === 1);
+
 // Se usuário não admin, força que só veja a própria escala
-if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
+if (!$isAdmin) {
     $user_id = (int)$_SESSION['user_id'];
     $username = null;
 }
 
-// Se nem user_id nem username informados, deixar como todos (apenas para admin)
+// Datas / janela permitida (regra do dia 15 para técnico)
+$tz = new DateTimeZone('America/Sao_Paulo');
+$now = new DateTimeImmutable('now', $tz);
 
-// Datas padrão: primeiro dia do mês atual até último dia do mês atual + 2 meses
+$allowedStartDt = $now->modify('first day of this month')->setTime(0, 0, 0);
+
+if ((int)$now->format('d') >= 15) {
+    // libera até o fim do próximo mês
+    $allowedEndDt = $now->modify('last day of next month')->setTime(23, 59, 59);
+} else {
+    // só mês atual
+    $allowedEndDt = $now->modify('last day of this month')->setTime(23, 59, 59);
+}
+
+// Datas padrão:
+// - Admin: mantém padrão atual (mês atual até fim do mês atual + 2 meses)
+// - Técnico: usa janela permitida (mês atual ou mês atual + próximo)
 if (!$start || !$end) {
-    $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-    $startDt = $now->modify('first day of this month')->setTime(0,0);
-    $endDt = $startDt->modify('+2 months')->modify('last day of this month')->setTime(23,59,59);
-    $start = $startDt->format('Y-m-d');
-    $end = $endDt->format('Y-m-d');
+    if ($isAdmin) {
+        $nowUtc = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        $startDt = $nowUtc->modify('first day of this month')->setTime(0, 0);
+        $endDt = $startDt->modify('+2 months')->modify('last day of this month')->setTime(23, 59, 59);
+        $start = $startDt->format('Y-m-d');
+        $end = $endDt->format('Y-m-d');
+    } else {
+        $start = $allowedStartDt->format('Y-m-d');
+        $end   = $allowedEndDt->format('Y-m-d');
+    }
+} else {
+    // Se vier start/end e NÃO for admin, clampa na janela permitida
+    if (!$isAdmin) {
+        $reqStart = DateTimeImmutable::createFromFormat('Y-m-d', $start, $tz);
+        $reqEnd   = DateTimeImmutable::createFromFormat('Y-m-d', $end, $tz);
+
+        if (!$reqStart || !$reqEnd) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid date format. Use YYYY-MM-DD']);
+            exit;
+        }
+
+        if ($reqStart < $allowedStartDt) $reqStart = $allowedStartDt;
+        if ($reqEnd > $allowedEndDt)     $reqEnd   = $allowedEndDt;
+
+        if ($reqEnd < $reqStart) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid range for current permission window']);
+            exit;
+        }
+
+        $start = $reqStart->format('Y-m-d');
+        $end   = $reqEnd->format('Y-m-d');
+    }
 }
 
 try {

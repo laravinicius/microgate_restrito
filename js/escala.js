@@ -1,9 +1,8 @@
 // js/escala.js
-// Mobile-first calendar for 3 months (current + 2)
+// Mobile-first calendar for 1 or 2 months (mês atual; e a partir do dia 15 libera também o próximo mês)
 
 (async function(){
     const wrap = document.getElementById('calendar-wrap');
-
     if (!wrap) return;
 
     // --- CONFIGURAÇÃO DO MÊS ALVO ---
@@ -11,16 +10,21 @@
     const now = new Date();
     const targetYear = now.getFullYear();
     const targetMonth = now.getMonth(); // 0 = Jan, 1 = Fev, 2 = Mar, etc.
-    
+
+    const allowNextMonth = now.getDate() >= 15;
+
+    // Range de busca
     const start = new Date(targetYear, targetMonth, 1);
-    const end = new Date(targetYear, targetMonth + 1, 0); // Último dia do mês
+    const end = allowNextMonth
+        ? new Date(targetYear, targetMonth + 2, 0) // último dia do próximo mês
+        : new Date(targetYear, targetMonth + 1, 0); // último dia do mês atual
 
     const fmt = d => d.toISOString().slice(0,10);
 
     // --- CORREÇÃO DE CAMINHO (LINUX/SSH) ---
-    // Usa './' para garantir que busque na pasta 'microgateinformatica', e não na raiz do servidor.
+    // Usa './' para garantir que busque na pasta do projeto, e não na raiz do servidor.
     let apiUrl = `./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`;
-    
+
     // Verifica se estamos no modo "Visualizador" (escala_viewer.php)
     // A variável window.TARGET_USER_ID é definida no PHP do viewer.
     if (window.TARGET_USER_ID) {
@@ -42,18 +46,12 @@
         })
         .catch(err => {
             console.error("[ERRO] Falha ao buscar agenda:", err);
-            // Mostra erro na tela se falhar
             wrap.innerHTML = `<div class="p-4 text-red-400">Erro de conexão: ${err.message}</div>`;
-            return {data:[]};
+            return { data: [] };
         });
 
     const events = schedule.data || [];
     console.log(`[DEBUG] Eventos encontrados: ${events.length}`);
-
-    // Se não houver eventos, avisa no console
-    if (events.length === 0) {
-        console.warn("[AVISO] A API retornou 0 eventos. Verifique se o usuário tem escala importada para MARÇO/2026.");
-    }
 
     // Map date -> array of events
     const eventsByDate = {};
@@ -63,19 +61,24 @@
         eventsByDate[d].push(ev);
     });
 
-    // Create single month view (target month)
-    const monthEl = renderMonth(start, eventsByDate);
-    wrap.appendChild(monthEl);
+    // Render: mês atual
+    wrap.appendChild(renderMonth(new Date(targetYear, targetMonth, 1), eventsByDate));
 
-    // Select default date: hoje se estiver dentro do mês alvo, senão primeiro dia
+    // Render: próximo mês (somente se >= 15)
+    if (allowNextMonth) {
+        wrap.appendChild(renderMonth(new Date(targetYear, targetMonth + 1, 1), eventsByDate));
+    }
+
+    // Select default date: hoje se estiver dentro do range exibido; senão primeiro dia do mês atual
     const today = new Date();
-    const defaultDate = (today.getFullYear()===start.getFullYear() && today.getMonth()===start.getMonth()) ? today : start;
+    const inRange = (today >= start) && (today <= end);
+    const defaultDate = inRange ? today : start;
     selectDate(fmt(defaultDate));
 
     // Render month function
     function renderMonth(date, eventsMap){
-        const monthName = date.toLocaleString('pt-BR', {month:'long', year:'numeric'});
-        
+        const monthName = date.toLocaleString('pt-BR', { month:'long', year:'numeric' });
+
         // CONTAINER DO CARD
         const el = document.createElement('div');
         el.className = 'w-full bg-brand-dark border border-white/10 rounded-lg p-2 md:p-6';
@@ -88,45 +91,45 @@
 
         // WRAPPER DE ROLAGEM
         const tableWrapper = document.createElement('div');
-        tableWrapper.className = 'pb-2'; 
-        
+        tableWrapper.className = 'pb-2';
+
         // Estilos para forçar a rolagem interna
         tableWrapper.style.width = '100%';
         tableWrapper.style.display = 'block';
-        tableWrapper.style.overflowX = 'auto'; // Habilita scroll horizontal
-        tableWrapper.style.webkitOverflowScrolling = 'touch'; // Suavidade iOS
+        tableWrapper.style.overflowX = 'auto';
+        tableWrapper.style.webkitOverflowScrolling = 'touch';
 
         // TABELA
         const table = document.createElement('table');
         table.className = 'border-collapse text-[11px] md:text-base w-full';
-        
-        // Largura mínima
-        table.style.minWidth = '700px'; 
+        table.style.minWidth = '700px';
 
         // Header row
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         headerRow.className = 'bg-white/5 border-b border-white/10';
+
         ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].forEach(d=>{
             const th = document.createElement('th');
             th.className = 'px-2 md:px-4 py-2 md:py-3 text-center text-[8px] md:text-xs font-semibold text-gray-400 uppercase';
             th.textContent = d;
             headerRow.appendChild(th);
         });
+
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
         // Body rows
         const tbody = document.createElement('tbody');
         const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-        const daysInMonth = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
         let currentCell = 0;
         let week = document.createElement('tr');
         week.className = 'border-b border-white/10';
 
         // Empty cells before first day
-        for (let i=0; i<firstDay; i++){
+        for (let i = 0; i < firstDay; i++){
             const td = document.createElement('td');
             td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5';
             week.appendChild(td);
@@ -134,7 +137,7 @@
         }
 
         // Days of month
-        for (let d=1; d<=daysInMonth; d++){
+        for (let d = 1; d <= daysInMonth; d++){
             const cur = new Date(date.getFullYear(), date.getMonth(), d);
             const iso = fmt(cur);
 
@@ -152,13 +155,14 @@
             const evs = eventsMap[iso] || [];
             const list = document.createElement('div');
             list.className = 'flex flex-col gap-1 md:gap-1 text-[8px] md:text-[10px]';
-            if (evs.length>0){
+
+            if (evs.length > 0){
                 evs.slice(0,2).forEach(e=>{
                     const badge = document.createElement('div');
-                    
+
                     // --- CORES VIA HEX (Para garantir que funcionem sem build) ---
                     let bgColor = '#4b5563'; // Cinza (Padrão)
-                    const s = (e.shift||'').toUpperCase();
+                    const s = (e.shift || '').toUpperCase();
 
                     if (s.includes('AGENDA')) {
                         bgColor = '#16a34a'; // Verde
@@ -171,19 +175,20 @@
                     badge.style.backgroundColor = bgColor;
                     badge.className = `text-white px-1 md:px-2 py-0.5 md:py-1 rounded truncate`;
 
-                    const label = s || (e.note||'').toString().slice(0,15);
+                    const label = s || (e.note || '').toString().slice(0,15);
                     badge.textContent = label;
                     list.appendChild(badge);
                 });
-                if (evs.length>2){
+
+                if (evs.length > 2){
                     const more = document.createElement('div');
                     more.className = 'text-gray-400 text-[9px]';
-                    more.textContent = '+' + (evs.length-2);
+                    more.textContent = '+' + (evs.length - 2);
                     list.appendChild(more);
                 }
             }
-            td.appendChild(list);
 
+            td.appendChild(list);
             td.addEventListener('click', ()=> selectDate(iso));
             week.appendChild(td);
             currentCell++;
@@ -214,9 +219,8 @@
     }
 
     async function selectDate(iso){
-        // highlight selected
         document.querySelectorAll('[data-date]').forEach(el=>{
-            if (el.getAttribute('data-date')===iso) {
+            if (el.getAttribute('data-date') === iso) {
                 el.classList.add('ring-2','ring-blue-500','bg-blue-500/10');
             } else {
                 el.classList.remove('ring-2','ring-blue-500','bg-blue-500/10');
@@ -224,5 +228,7 @@
         });
     }
 
-    function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-})();y
+    function capitalize(s){
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+})();

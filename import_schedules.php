@@ -357,24 +357,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </h2>
 
                             <div class="mb-8 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
-                                <p class="text-blue-400 text-sm"><strong>Dica:</strong> Seu arquivo CSV deve ter:</p>
-                                <ul class="text-blue-400 text-sm mt-2 ml-4 list-disc">
+                                <p class="text-gray-400 text-sm"><strong>Dica:</strong> Seu arquivo CSV deve ter:</p>
+                                <ul class="text-gray-400 text-sm mt-2 ml-4 list-disc">
                                     <li>Primeira coluna: Nomes dos técnicos</li>
                                     <li>Próximas colunas: Datas no formato <strong>DD/MM/YYYY</strong> (sempre 2 dígitos: 01, 02, ... 30)</li>
                                     <li>Valores nas células: AGENDA, FOLGA, FÉRIAS ou vazio</li>
                                     <li>Separador: Ponto-e-vírgula (;)</li>
                                 </ul>
                                 <div class="bg-orange-500/20 border border-orange-500/50 rounded p-2 mt-3">
-                                    <p class="text-orange-300 text-xs"><strong>⚠️ IMPORTANTE:</strong> O Excel pode corromper as datas! Use o modelo fornecido e salve como CSV (separado por ponto-e-vírgula).</p>
+                                    <p class="text-gray-300 text-xs"><strong>⚠️ IMPORTANTE:</strong> O Excel pode corromper as datas! Use o modelo fornecido e salve como CSV (separado por ponto-e-vírgula).</p>
                                 </div>
-                                <p class="text-blue-400 text-sm mt-3 flex flex-col gap-2">
+                                <p class="text-gray-400 text-sm mt-3 flex flex-col gap-2">
                                     <a href="./db/modelo_escala_04_2026.csv" download class="inline-flex items-center gap-1 hover:text-blue-300 transition">
                                         <i data-lucide="download" class="w-4 h-4"></i>
                                         📥 Baixar modelo corrigido (Recomendado)
-                                    </a>
-                                    <a href="./GUIA_PREPARAR_CSV.md" target="_blank" class="inline-flex items-center gap-1 hover:text-blue-300 transition">
-                                        <i data-lucide="book" class="w-4 h-4"></i>
-                                        📖 Guia: Como preparar CSV corretamente
                                     </a>
                                     <a href="./debug_usuarios.php" target="_blank" class="inline-flex items-center gap-1 hover:text-blue-300 transition">
                                         <i data-lucide="search" class="w-4 h-4"></i>
