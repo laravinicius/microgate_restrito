@@ -34,7 +34,7 @@ if (isset($_GET['delete']) && isset($_GET['token'])) {
 }
 
 // Busca a lista de usuários para exibir na tabela
-$stmt = $pdo->query("SELECT id, username, is_admin, created_at FROM users ORDER BY id DESC");
+$stmt = $pdo->query("SELECT id, username, is_admin FROM users ORDER BY id DESC");
 $usuarios = $stmt->fetchAll();
 ?><!DOCTYPE html>
 <html lang="pt-br" class="dark">
@@ -71,19 +71,19 @@ $usuarios = $stmt->fetchAll();
             
             <main class="flex-1 pt-32 md:pt-52 pb-20">
                 <div class="max-w-6xl mx-auto px-4">
-                    <div class="mb-12 flex justify-between items-start">
+                    <div class="mb-12 flex flex-col gap-6">
                         <div>
                             <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel Administrativo</h1>
                             <p class="text-gray-400">Gestão de usuários e contas</p>
                         </div>
-                        <div class="flex flex-col items-end gap-3">
-                            <p class="text-gray-300"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
-                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-lg transition flex items-center gap-2 w-full md:w-auto justify-center md:justify-start text-sm md:text-base"> <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
+                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
+                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm md:text-base">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
                                 Sair da Conta
                             </a>
                         </div>
                     </div>
-
                     <?php if (isset($_GET['msg'])): ?>
                         <div class="mb-6 bg-green-500/10 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
                             <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
@@ -112,7 +112,7 @@ $usuarios = $stmt->fetchAll();
                     <?php endif; ?>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                        <a href="import_schedules.php" class="bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 border border-gray-500 rounded-lg p-8 transition group">
+                        <a href="import_schedules.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
@@ -164,7 +164,6 @@ $usuarios = $stmt->fetchAll();
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
-                                        <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Data de Criação</th>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                                     </tr>
                                 </thead>
@@ -183,7 +182,6 @@ $usuarios = $stmt->fetchAll();
                                                 <?= $user['is_admin'] ? 'Admin' : 'Padrão' ?>
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 text-center text-sm text-gray-400"><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td>
                                         <td class="px-6 py-4 text-center text-sm space-x-2 flex justify-center">
                                             <button type="button" onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>', <?= $user['is_admin'] ?>)" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
