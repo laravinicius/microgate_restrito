@@ -154,7 +154,7 @@
 
             // Day number
             const dayNum = document.createElement('div');
-            dayNum.className = 'text-[10px] md:text-xs text-gray-300 font-semibold mb-1 md:mb-2';
+            dayNum.className = 'text-sm md:text-lg text-gray-300 font-bold mb-1 md:mb-2';
             dayNum.textContent = d;
             td.appendChild(dayNum);
 
@@ -238,9 +238,9 @@
     async function selectDate(iso){
         document.querySelectorAll('[data-date]').forEach(el=>{
             if (el.getAttribute('data-date') === iso) {
-                el.classList.add('ring-2','ring-blue-500','bg-blue-500/10');
+                el.classList.add('ring-2','ring-gray-500','bg-gray-500/10');
             } else {
-                el.classList.remove('ring-2','ring-blue-500','bg-blue-500/10');
+                el.classList.remove('ring-2','ring-gray-500','bg-gray-500/10');
             }
         });
     }

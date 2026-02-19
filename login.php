@@ -73,7 +73,7 @@ if (!empty($_GET['error'])) {
                                             type="text" 
                                             id="username"
                                             name="username" 
-                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
                                             placeholder="usuário"
                                             required
                                             autofocus>
@@ -88,7 +88,7 @@ if (!empty($_GET['error'])) {
                                             type="password" 
                                             id="password"
                                             name="password" 
-                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
                                             placeholder="••••••••"
                                             required>
                                     </div>
@@ -97,7 +97,7 @@ if (!empty($_GET['error'])) {
                                 <!-- Botão Login -->
                                 <button 
                                     type="submit" 
-                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 mt-8">
+                                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 mt-8">
                                     <i data-lucide="log-in" class="w-5 h-5"></i>
                                     Entrar
                                 </button>

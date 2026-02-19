@@ -31,7 +31,7 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = idx === 0
-            ? 'px-4 py-2 rounded-t-lg bg-blue-600 text-white font-semibold whitespace-nowrap transition'
+            ? 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition'
             : 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         btn.textContent = m.label;
         btn.setAttribute('data-month', m.month);
@@ -48,7 +48,7 @@
         Array.from(tabsContainer.querySelectorAll('button')).forEach(b => {
             b.className = 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         });
-        btn.className = 'px-4 py-2 rounded-t-lg bg-blue-600 text-white font-semibold whitespace-nowrap transition';
+        btn.className = 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition';
 
         // Atualizar display do mês
         const monthDisplay = document.getElementById('month-display');
@@ -170,7 +170,7 @@
 
             // Day number
             const dayNum = document.createElement('div');
-            dayNum.className = 'text-[10px] md:text-xs text-gray-300 font-semibold mb-1 md:mb-2';
+            dayNum.className = 'text-sm md:text-lg text-gray-300 font-bold mb-1 md:mb-2';
             dayNum.textContent = d;
             td.appendChild(dayNum);
 

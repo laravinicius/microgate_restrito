@@ -106,16 +106,16 @@ $usuarios = $stmt->fetchAll();
                     <?php endif; ?>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                        <a href="import_schedules.php" class="bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-blue-500 rounded-lg p-8 transition group">
+                        <a href="import_schedules.php" class="bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 border border-gray-500 rounded-lg p-8 transition group">
                             <div class="flex items-start justify-between">
                                 <div>
                                     <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
                                         <i data-lucide="upload" class="w-6 h-6"></i>
                                         Importar Escala
                                     </h3>
-                                    <p class="text-blue-100 text-sm">Adicione escalas de novos meses usando CSV</p>
+                                    <p class="text-gray-300 text-sm">Adicione escalas de novos meses usando CSV</p>
                                 </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-blue-200 group-hover:translate-x-1 transition"></i>
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
                             </div>
                         </a>
                     </div>
@@ -128,14 +128,14 @@ $usuarios = $stmt->fetchAll();
                         <form action="cadastro_usuario_post.php" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                                <input type="text" name="username" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="Usuário" required>
+                                <input type="text" name="username" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Usuário" required>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
-                                <input type="password" name="password" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="••••••••" required>
+                                <input type="password" name="password" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••" required>
                             </div>
                             <div class="flex items-end">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
+                                <button type="submit" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
                                     <i data-lucide="plus" class="w-4 h-4"></i>
                                     Criar Conta
                                 </button>
@@ -166,13 +166,13 @@ $usuarios = $stmt->fetchAll();
                                     <tr class="hover:bg-white/5 transition">
                                         <td class="px-6 py-4 text-sm text-gray-300"><?= $user['id'] ?></td>
                                         <td class="px-6 py-4 text-sm font-medium">
-                                            <button type="button" onclick="abrirAgenda(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" class="text-white hover:text-blue-400 font-semibold transition cursor-pointer inline-flex items-center gap-2">
+                                            <button type="button" onclick="abrirAgenda(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" class="text-white hover:text-gray-400 font-semibold transition cursor-pointer inline-flex items-center gap-2">
                                                 <i data-lucide="calendar" class="w-4 h-4"></i>
                                                 <?= htmlspecialchars($user['username']) ?>
                                             </button>
                                         </td>
                                         <td class="px-6 py-4 text-center text-sm">
-                                            <span class="<?= $user['is_admin'] ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400' ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
+                                            <span class="<?= $user['is_admin'] ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-500/20 text-gray-400' ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
                                                 <?= $user['is_admin'] ? 'Admin' : 'Padrão' ?>
                                             </span>
                                         </td>
@@ -214,24 +214,24 @@ $usuarios = $stmt->fetchAll();
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                    <input type="text" name="username" id="editUsername" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" required>
+                    <input type="text" name="username" id="editUsername" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" required>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nova Senha (deixe vazio para manter)</label>
-                    <input type="password" name="new_password" id="editPassword" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="••••••••">
+                    <input type="password" name="new_password" id="editPassword" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
-                    <select name="is_admin" id="editAdmin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                    <select name="is_admin" id="editAdmin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition">
                         <option value="0">Padrão</option>
                         <option value="1">Administrador</option>
                     </select>
                 </div>
 
                 <div class="flex gap-3 pt-4">
-                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
+                    <button type="submit" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
                         <i data-lucide="check" class="w-4 h-4"></i>
                         Salvar
                     </button>
