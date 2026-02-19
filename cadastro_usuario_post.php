@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = trim($_POST['username']);
     $password = $_POST['password'];
+    $is_admin = (int)($_POST['is_admin'] ?? 0);
 
     $error = '';
 
@@ -45,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Se passou em todas as validações, inserir o usuário
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, is_admin, is_active) VALUES (?, ?, 0, 1)");
-        $stmt->execute([$username, $hash]);
+        $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, is_admin, is_active) VALUES (?, ?, ?, 1)");
+        $stmt->execute([$username, $hash, $is_admin]);
         echo "<script>alert('Usuário criado com sucesso!'); window.location.href='restricted.php';</script>";
     } catch (PDOException $e) {
         echo "<script>alert('Erro ao criar usuário: " . addslashes($e->getMessage()) . "'); window.location.href='restricted.php';</script>";

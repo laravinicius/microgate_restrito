@@ -26,7 +26,7 @@ $_SESSION['username'] = $user['username'];
 $_SESSION['is_admin'] = (int)$user['is_admin'];
 
 // Redireciona para a página apropriada baseado no tipo de usuário
-if ((int)$user['is_admin'] === 1) {
+if ((int)$user['is_admin'] >= 1) {
     header('Location: /restricted.php');
 } else {
     header('Location: /escala.php');

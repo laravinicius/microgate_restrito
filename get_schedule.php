@@ -17,7 +17,7 @@ $start = $_GET['start'] ?? null;
 $end = $_GET['end'] ?? null;
 
 // Se usuário não admin, força que só veja a própria escala
-if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
+if ((int)($_SESSION['is_admin'] ?? 0) === 0) {
     $user_id = (int)$_SESSION['user_id'];
     $username = null;
 }

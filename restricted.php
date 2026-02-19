@@ -9,10 +9,12 @@ if (empty($_SESSION['user_id'])) {
 }
 
 // 2. Se NÃO for administrador, redireciona para escala.php
-if ($_SESSION['is_admin'] !== 1) {
+if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
     header('Location: escala.php');
     exit;
 }
+
+$isAdmin = ((int)$_SESSION['is_admin'] === 1);
 
 // Gerar token CSRF se não existir
 if (empty($_SESSION['csrf_token'])) {
@@ -20,7 +22,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 // Lógica para Deletar Usuário
-if (isset($_GET['delete']) && isset($_GET['token'])) {
+if ($isAdmin && isset($_GET['delete']) && isset($_GET['token'])) {
     $id_to_delete = (int)$_GET['delete'];
     $token = $_GET['token'];
     
@@ -74,7 +76,7 @@ $usuarios = $stmt->fetchAll();
                     <div class="mb-12 flex flex-col gap-6">
                         <div>
                             <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel Administrativo</h1>
-                            <p class="text-gray-400">Gestão de usuários e contas</p>
+                                <p class="text-gray-400"><?= $isAdmin ? 'Gestão de usuários e contas' : 'Visualização de Escalas' ?></p>
                         </div>
                         <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
                             <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
@@ -111,6 +113,7 @@ $usuarios = $stmt->fetchAll();
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($isAdmin): ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                         <a href="import_schedules.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
                             <div class="flex items-start justify-between">
@@ -131,7 +134,7 @@ $usuarios = $stmt->fetchAll();
                             <i data-lucide="user-plus" class="w-6 h-6"></i>
                             Cadastrar Novo Usuário
                         </h2>
-                        <form action="cadastro_usuario_post.php" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <form action="cadastro_usuario_post.php" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
@@ -141,6 +144,14 @@ $usuarios = $stmt->fetchAll();
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
                                 <input type="password" name="password" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••" required>
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Nível</label>
+                                <select name="is_admin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition">
+                                    <option value="0" class="text-black">Padrão</option>
+                                    <option value="2" class="text-black">Gerente</option>
+                                    <option value="1" class="text-black">Administrador</option>
+                                </select>
+                            </div>
                             <div class="flex items-end">
                                 <button type="submit" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
                                     <i data-lucide="plus" class="w-4 h-4"></i>
@@ -149,6 +160,7 @@ $usuarios = $stmt->fetchAll();
                             </div>
                         </form>
                     </div>
+                    <?php endif; ?>
 
                     <div class="bg-brand-dark border border-white/10 rounded-lg overflow-hidden">
                         <div class="p-6 border-b border-white/10">
@@ -164,7 +176,9 @@ $usuarios = $stmt->fetchAll();
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
+                                        <?php if ($isAdmin): ?>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
+                                        <?php endif; ?>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/10">
@@ -179,9 +193,16 @@ $usuarios = $stmt->fetchAll();
                                         </td>
                                         <td class="px-6 py-4 text-center text-sm">
                                             <span class="<?= $user['is_admin'] ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-500/20 text-gray-400' ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
-                                                <?= $user['is_admin'] ? 'Admin' : 'Padrão' ?>
+                                                <?php 
+                                                    echo match((int)$user['is_admin']) {
+                                                        1 => 'Admin',
+                                                        2 => 'Gerente',
+                                                        default => 'Padrão'
+                                                    };
+                                                ?>
                                             </span>
                                         </td>
+                                        <?php if ($isAdmin): ?>
                                         <td class="px-6 py-4 text-center text-sm space-x-2 flex justify-center">
                                             <button type="button" onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>', <?= $user['is_admin'] ?>)" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
@@ -196,6 +217,7 @@ $usuarios = $stmt->fetchAll();
                                                 <span class="text-gray-500 italic text-xs">Sua conta</span>
                                             <?php endif; ?>
                                         </td>
+                                        <?php endif; ?>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -229,8 +251,9 @@ $usuarios = $stmt->fetchAll();
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
                     <select name="is_admin" id="editAdmin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition">
-                        <option value="0">Padrão</option>
-                        <option value="1">Administrador</option>
+                        <option value="0" class="text-black">Padrão</option>
+                        <option value="1" class="text-black">Administrador</option>
+                        <option value="2" class="text-black">Gerente</option>
                     </select>
                 </div>
 

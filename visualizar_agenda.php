@@ -8,8 +8,8 @@ if (empty($_SESSION['user_id'])) {
     exit;
 }
 
-// Bloqueia acesso se não for administrador
-if ($_SESSION['is_admin'] !== 1) {
+// Bloqueia acesso se for usuário padrão (nível 0)
+if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
     header('Location: escala.php');
     exit;
 }
