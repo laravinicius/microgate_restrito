@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 require __DIR__ . '/bootstrap.php';
 
 // Bloqueia acesso se não estiver logado
