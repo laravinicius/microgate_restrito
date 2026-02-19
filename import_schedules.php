@@ -20,6 +20,19 @@ $previewData = [];
 $importMonth = '';
 $importYear = '';
 
+// Função para garantir que a string seja UTF-8 (Excel costuma salvar em ISO-8859-1)
+// Definida fora do loop para evitar recriação e com fallback caso mbstring não esteja instalado
+function safeToUtf8($str) {
+    $str = (string)$str;
+    if ($str === '') return '';
+    if (function_exists('mb_check_encoding') && function_exists('mb_convert_encoding')) {
+        if (!mb_check_encoding($str, 'UTF-8')) {
+            return mb_convert_encoding($str, 'UTF-8', 'ISO-8859-1');
+        }
+    }
+    return $str;
+}
+
 // Processar upload do CSV
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
     $file = $_FILES['schedule_file'];
@@ -34,7 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
     } else {
         // Processar o CSV
         $handle = fopen($file['tmp_name'], 'r');
-        $header = fgetcsv($handle, 0, ';');
+        
+        // Tenta detectar o separador (ponto-e-vírgula ou vírgula)
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $sep = (strpos($firstLine, ';') !== false) ? ';' : ',';
+        
+        $header = fgetcsv($handle, 0, $sep);
         
         if (!$header) {
             $message = 'Arquivo CSV vazio ou inválido.';
@@ -48,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                 $formatos = [
                     '/^(\d{2})\/(\d{2})\/(\d{4})$/',  // DD/MM/YYYY
                     '/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', // D/M/YYYY ou DD/MM/YYYY
+                    '/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/', // DD/MM/YY
                 ];
                 
                 foreach ($formatos as $fmt) {
@@ -55,6 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                         $day = (int)$m[1];
                         $month = (int)$m[2];
                         $year = (int)$m[3];
+
+                        // Se o ano tiver 2 dígitos (ex: 24), assume 20xx (2024)
+                        if ($year < 100) {
+                            $year += 2000;
+                        }
                         
                         // Validar data
                         if ($day >= 1 && $day <= 31 && $month >= 1 && $month <= 12 && $year >= 2020 && $year <= 2030) {
@@ -97,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                 $rows = [];
                 $unknown = [];
                 
-                while (($row = fgetcsv($handle, 0, ';')) !== false) {
+                while (($row = fgetcsv($handle, 0, $sep)) !== false) {
                     $allEmpty = true;
                     foreach ($row as $c) {
                         if (trim((string)$c) !== '') {
@@ -107,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     }
                     if ($allEmpty) continue;
                     
-                    $name = trim($row[$nameCol] ?? '');
+                    $name = safeToUtf8(trim($row[$nameCol] ?? ''));
                     $name = preg_replace('/^\s*\d+\s*-\s*/', '', $name);
                     if ($name === '') continue;
                     
@@ -175,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     // Coletar escala do técnico
                     $schedule = [];
                     foreach ($dayCols as $colIdx => $dayInfo) {
-                        $shift = trim($row[$colIdx] ?? '');
+                        $shift = safeToUtf8(trim($row[$colIdx] ?? ''));
                         if ($shift !== '') {
                             $schedule[] = [
                                 'date' => $dayInfo['date'],
@@ -226,15 +251,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $message = 'Mês ou ano inválido.';
         $messageType = 'error';
     } else {
-        $scheduleData = json_decode($scheduleJson, true);
+        $scheduleData = json_decode((string)$scheduleJson, true);
+        $jsonError = json_last_error();
         
-        if (empty($scheduleData)) {
-            $message = 'Nenhum dado para importar.';
+        if ($jsonError !== JSON_ERROR_NONE || empty($scheduleData)) {
+            $message = 'Nenhum dado para importar ou erro na integridade dos dados (Erro JSON: ' . json_last_error_msg() . ').';
             $messageType = 'error';
         } else {
             try {
                 $pdo->beginTransaction();
                 $insertCount = 0;
+
+                // Prepara as queries uma única vez para melhor performance e estabilidade
+                $stmtUser = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+                $stmtDelete = $pdo->prepare('DELETE FROM schedules WHERE user_id = ? AND date = ?');
+                $stmtInsert = $pdo->prepare('INSERT INTO schedules (user_id, date, shift, note) VALUES (?, ?, ?, ?)');
                 
                 // Extrair eventos de todos os técnicos
                 foreach ($scheduleData as $tech) {
@@ -244,28 +275,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     
                     foreach ($tech['schedule'] as $event) {
                         // Obter user_id
-                        $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
-                        $stmt->execute([$event['username']]);
-                        $user = $stmt->fetch();
+                        $stmtUser->execute([$event['username']]);
+                        $user = $stmtUser->fetch();
                         
                         if (!$user) continue;
                         
-                        // Verificar se já existe
-                        $stmt = $pdo->prepare('SELECT id FROM schedules WHERE user_id = ? AND date = ? LIMIT 1');
-                        $stmt->execute([$user['id'], $event['date']]);
-                        $existing = $stmt->fetch();
-                        
-                        if (!$existing) {
-                            // Inserir novo registro
-                            $stmt = $pdo->prepare('INSERT INTO schedules (user_id, date, shift, note) VALUES (?, ?, ?, ?)');
-                            $stmt->execute([
-                                $user['id'],
-                                $event['date'],
-                                $event['shift'],
-                                ''
-                            ]);
-                            $insertCount++;
-                        }
+                        // Remove registro existente para este dia/usuário para permitir atualização (evita duplicados)
+                        $stmtDelete->execute([$user['id'], $event['date']]);
+
+                        // Inserir novo registro
+                        $stmtInsert->execute([
+                            $user['id'],
+                            $event['date'],
+                            $event['shift'],
+                            ''
+                        ]);
+                        $insertCount++;
                     }
                 }
                 
@@ -441,7 +466,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <input type="hidden" name="action" value="import">
                                 <input type="hidden" name="month" value="<?= $importMonth ?>">
                                 <input type="hidden" name="year" value="<?= $importYear ?>">
-                                <input type="hidden" name="schedule_data" value="<?= htmlspecialchars(json_encode($previewData)) ?>">
+                                <?php 
+                                    $jsonData = json_encode($previewData, JSON_UNESCAPED_UNICODE);
+                                    if ($jsonData === false) {
+                                        // Fallback de segurança caso ainda haja caracteres inválidos
+                                        $jsonData = json_encode($previewData, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+                                    }
+                                ?>
+                                <input type="hidden" name="schedule_data" value="<?= htmlspecialchars($jsonData) ?>">
 
                                 <div class="flex gap-3">
                                     <button type="button" onclick="location.reload()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
