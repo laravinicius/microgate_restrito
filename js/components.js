@@ -1,7 +1,6 @@
 async function loadComponents() {
     const components = [
         { id: 'header-placeholder', file: './components/header.html' },
-        { id: 'footer-placeholder', file: './components/footer.html' }
     ];
 
     for (const comp of components) {

@@ -103,11 +103,6 @@ if (!empty($_GET['error'])) {
                                 </button>
                             </form>
                         </div>
-
-                        <!-- Footer do Card -->
-                        <div class="px-8 py-4 bg-white/5 border-t border-white/10 text-center text-xs text-gray-500">
-                            Acesso exclusivo para administradores
-                        </div>
                     </div>
 
                     <!-- Mensagem de Segurança -->
@@ -117,7 +112,6 @@ if (!empty($_GET['error'])) {
                 </div>
             </main>
 
-            <footer id="footer-placeholder" class="bg-brand-dark border-t border-white/10"></footer>
         </div>
     </div>
 </body>
