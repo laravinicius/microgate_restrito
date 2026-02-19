@@ -27,5 +27,6 @@ $options = [
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-     throw new \PDOException($e->getMessage(), (int)$e->getCode());
+     error_log("Erro de conexão: " . $e->getMessage());
+     die("Erro interno ao conectar ao banco de dados.");
 }

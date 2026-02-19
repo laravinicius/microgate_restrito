@@ -9,6 +9,10 @@ if (empty($_SESSION['user_id']) || $_SESSION['is_admin'] !== 1) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die('Ação não autorizada (CSRF Token Inválido)');
+    }
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 

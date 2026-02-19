@@ -203,7 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     $messageType = 'success';
                     
                     if (!empty($unknown)) {
-                        $message .= '<br><strong>Aviso:</strong> ' . count($unknown) . ' técnico(s) não foram encontrados no sistema: ' . implode(', ', $unknown);
+                        $escapedUnknown = array_map('htmlspecialchars', $unknown);
+                        $message .= '<br><strong>Aviso:</strong> ' . count($unknown) . ' técnico(s) não foram encontrados no sistema: ' . implode(', ', $escapedUnknown);
                         $messageType = 'warning';
                     }
                 } else {

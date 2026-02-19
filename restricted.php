@@ -14,12 +14,18 @@ if ($_SESSION['is_admin'] !== 1) {
     exit;
 }
 
+// Gerar token CSRF se não existir
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Lógica para Deletar Usuário
-if (isset($_GET['delete'])) {
+if (isset($_GET['delete']) && isset($_GET['token'])) {
     $id_to_delete = (int)$_GET['delete'];
+    $token = $_GET['token'];
     
-    // Impede que o admin delete a si próprio
-    if ($id_to_delete !== $_SESSION['user_id']) {
+    // Valida token e impede que o admin delete a si próprio
+    if ($token === $_SESSION['csrf_token'] && $id_to_delete !== $_SESSION['user_id']) {
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$id_to_delete]);
         header('Location: restricted.php?msg=deleted');
@@ -126,6 +132,7 @@ $usuarios = $stmt->fetchAll();
                             Cadastrar Novo Usuário
                         </h2>
                         <form action="cadastro_usuario_post.php" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
                                 <input type="text" name="username" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Usuário" required>
@@ -183,7 +190,7 @@ $usuarios = $stmt->fetchAll();
                                                 Editar
                                             </button>
                                             <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                                <a href="?delete=<?= $user['id'] ?>" onclick="return confirm('Tem certeza que deseja excluir este usuário?')" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
+                                                <a href="?delete=<?= $user['id'] ?>&token=<?= $_SESSION['csrf_token'] ?>" onclick="return confirm('Tem certeza que deseja excluir este usuário?')" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                     Excluir
                                                 </a>
