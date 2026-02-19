@@ -88,8 +88,8 @@ $usuarios = $stmt->fetchAll();
                     </div>
                     <?php if (isset($_GET['msg'])): ?>
                         <div class="mb-6 bg-green-500/10 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
-                            <i data-lucide="check-circle" class="w-5 h-5 text-gray-400"></i>
-                            <p class="text-gray-400">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                            <p class="text-green-400">
                                 <?= match($_GET['msg']) {
                                     'deleted' => 'Usuário excluído com sucesso.',
                                     'user_updated' => 'Usuário atualizado com sucesso.',
