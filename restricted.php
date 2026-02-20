@@ -21,13 +21,18 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Lógica para Deletar Usuário
-if ($isAdmin && isset($_GET['delete']) && isset($_GET['token'])) {
-    $id_to_delete = (int)$_GET['delete'];
-    $token = $_GET['token'];
-    
-    // Valida token e impede que o admin delete a si próprio
-    if ($token === $_SESSION['csrf_token'] && $id_to_delete !== $_SESSION['user_id']) {
+// Lógica para deletar usuário via POST (evita ação destrutiva por GET)
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_user') {
+    $id_to_delete = (int)($_POST['delete_user_id'] ?? 0);
+    $token = (string)($_POST['csrf_token'] ?? '');
+
+    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+        header('Location: restricted.php?error=csrf');
+        exit;
+    }
+
+    // Impede que o admin delete a si próprio
+    if ($id_to_delete > 0 && $id_to_delete !== (int)$_SESSION['user_id']) {
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$id_to_delete]);
         header('Location: restricted.php?msg=deleted');
@@ -106,6 +111,8 @@ $usuarios = $stmt->fetchAll();
                                     'username_invalid' => 'Nome de usuário inválido (mínimo 3 caracteres).',
                                     'username_exists' => 'Este nome de usuário já está em uso.',
                                     'password_invalid' => 'Senha deve ter pelo menos 6 caracteres.',
+                                    'invalid_role' => 'Nível de acesso inválido.',
+                                    'csrf' => 'Sessão expirada ou requisição inválida. Tente novamente.',
                                     'db_error' => 'Erro ao atualizar usuário. Tente novamente.',
                                     default => 'Ocorreu um erro. Tente novamente.'
                                 } ?>
@@ -209,10 +216,15 @@ $usuarios = $stmt->fetchAll();
                                                 Editar
                                             </button>
                                             <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                                <a href="?delete=<?= $user['id'] ?>&token=<?= $_SESSION['csrf_token'] ?>" onclick="return confirm('Tem certeza que deseja excluir este usuário?')" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
-                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                    Excluir
-                                                </a>
+                                                <form method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?')" class="inline-flex">
+                                                    <input type="hidden" name="action" value="delete_user">
+                                                    <input type="hidden" name="delete_user_id" value="<?= (int)$user['id'] ?>">
+                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                                                    <button type="submit" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
+                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                        Excluir
+                                                    </button>
+                                                </form>
                                             <?php else: ?>
                                                 <span class="text-gray-500 italic text-xs">Sua conta</span>
                                             <?php endif; ?>
@@ -237,6 +249,7 @@ $usuarios = $stmt->fetchAll();
             </h3>
             <form action="edit_user_post.php" method="POST" id="editForm" class="space-y-4">
                 <input type="hidden" name="user_id" id="editUserId" value="">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>

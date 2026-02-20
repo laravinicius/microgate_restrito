@@ -9,9 +9,13 @@ if (empty($_SESSION['user_id'])) {
 }
 
 // 2. Se NÃO for administrador, redireciona para escala.php
-if ($_SESSION['is_admin'] !== 1) {
+if ((int)$_SESSION['is_admin'] !== 1) {
     header('Location: escala.php');
     exit;
+}
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $message = '';
@@ -35,18 +39,27 @@ function safeToUtf8($str) {
 
 // Processar upload do CSV
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
+    $csrfToken = (string)($_POST['csrf_token'] ?? '');
+    if (!hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+        $message = 'Ação não autorizada. Recarregue a página e tente novamente.';
+        $messageType = 'error';
+    } else {
     $file = $_FILES['schedule_file'];
     
     // Validações
     if ($file['error'] !== UPLOAD_ERR_OK) {
         $message = 'Erro ao fazer upload do arquivo.';
         $messageType = 'error';
-    } elseif (!in_array($file['type'], ['text/csv', 'text/plain', 'application/vnd.ms-excel'])) {
+    } elseif (strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION)) !== 'csv') {
         $message = 'Formato inválido. Use arquivos CSV.';
         $messageType = 'error';
     } else {
         // Processar o CSV
         $handle = fopen($file['tmp_name'], 'r');
+        if (!$handle) {
+            $message = 'Não foi possível abrir o arquivo enviado.';
+            $messageType = 'error';
+        } else {
         
         // Tenta detectar o separador (ponto-e-vírgula ou vírgula)
         $firstLine = fgets($handle);
@@ -239,10 +252,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
             }
         }
     }
+    }
+    }
 }
 
 // Processar importação
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'import') {
+    $csrfToken = (string)($_POST['csrf_token'] ?? '');
+    if (!hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+        $message = 'Ação não autorizada. Recarregue a página e tente novamente.';
+        $messageType = 'error';
+    } else {
     $month = (int)($_POST['month'] ?? 0);
     $year = (int)($_POST['year'] ?? 0);
     $scheduleJson = $_POST['schedule_data'] ?? '[]';
@@ -301,10 +321,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 
             } catch (Exception $e) {
                 $pdo->rollBack();
-                $message = 'Erro ao importar: ' . $e->getMessage();
+                error_log('Erro em import_schedules.php: ' . $e->getMessage());
+                $message = 'Erro interno ao importar os dados.';
                 $messageType = 'error';
             }
         }
+    }
     }
 }
 ?><!DOCTYPE html>
@@ -406,14 +428,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </div>
 
                             <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-300 mb-3">Selecione o arquivo CSV</label>
                                     <div class="relative">
-                                        <input type="file" name="schedule_file" accept=".csv,.xlsx,.xls" required class="hidden" id="file-input" onchange="updateFileName(this)">
+                                        <input type="file" name="schedule_file" accept=".csv" required class="hidden" id="file-input" onchange="updateFileName(this)">
                                         <label for="file-input" class="block w-full bg-white/5 border-2 border-dashed border-white/20 rounded-lg p-8 text-center cursor-pointer hover:bg-white/10 transition">
                                             <i data-lucide="file-up" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
                                             <p class="text-white font-medium">Clique para selecionar ou arraste o arquivo</p>
-                                            <p class="text-gray-400 text-sm mt-1">CSV, XLSX ou XLS</p>
+                                            <p class="text-gray-400 text-sm mt-1">CSV</p>
                                         </label>
                                         <p id="file-name" class="text-gray-400 text-sm mt-2"></p>
                                     </div>
@@ -466,6 +489,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <input type="hidden" name="action" value="import">
                                 <input type="hidden" name="month" value="<?= $importMonth ?>">
                                 <input type="hidden" name="year" value="<?= $importYear ?>">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                 <?php 
                                     $jsonData = json_encode($previewData, JSON_UNESCAPED_UNICODE);
                                     if ($jsonData === false) {

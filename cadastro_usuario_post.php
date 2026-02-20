@@ -3,13 +3,14 @@
 require __DIR__ . '/bootstrap.php';
 
 // Segurança: Apenas admin logado pode cadastrar
-if (empty($_SESSION['user_id']) || $_SESSION['is_admin'] !== 1) {
+if (empty($_SESSION['user_id']) || (int)$_SESSION['is_admin'] !== 1) {
     header('Location: login.php');
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    $csrfToken = (string)($_POST['csrf_token'] ?? '');
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
         die('Ação não autorizada (CSRF Token Inválido)');
     }
 
@@ -28,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Nome de usuário deve ter pelo menos 3 caracteres!';
     } elseif (strlen($password) < 6) {
         $error = 'Senha deve ter pelo menos 6 caracteres!';
+    } elseif (!in_array($is_admin, [0, 1, 2], true)) {
+        $error = 'Nível de acesso inválido!';
     } else {
         // Verifica se username já existe
         $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
@@ -50,6 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$username, $hash, $is_admin]);
         echo "<script>alert('Usuário criado com sucesso!'); window.location.href='restricted.php';</script>";
     } catch (PDOException $e) {
-        echo "<script>alert('Erro ao criar usuário: " . addslashes($e->getMessage()) . "'); window.location.href='restricted.php';</script>";
+        error_log('Erro em cadastro_usuario_post.php: ' . $e->getMessage());
+        echo "<script>alert('Erro ao criar usuário. Tente novamente.'); window.location.href='restricted.php';</script>";
     }
+} else {
+    header('Location: restricted.php');
+    exit;
 }

@@ -3,10 +3,34 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: /login.php');
+    exit;
+}
+
+$maxAttempts = 8;
+$windowSeconds = 15 * 60;
+$now = time();
+
+if (!isset($_SESSION['login_rate']) || !is_array($_SESSION['login_rate'])) {
+    $_SESSION['login_rate'] = ['count' => 0, 'window_start' => $now];
+}
+
+$rate = &$_SESSION['login_rate'];
+if (($now - (int)$rate['window_start']) > $windowSeconds) {
+    $rate = ['count' => 0, 'window_start' => $now];
+}
+
+if ((int)$rate['count'] >= $maxAttempts) {
+    header('Location: /login.php?error=2');
+    exit;
+}
+
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if ($username === '' || $password === '') {
+    $rate['count']++;
     header('Location: /login.php?error=1');
     exit;
 }
@@ -16,11 +40,13 @@ $stmt->execute([$username]);
 $user = $stmt->fetch();
 
 if (!$user || (int)$user['is_active'] !== 1 || !password_verify($password, $user['password_hash'])) {
+    $rate['count']++;
     header('Location: /login.php?error=1');
     exit;
 }
 
 session_regenerate_id(true);
+unset($_SESSION['login_rate']);
 $_SESSION['user_id'] = (int)$user['id'];
 $_SESSION['username'] = $user['username'];
 $_SESSION['is_admin'] = (int)$user['is_admin'];

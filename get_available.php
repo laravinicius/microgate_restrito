@@ -24,6 +24,7 @@ try {
 
     echo json_encode(['date' => $date, 'available' => $rows]);
 } catch (PDOException $e) {
+    error_log('Erro em get_available.php: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => 'DB error', 'message' => $e->getMessage()]);
+    echo json_encode(['error' => 'DB error']);
 }

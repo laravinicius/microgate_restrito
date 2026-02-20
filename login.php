@@ -1,7 +1,12 @@
 <?php
+require __DIR__ . '/bootstrap.php';
 
 if (!empty($_SESSION['user_id'])) {
-    header('Location: restricted.php');
+    if ((int)($_SESSION['is_admin'] ?? 0) >= 1) {
+        header('Location: restricted.php');
+    } else {
+        header('Location: escala.php');
+    }
     exit;
 }
 
@@ -11,6 +16,9 @@ if (!empty($_GET['error'])) {
     switch ($_GET['error']) {
         case '1':
             $error_msg = 'Usuário ou senha inválidos. Verifique suas credenciais.';
+            break;
+        case '2':
+            $error_msg = 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
             break;
         default:
             $error_msg = 'Erro ao efetuar login.';
