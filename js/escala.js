@@ -1,5 +1,5 @@
 // js/escala.js
-// Mobile-first calendar for 1 or 2 months (mês atual; e a partir do dia 15 libera também o próximo mês)
+// Mobile-first calendar for 1 or 2 months (mês atual; e libera o próximo mês 7 dias antes do dia 1)
 
 (async function(){
     const wrap = document.getElementById('calendar-wrap');
@@ -11,7 +11,9 @@
     const targetYear = now.getFullYear();
     const targetMonth = now.getMonth(); // 0 = Jan, 1 = Fev, 2 = Mar, etc.
 
-    const allowNextMonth = now.getDate() >= 15;
+    const daysInCurrentMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const releaseDay = daysInCurrentMonth - 6; // 7 dias antes do dia 1 do próximo mês
+    const allowNextMonth = now.getDate() >= releaseDay;
 
     // Range de busca
     const start = new Date(targetYear, targetMonth, 1);
@@ -71,7 +73,7 @@
     // Render: mês atual
     wrap.appendChild(renderMonth(new Date(targetYear, targetMonth, 1), eventsByDate, holidaysByDate));
 
-    // Render: próximo mês (somente se >= 15)
+    // Render: próximo mês (somente nos últimos 7 dias do mês atual)
     if (allowNextMonth) {
         wrap.appendChild(renderMonth(new Date(targetYear, targetMonth + 1, 1), eventsByDate, holidaysByDate));
     }
