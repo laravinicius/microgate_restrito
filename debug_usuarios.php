@@ -38,6 +38,7 @@ $namesToTest = [
     <link rel="stylesheet" href="./css/output.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./js/theme.js"></script>
+    <?php require __DIR__ . '/components/google-analytics.php'; ?>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }

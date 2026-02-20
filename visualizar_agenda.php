@@ -48,6 +48,7 @@ $tech_name = htmlspecialchars($user['username']);
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./js/theme.js"></script>
     <script src="./js/components.js" defer></script>
+    <?php require __DIR__ . '/components/google-analytics.php'; ?>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
