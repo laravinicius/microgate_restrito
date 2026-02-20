@@ -131,7 +131,7 @@
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         headerRow.className = 'bg-white/5 border-b border-white/10';
-        ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].forEach(d => {
+        ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].forEach(d => {
             const th = document.createElement('th');
             th.className = 'px-2 md:px-4 py-2 md:py-3 text-center text-[8px] md:text-xs font-semibold text-gray-400 uppercase';
             th.textContent = d;
@@ -142,7 +142,7 @@
 
         // Body
         const tbody = document.createElement('tbody');
-        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+        const firstDay = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7;
         const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
         let currentCell = 0;
