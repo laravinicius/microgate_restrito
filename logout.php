@@ -2,6 +2,12 @@
 declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/auth_audit.php';
+
+$userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+$username = isset($_SESSION['username']) ? (string)$_SESSION['username'] : 'desconhecido';
+
+logAuthEvent($pdo, 'logout', $userId, $username, true);
 
 $_SESSION = [];
 

@@ -2,11 +2,15 @@
 declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/auth_audit.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /login.php');
     exit;
 }
+
+$username = trim($_POST['username'] ?? '');
+$password = $_POST['password'] ?? '';
 
 $maxAttempts = 8;
 $windowSeconds = 15 * 60;
@@ -22,15 +26,14 @@ if (($now - (int)$rate['window_start']) > $windowSeconds) {
 }
 
 if ((int)$rate['count'] >= $maxAttempts) {
+    logAuthEvent($pdo, 'login_rate_limited', null, $username, false, 'Muitas tentativas em janela de 15 minutos');
     header('Location: /login.php?error=2');
     exit;
 }
 
-$username = trim($_POST['username'] ?? '');
-$password = $_POST['password'] ?? '';
-
 if ($username === '' || $password === '') {
     $rate['count']++;
+    logAuthEvent($pdo, 'login_failed', null, $username, false, 'Credenciais ausentes');
     header('Location: /login.php?error=1');
     exit;
 }
@@ -41,6 +44,7 @@ $user = $stmt->fetch();
 
 if (!$user || (int)$user['is_active'] !== 1 || !password_verify($password, $user['password_hash'])) {
     $rate['count']++;
+    logAuthEvent($pdo, 'login_failed', $user ? (int)$user['id'] : null, $username, false, 'Usuário/senha inválidos ou conta inativa');
     header('Location: /login.php?error=1');
     exit;
 }
@@ -50,6 +54,7 @@ unset($_SESSION['login_rate']);
 $_SESSION['user_id'] = (int)$user['id'];
 $_SESSION['username'] = $user['username'];
 $_SESSION['is_admin'] = (int)$user['is_admin'];
+logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 
 // Redireciona para a página apropriada baseado no tipo de usuário
 if ((int)$user['is_admin'] >= 1) {

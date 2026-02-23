@@ -135,6 +135,18 @@ $usuarios = $stmt->fetchAll();
                                 <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
                             </div>
                         </a>
+                        <a href="access_logs.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                        Logs de Acesso
+                                    </h3>
+                                    <p class="text-gray-300 text-sm">Auditoria de login, logout e tentativas falhas</p>
+                                </div>
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
+                            </div>
+                        </a>
                     </div>
 
                     <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
