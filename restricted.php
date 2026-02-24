@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/forgot_password_requests.php';
 
 // 1. Bloqueia acesso se não estiver logado
 if (empty($_SESSION['user_id'])) {
@@ -15,6 +16,7 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
 }
 
 $isAdmin = ((int)$_SESSION['is_admin'] === 1);
+ensurePasswordResetRequestsTable($pdo);
 
 // Gerar token CSRF se não existir
 if (empty($_SESSION['csrf_token'])) {
@@ -40,9 +42,76 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? ''
     }
 }
 
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_reset_handled') {
+    $requestId = (int)($_POST['request_id'] ?? 0);
+    $token = (string)($_POST['csrf_token'] ?? '');
+
+    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+        header('Location: restricted.php?error=csrf');
+        exit;
+    }
+
+    if ($requestId > 0) {
+        $markStmt = $pdo->prepare(
+            "UPDATE password_reset_requests
+             SET status = 'handled', handled_at = NOW(), handled_by = :handled_by
+             WHERE id = :id AND status = 'pending'"
+        );
+        $markStmt->execute([
+            ':handled_by' => (int)$_SESSION['user_id'],
+            ':id' => $requestId,
+        ]);
+        header('Location: restricted.php?msg=reset_handled');
+        exit;
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_reset_request') {
+    $requestId = (int)($_POST['request_id'] ?? 0);
+    $token = (string)($_POST['csrf_token'] ?? '');
+
+    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+        header('Location: restricted.php?error=csrf');
+        exit;
+    }
+
+    if ($requestId > 0) {
+        $deleteStmt = $pdo->prepare(
+            "DELETE FROM password_reset_requests
+             WHERE id = :id"
+        );
+        $deleteStmt->execute([':id' => $requestId]);
+        header('Location: restricted.php?msg=reset_deleted');
+        exit;
+    }
+}
+
 // Busca a lista de usuários para exibir na tabela
 $stmt = $pdo->query("SELECT id, username, is_admin FROM users ORDER BY id DESC");
 $usuarios = $stmt->fetchAll();
+
+$resetStmt = $pdo->query(
+    "SELECT
+        prr.id,
+        prr.username,
+        prr.phone,
+        prr.status,
+        prr.requested_at,
+        prr.handled_at,
+        handler.username AS handled_by_username
+     FROM password_reset_requests prr
+     LEFT JOIN users handler ON handler.id = prr.handled_by
+     ORDER BY prr.requested_at DESC
+     LIMIT 30"
+);
+$resetRequests = $resetStmt->fetchAll();
+
+$pendingResetCount = 0;
+foreach ($resetRequests as $request) {
+    if (($request['status'] ?? '') === 'pending') {
+        $pendingResetCount++;
+    }
+}
 ?><!DOCTYPE html>
 <html lang="pt-br" class="dark">
 
@@ -99,6 +168,8 @@ $usuarios = $stmt->fetchAll();
                                 <?= match($_GET['msg']) {
                                     'deleted' => 'Usuário excluído com sucesso.',
                                     'user_updated' => 'Usuário atualizado com sucesso.',
+                                    'reset_handled' => 'Solicitação de reset marcada como atendida.',
+                                    'reset_deleted' => 'Notificação de reset excluída com sucesso.',
                                     default => 'Operação realizada com sucesso.'
                                 } ?>
                             </p>
@@ -147,6 +218,73 @@ $usuarios = $stmt->fetchAll();
                                 <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
                             </div>
                         </a>
+                    </div>
+
+                    <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
+                        <div class="flex items-start justify-between gap-4 mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                                    <i data-lucide="bell-ring" class="w-6 h-6"></i>
+                                    Notificações de Reset de Senha
+                                </h2>
+                                <p class="text-gray-400 text-sm mt-2">Pedidos feitos na tela de "Esqueci a senha". O contato com o usuário é manual.</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold <?= $pendingResetCount > 0 ? 'bg-yellow-500/20 text-yellow-300' : 'bg-green-500/20 text-green-300' ?>">
+                                <?= $pendingResetCount ?> pendente(s)
+                            </span>
+                        </div>
+
+                        <?php if (empty($resetRequests)): ?>
+                            <div class="text-gray-400 text-sm border border-white/10 rounded-lg p-4">Nenhuma solicitação registrada até o momento.</div>
+                        <?php else: ?>
+                            <div class="space-y-3">
+                                <?php foreach ($resetRequests as $request): ?>
+                                    <?php $isPending = ($request['status'] ?? '') === 'pending'; ?>
+                                    <div class="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 <?= $isPending ? 'border-yellow-500/40 bg-yellow-500/5' : 'border-white/10 bg-white/5' ?>">
+                                        <div class="space-y-1">
+                                            <p class="text-white text-sm md:text-base">
+                                                <strong>Usuário:</strong> <?= htmlspecialchars((string)$request['username']) ?>
+                                                <span class="text-gray-400">|</span>
+                                                <strong>Celular:</strong> <?= htmlspecialchars((string)$request['phone']) ?>
+                                            </p>
+                                            <p class="text-xs text-gray-400">
+                                                Solicitado em: <?= htmlspecialchars((string)$request['requested_at']) ?>
+                                                <?php if (!$isPending): ?>
+                                                    | Atendido em: <?= htmlspecialchars((string)$request['handled_at']) ?>
+                                                    <?php if (!empty($request['handled_by_username'])): ?>
+                                                        por <?= htmlspecialchars((string)$request['handled_by_username']) ?>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <?php if ($isPending): ?>
+                                                <form method="POST" class="inline-flex">
+                                                    <input type="hidden" name="action" value="mark_reset_handled">
+                                                    <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
+                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                                                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
+                                                        <i data-lucide="check-check" class="w-4 h-4"></i>
+                                                        Marcar como atendida
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <span class="text-xs font-semibold bg-green-500/20 text-green-300 px-3 py-1 rounded-full">Atendida</span>
+                                            <?php endif; ?>
+                                            <form method="POST" class="inline-flex" onsubmit="return confirm('Tem certeza que deseja apagar esta notificação?')">
+                                                <input type="hidden" name="action" value="delete_reset_request">
+                                                <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    Apagar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">

@@ -24,6 +24,30 @@ if (!empty($_GET['error'])) {
             $error_msg = 'Erro ao efetuar login.';
     }
 }
+
+$forgot_error_msg = '';
+if (!empty($_GET['forgot_error'])) {
+    switch ($_GET['forgot_error']) {
+        case 'invalid_username':
+            $forgot_error_msg = 'Informe um usuário válido para solicitar o reset.';
+            break;
+        case 'invalid_phone':
+            $forgot_error_msg = 'Informe um número de celular válido para contato.';
+            break;
+        case 'user_not_found':
+            $forgot_error_msg = 'Usuário não encontrado ou inativo.';
+            break;
+        default:
+            $forgot_error_msg = 'Não foi possível registrar sua solicitação.';
+    }
+}
+
+$forgot_success_msg = '';
+if (!empty($_GET['forgot_msg']) && $_GET['forgot_msg'] === 'requested') {
+    $forgot_success_msg = 'Solicitação enviada com sucesso. A equipe entrará em contato no celular informado.';
+}
+
+$show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" class="dark">
@@ -72,6 +96,18 @@ if (!empty($_GET['error'])) {
                                     <div class="text-sm"><?php echo htmlspecialchars($error_msg); ?></div>
                                 </div>
                             <?php endif; ?>
+                            <?php if (!empty($forgot_success_msg)): ?>
+                                <div class="mb-4 p-3 rounded bg-green-600/95 text-white flex items-center gap-3">
+                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                    <div class="text-sm"><?php echo htmlspecialchars($forgot_success_msg); ?></div>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($forgot_error_msg)): ?>
+                                <div class="mb-4 p-3 rounded bg-red-600/95 text-white flex items-center gap-3">
+                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                    <div class="text-sm"><?php echo htmlspecialchars($forgot_error_msg); ?></div>
+                                </div>
+                            <?php endif; ?>
                             <form method="post" action="login_post.php" class="space-y-5">
                                 <!-- Campo Username -->
                                 <div>
@@ -111,6 +147,50 @@ if (!empty($_GET['error'])) {
                                     Entrar
                                 </button>
                             </form>
+
+                            <div class="mt-8 border-t border-white/10 pt-6">
+                                <button
+                                    type="button"
+                                    id="toggle-forgot-password"
+                                    class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                                    aria-expanded="<?= $show_forgot_panel ? 'true' : 'false' ?>"
+                                    aria-controls="forgot-password-panel">
+                                    <i data-lucide="key-round" class="w-5 h-5"></i>
+                                    Esqueci minha senha
+                                </button>
+
+                                <div id="forgot-password-panel" class="mt-4 <?= $show_forgot_panel ? '' : 'hidden' ?>">
+                                    <p class="text-gray-400 text-sm mb-4">Informe seu usuário e celular para solicitar o reset manual da senha.</p>
+                                    <form method="post" action="forgot_password_request_post.php" class="space-y-4">
+                                        <div>
+                                            <label for="forgot-username" class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
+                                            <input
+                                                type="text"
+                                                id="forgot-username"
+                                                name="username"
+                                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition"
+                                                placeholder="usuário"
+                                                required>
+                                        </div>
+                                        <div>
+                                            <label for="forgot-phone" class="block text-sm font-medium text-gray-300 mb-2">Celular para contato</label>
+                                            <input
+                                                type="tel"
+                                                id="forgot-phone"
+                                                name="phone"
+                                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition"
+                                                placeholder="(00) 00000-0000"
+                                                required>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
+                                            <i data-lucide="send" class="w-5 h-5"></i>
+                                            Enviar Solicitação
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -123,6 +203,17 @@ if (!empty($_GET['error'])) {
 
         </div>
     </div>
+    <script>
+        const forgotToggleBtn = document.getElementById('toggle-forgot-password');
+        const forgotPanel = document.getElementById('forgot-password-panel');
+
+        if (forgotToggleBtn && forgotPanel) {
+            forgotToggleBtn.addEventListener('click', function () {
+                const isHidden = forgotPanel.classList.toggle('hidden');
+                forgotToggleBtn.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
+            });
+        }
+    </script>
 </body>
 
 </html>
