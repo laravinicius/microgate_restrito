@@ -38,11 +38,17 @@ if ($username === '' || $password === '') {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, username, full_name, password_hash, is_admin, is_active FROM users WHERE username = ? LIMIT 1");
-$stmt->execute([$username]);
-$user = $stmt->fetch();
+try {
+    $stmt = $pdo->prepare("SELECT id, username, full_name, password_hash, is_admin, is_active FROM users WHERE username = ? LIMIT 1");
+    $stmt->execute([$username]);
+    $user = $stmt->fetch();
+} catch (PDOException $e) {
+    error_log("Erro de banco de dados no login: " . $e->getMessage());
+    header('Location: /login.php?error=1'); // Redireciona com erro genérico para segurança
+    exit;
+}
 
-if (!$user || (int)$user['is_active'] !== 1 || !password_verify($password, $user['password_hash'])) {
+if (!$user || (int)($user['is_active'] ?? 0) !== 1 || !password_verify($password, $user['password_hash'])) {
     $rate['count']++;
     logAuthEvent($pdo, 'login_failed', $user ? (int)$user['id'] : null, $username, false, 'Usuário/senha inválidos ou conta inativa');
     header('Location: /login.php?error=1');
