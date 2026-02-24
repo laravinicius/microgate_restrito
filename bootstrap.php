@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+// Define o fuso horário para as funções de data do PHP
+date_default_timezone_set('America/Sao_Paulo');
+
 if (!defined('APP_ROOT')) {
     define('APP_ROOT', __DIR__);
 }
@@ -25,3 +28,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once APP_ROOT . '/config/database.php';
+
+// Sincroniza o fuso horário da sessão do Banco de Dados com o horário de Brasília
+$pdo->exec("SET time_zone = '-03:00'");
