@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $user_id = (int)$_POST['user_id'];
 $username = trim($_POST['username'] ?? '');
+$full_name = trim($_POST['full_name'] ?? '');
 $new_password = $_POST['new_password'] ?? '';
 $is_admin = (int)($_POST['is_admin'] ?? 0);
 $csrf_token = (string)($_POST['csrf_token'] ?? '');
@@ -25,7 +26,7 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrf_token)) {
 }
 
 // Validações
-if ($user_id <= 0 || empty($username) || strlen($username) < 3) {
+if ($user_id <= 0 || empty($username) || strlen($username) < 3 || empty($full_name)) {
     header('Location: restricted.php?error=username_invalid');
     exit;
 }
@@ -52,12 +53,12 @@ try {
             exit;
         }
         $password_hash = password_hash($new_password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, password_hash = ?, is_admin = ? WHERE id = ?");
-        $stmt->execute([$username, $password_hash, $is_admin, $user_id]);
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, full_name = ?, password_hash = ?, is_admin = ? WHERE id = ?");
+        $stmt->execute([$username, $full_name, $password_hash, $is_admin, $user_id]);
     } else {
-        // Só atualiza username e is_admin, mantém a senha
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, is_admin = ? WHERE id = ?");
-        $stmt->execute([$username, $is_admin, $user_id]);
+        // Só atualiza username, full_name e is_admin, mantém a senha
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, full_name = ?, is_admin = ? WHERE id = ?");
+        $stmt->execute([$username, $full_name, $is_admin, $user_id]);
     }
 
     header('Location: restricted.php?msg=user_updated');

@@ -87,7 +87,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? ''
 }
 
 // Busca a lista de usuários para exibir na tabela
-$stmt = $pdo->query("SELECT id, username, is_admin FROM users ORDER BY id DESC");
+$stmt = $pdo->query("SELECT id, username, full_name, is_admin FROM users ORDER BY id DESC");
 $usuarios = $stmt->fetchAll();
 
 $resetStmt = $pdo->query(
@@ -154,7 +154,7 @@ foreach ($resetRequests as $request) {
                                 <p class="text-gray-400"><?= $isAdmin ? 'Gestão de usuários e contas' : 'Visualização de Escalas' ?></p>
                         </div>
                         <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
-                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
+                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
                             <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm md:text-base">
                                 <i data-lucide="log-out" class="w-4 h-4"></i>
                                 Sair da Conta
@@ -299,6 +299,10 @@ foreach ($resetRequests as $request) {
                                 <input type="text" name="username" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Usuário" required>
                             </div>
                             <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Nome Completo</label>
+                                <input type="text" name="full_name" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Nome do Técnico" required>
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
                                 <input type="password" name="password" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••" required>
                             </div>
@@ -333,6 +337,7 @@ foreach ($resetRequests as $request) {
                                     <tr class="bg-white/5 border-b border-white/10">
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
                                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
+                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Completo</th>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
                                         <?php if ($isAdmin): ?>
                                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
@@ -349,6 +354,7 @@ foreach ($resetRequests as $request) {
                                                 <?= htmlspecialchars($user['username']) ?>
                                             </button>
                                         </td>
+                                        <td class="px-6 py-4 text-sm text-gray-300"><?= htmlspecialchars($user['full_name'] ?? '') ?></td>
                                         <td class="px-6 py-4 text-center text-sm">
                                             <span class="<?= $user['is_admin'] ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-500/20 text-gray-400' ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
                                                 <?php 
@@ -362,7 +368,7 @@ foreach ($resetRequests as $request) {
                                         </td>
                                         <?php if ($isAdmin): ?>
                                         <td class="px-6 py-4 text-center text-sm space-x-2 flex justify-center">
-                                            <button type="button" onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>', <?= $user['is_admin'] ?>)" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
+                                            <button type="button" onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>', '<?= htmlspecialchars($user['full_name'] ?? '') ?>', <?= $user['is_admin'] ?>)" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
                                                 <i data-lucide="edit" class="w-4 h-4"></i>
                                                 Editar
                                             </button>
@@ -408,6 +414,11 @@ foreach ($resetRequests as $request) {
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome Completo</label>
+                    <input type="text" name="full_name" id="editFullName" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" required>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Nova Senha (deixe vazio para manter)</label>
                     <input type="password" name="new_password" id="editPassword" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••">
                 </div>
@@ -436,9 +447,10 @@ foreach ($resetRequests as $request) {
     </div>
 
     <script>
-        function openEditModal(userId, username, isAdmin) {
+        function openEditModal(userId, username, fullName, isAdmin) {
             document.getElementById('editUserId').value = userId;
             document.getElementById('editUsername').value = username;
+            document.getElementById('editFullName').value = fullName;
             document.getElementById('editAdmin').value = isAdmin;
             document.getElementById('editModal').classList.remove('hidden');
         }

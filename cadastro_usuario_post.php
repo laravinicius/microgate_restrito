@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $username = trim($_POST['username']);
+    $full_name = trim($_POST['full_name'] ?? '');
     $password = $_POST['password'];
     $is_admin = (int)($_POST['is_admin'] ?? 0);
 
@@ -23,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validações
     if (empty($username)) {
         $error = 'Nome de usuário não pode estar vazio!';
+    } elseif (empty($full_name)) {
+        $error = 'Nome completo não pode estar vazio!';
     } elseif (empty($password)) {
         $error = 'Senha não pode estar vazia!';
     } elseif (strlen($username) < 3) {
@@ -49,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Se passou em todas as validações, inserir o usuário
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, is_admin, is_active) VALUES (?, ?, ?, 1)");
-        $stmt->execute([$username, $hash, $is_admin]);
+        $stmt = $pdo->prepare("INSERT INTO users (username, full_name, password_hash, is_admin, is_active) VALUES (?, ?, ?, ?, 1)");
+        $stmt->execute([$username, $full_name, $hash, $is_admin]);
         echo "<script>alert('Usuário criado com sucesso!'); window.location.href='restricted.php';</script>";
     } catch (PDOException $e) {
         error_log('Erro em cadastro_usuario_post.php: ' . $e->getMessage());

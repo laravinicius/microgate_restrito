@@ -9,7 +9,7 @@ if (empty($_SESSION['user_id']) || $_SESSION['is_admin'] !== 1) {
 }
 
 // Obter todos os usuários do banco
-$stmt = $pdo->query('SELECT id, username FROM users ORDER BY username');
+$stmt = $pdo->query('SELECT id, username, full_name FROM users ORDER BY username');
 $allUsers = $stmt->fetchAll();
 
 // Nomes a testar (do CSV de abril)
@@ -58,7 +58,7 @@ $namesToTest = [
             <h2 style="color: white;">Usuários no Sistema</h2>
             <ul style="color: #d1d5db;">
                 <?php foreach ($allUsers as $user): ?>
-                    <li><strong><?= htmlspecialchars($user['username']) ?></strong> (ID: <?= $user['id'] ?>)</li>
+                    <li><strong><?= htmlspecialchars($user['full_name'] ?: $user['username']) ?></strong> (ID: <?= $user['id'] ?>)</li>
                 <?php endforeach; ?>
             </ul>
         </div>
@@ -77,12 +77,14 @@ $namesToTest = [
                 <?php foreach ($namesToTest as $csvName): ?>
                     <?php
                         $matched = null;
+                        $matchedFull = null;
                         $nameLower = strtolower(trim($csvName));
                         
                         // Tentativa 1: Match exato
                         foreach ($allUsers as $user) {
                             if (strtolower($user['username']) === $nameLower) {
                                 $matched = $user['username'];
+                                $matchedFull = $user['full_name'];
                                 break;
                             }
                         }
@@ -92,6 +94,7 @@ $namesToTest = [
                             foreach ($allUsers as $user) {
                                 if (strpos(strtolower($user['username']), $nameLower) === 0) {
                                     $matched = $user['username'];
+                                    $matchedFull = $user['full_name'];
                                     break;
                                 }
                             }
@@ -105,6 +108,7 @@ $namesToTest = [
                             foreach ($allUsers as $user) {
                                 if (strpos(strtolower($user['username']), $first) === 0) {
                                     $matched = $user['username'];
+                                    $matchedFull = $user['full_name'];
                                     break;
                                 }
                             }
@@ -117,6 +121,7 @@ $namesToTest = [
                                 $userCleaned = strtolower(preg_replace('/[^a-z0-9]/i', '', $user['username']));
                                 if ($userCleaned === $nameCleaned) {
                                     $matched = $user['username'];
+                                    $matchedFull = $user['full_name'];
                                     break;
                                 }
                             }
@@ -127,7 +132,7 @@ $namesToTest = [
                         <td class="<?= $matched ? 'match' : 'no-match' ?>">
                             <?= $matched ? '✓ SIM' : '✗ NÃO' ?>
                         </td>
-                        <td><?= $matched ? htmlspecialchars($matched) : '-' ?></td>
+                        <td><?= $matched ? htmlspecialchars($matchedFull ?: $matched) : '-' ?></td>
                         <td><?= $matched ? '✓ Importará com sucesso' : '✗ Será pulado' ?></td>
                     </tr>
                 <?php endforeach; ?>

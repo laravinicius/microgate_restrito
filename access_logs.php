@@ -20,14 +20,15 @@ $search = trim((string)($_GET['q'] ?? ''));
 $eventType = trim((string)($_GET['event'] ?? ''));
 $success = ($_GET['success'] ?? '') === '' ? '' : (string)$_GET['success'];
 
-$sql = "SELECT id, user_id, username, event_type, success, ip_address, user_agent, details, created_at
-        FROM auth_access_logs
+$sql = "SELECT l.id, l.user_id, l.username, l.event_type, l.success, l.ip_address, l.user_agent, l.details, l.created_at, u.full_name
+        FROM auth_access_logs l
+        LEFT JOIN users u ON l.user_id = u.id
         WHERE 1=1";
 $params = [];
 
 if ($search !== '') {
-    $sql .= " AND username LIKE :username";
-    $params[':username'] = '%' . $search . '%';
+    $sql .= " AND (l.username LIKE :q OR u.full_name LIKE :q)";
+    $params[':q'] = '%' . $search . '%';
 }
 
 if ($eventType !== '') {
@@ -40,7 +41,7 @@ if ($success === '0' || $success === '1') {
     $params[':success'] = (int)$success;
 }
 
-$sql .= " ORDER BY created_at DESC LIMIT 300";
+$sql .= " ORDER BY l.created_at DESC LIMIT 300";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll();
@@ -83,7 +84,7 @@ $logs = $stmt->fetchAll();
                             <p class="text-gray-400">Últimos 300 eventos de login, logout e falhas</p>
                         </div>
                         <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
-                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars((string)$_SESSION['username']) ?></strong></p>
+                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars((string)($_SESSION['full_name'] ?? $_SESSION['username'])) ?></strong></p>
                             <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-400 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm md:text-base">
                                 <i data-lucide="log-out" class="w-4 h-4"></i>
                                 Sair da Conta
@@ -103,7 +104,7 @@ $logs = $stmt->fetchAll();
                             type="text"
                             name="q"
                             value="<?= htmlspecialchars($search) ?>"
-                            placeholder="Filtrar por usuário"
+                            placeholder="Filtrar por usuário ou nome"
                             class="bg-white/5 border border-white/10 rounded px-3 py-2 text-white placeholder-gray-400"
                         >
                         <select name="event" class="bg-white/5 border border-white/10 rounded px-3 py-2 text-white">
@@ -126,6 +127,7 @@ $logs = $stmt->fetchAll();
                                 <tr class="bg-white/5 border-b border-white/10">
                                     <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">Data/Hora</th>
                                     <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">Usuário</th>
+                                    <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">Nome Completo</th>
                                     <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">Evento</th>
                                     <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">Status</th>
                                     <th class="px-4 py-3 text-left text-xs text-gray-400 uppercase">IP</th>
@@ -135,7 +137,7 @@ $logs = $stmt->fetchAll();
                             <tbody class="divide-y divide-white/10">
                                 <?php if (!$logs): ?>
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-gray-400">Nenhum evento encontrado.</td>
+                                        <td colspan="7" class="px-4 py-6 text-center text-gray-400">Nenhum evento encontrado.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($logs as $log): ?>
@@ -147,6 +149,7 @@ $logs = $stmt->fetchAll();
                                                     <span class="text-gray-400">(ID <?= (int)$log['user_id'] ?>)</span>
                                                 <?php endif; ?>
                                             </td>
+                                            <td class="px-4 py-3 text-sm text-gray-300"><?= htmlspecialchars((string)($log['full_name'] ?? '-')) ?></td>
                                             <td class="px-4 py-3 text-sm text-white"><?= htmlspecialchars($log['event_type']) ?></td>
                                             <td class="px-4 py-3 text-sm">
                                                 <?php if ((int)$log['success'] === 1): ?>

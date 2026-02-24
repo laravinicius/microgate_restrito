@@ -23,7 +23,7 @@ if ($user_id <= 0) {
 }
 
 // Valida se o user_id existe no banco de dados
-$stmt = $pdo->prepare("SELECT id, username FROM users WHERE id = ? LIMIT 1");
+$stmt = $pdo->prepare("SELECT id, username, full_name FROM users WHERE id = ? LIMIT 1");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 
@@ -32,7 +32,7 @@ if (!$user) {
     die('<div style="padding: 20px; color: #ef4444;">Técnico não encontrado.</div>');
 }
 
-$tech_name = htmlspecialchars($user['username']);
+$tech_name = htmlspecialchars($user['full_name'] ?: $user['username']);
 ?>
 
 <!DOCTYPE html>

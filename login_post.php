@@ -38,7 +38,7 @@ if ($username === '' || $password === '') {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT id, username, password_hash, is_admin, is_active FROM users WHERE username = ? LIMIT 1");
+$stmt = $pdo->prepare("SELECT id, username, full_name, password_hash, is_admin, is_active FROM users WHERE username = ? LIMIT 1");
 $stmt->execute([$username]);
 $user = $stmt->fetch();
 
@@ -53,6 +53,7 @@ session_regenerate_id(true);
 unset($_SESSION['login_rate']);
 $_SESSION['user_id'] = (int)$user['id'];
 $_SESSION['username'] = $user['username'];
+$_SESSION['full_name'] = $user['full_name'];
 $_SESSION['is_admin'] = (int)$user['is_admin'];
 logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 

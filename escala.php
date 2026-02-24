@@ -58,7 +58,7 @@ if ($_SESSION['is_admin'] === 1) {
                             <p class="text-gray-400">Consulte sua escala de trabalho</p>
                         </div>
                         <div class="flex flex-col items-start md:items-end gap-4">
-                            <p class="text-gray-300 text-sm"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
+                            <p class="text-gray-300 text-sm"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
                             <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-lg transition flex items-center gap-2 w-full md:w-auto justify-center md:justify-start text-sm md:text-base">
                                 <i data-lucide="log-out" class="w-4 h-4"></i>
                                 Sair da Conta

@@ -154,21 +154,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     $nameLower = strtolower(trim($name));
                     
                     // Tentativa 1: Match exato (case-insensitive)
-                    $stmt = $pdo->prepare('SELECT username FROM users WHERE LOWER(username) = ? LIMIT 1');
+                    $stmt = $pdo->prepare('SELECT username, full_name FROM users WHERE LOWER(username) = ? LIMIT 1');
                     $stmt->execute([$nameLower]);
                     $u = $stmt->fetch();
+                    $matchedFullName = null;
                     if ($u) {
                         $matched = $u['username'];
+                        $matchedFullName = $u['full_name'];
                     }
                     
                     // Tentativa 2: Match parcial com ponto (ex: paulo.h, paulo.j)
                     if (!$matched && strpos($nameLower, '.') !== false) {
                         // Nomes com pontos como "paulo.h"
-                        $stmt = $pdo->prepare('SELECT username FROM users WHERE LOWER(username) LIKE ? LIMIT 1');
+                        $stmt = $pdo->prepare('SELECT username, full_name FROM users WHERE LOWER(username) LIKE ? LIMIT 1');
                         $stmt->execute([$nameLower . '%']);
                         $u = $stmt->fetch();
                         if ($u) {
                             $matched = $u['username'];
+                            $matchedFullName = $u['full_name'];
                         }
                     }
                     
@@ -178,11 +181,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                         $first = strtolower($parts[0]);
                         
                         if (!empty($first)) {
-                            $stmt = $pdo->prepare('SELECT username FROM users WHERE LOWER(username) LIKE ? LIMIT 1');
+                            $stmt = $pdo->prepare('SELECT username, full_name FROM users WHERE LOWER(username) LIKE ? LIMIT 1');
                             $stmt->execute([$first . '%']);
                             $u = $stmt->fetch();
                             if ($u) {
                                 $matched = $u['username'];
+                                $matchedFullName = $u['full_name'];
                             }
                         }
                     }
@@ -192,13 +196,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                         $nameCleaned = strtolower(preg_replace('/[^a-z0-9]/i', '', $name));
                         if (!empty($nameCleaned)) {
                             // Buscar todos os usuários e comparar com nome limpo
-                            $stmt = $pdo->query('SELECT username FROM users');
+                            $stmt = $pdo->query('SELECT username, full_name FROM users');
                             $allUsers = $stmt->fetchAll();
                             
                             foreach ($allUsers as $user) {
                                 $userCleaned = strtolower(preg_replace('/[^a-z0-9]/i', '', $user['username']));
                                 if ($userCleaned === $nameCleaned || strpos($userCleaned, substr($nameCleaned, 0, 5)) === 0) {
                                     $matched = $user['username'];
+                                    $matchedFullName = $user['full_name'];
                                     break;
                                 }
                             }
@@ -227,6 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                         $rows[] = [
                             'original_name' => $name,
                             'username' => $matched,
+                            'full_name' => $matchedFullName,
                             'schedule_count' => count($schedule),
                             'schedule' => $schedule
                         ];
@@ -476,7 +482,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                             <td class="px-6 py-4 text-sm text-white"><?= htmlspecialchars($tech['original_name']) ?></td>
                                             <td class="px-6 py-4 text-sm">
                                                 <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-medium inline-block">
-                                                    <?= htmlspecialchars($tech['username']) ?>
+                                                    <?= htmlspecialchars($tech['full_name'] ?: $tech['username']) ?>
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 text-center text-sm text-gray-300"><?= $tech['schedule_count'] ?></td>
