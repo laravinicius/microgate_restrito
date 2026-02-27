@@ -174,9 +174,12 @@ for ($r=2;$r<=$maxRow;$r++){
         $date = sprintf('%04d-%02d-%02d',$year,$month,$dayNum);
         // write CSV
         fputcsv($fhCsv, [$date, $matchedUsername, $shift, $cellVal]);
-        // write SQL using SELECT id FROM users WHERE username = '...'
-        $noteSql = addslashes($cellVal);
-        $line = "INSERT INTO schedules (user_id, date, shift, note) SELECT id, '$date', '$shift', '$noteSql' FROM users WHERE username = '$matchedUsername';\n";
+        // write SQL using SELECT id FROM users
+        $dateSql = $pdo->quote($date);
+        $shiftSql = $pdo->quote($shift);
+        $noteSql = $pdo->quote($cellVal);
+        $userSql = $pdo->quote($matchedUsername);
+        $line = "INSERT INTO schedules (user_id, date, shift, note) SELECT id, $dateSql, $shiftSql, $noteSql FROM users WHERE username = $userSql;\n";
         fwrite($fhSql, $line);
         $rowsInserted++;
     }
@@ -192,7 +195,4 @@ if (!empty($unknown)){
 }
 
 echo "Arquivos gerados: $outCsv , $outSql\n";
-
-$zip->close();
-
 exit(0);

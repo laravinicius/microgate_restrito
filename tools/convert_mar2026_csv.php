@@ -112,8 +112,11 @@ while (($row = fgetcsv($fh, 0, ';')) !== false) {
 
         $date = $info['date'];
         fputcsv($fout, [$date, $matched, $shift, $cell]);
-        $noteSql = addslashes($cell);
-        $line = "INSERT INTO schedules (user_id, date, shift, note) SELECT id, '$date', '$shift', '$noteSql' FROM users WHERE username = '$matched';\n";
+        $dateSql = $pdo->quote($date);
+        $shiftSql = $pdo->quote($shift);
+        $noteSql = $pdo->quote($cell);
+        $userSql = $pdo->quote($matched);
+        $line = "INSERT INTO schedules (user_id, date, shift, note) SELECT id, $dateSql, $shiftSql, $noteSql FROM users WHERE username = $userSql;\n";
         fwrite($fsql, $line);
         $rows++;
     }
