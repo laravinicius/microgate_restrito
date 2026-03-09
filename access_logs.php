@@ -27,17 +27,18 @@ $sql = "SELECT l.id, l.user_id, l.username, l.event_type, l.success, l.ip_addres
 $params = [];
 
 if ($search !== '') {
-    $sql .= " AND (l.username LIKE :q OR u.full_name LIKE :q)";
-    $params[':q'] = '%' . $search . '%';
+    $sql .= " AND (l.username LIKE :search_q1 OR u.full_name LIKE :search_q2)";
+    $params[':search_q1'] = '%' . $search . '%';
+    $params[':search_q2'] = '%' . $search . '%';
 }
 
 if ($eventType !== '') {
-    $sql .= " AND event_type = :event_type";
+    $sql .= " AND l.event_type = :event_type";
     $params[':event_type'] = $eventType;
 }
 
 if ($success === '0' || $success === '1') {
-    $sql .= " AND success = :success";
+    $sql .= " AND l.success = :success";
     $params[':success'] = (int)$success;
 }
 
