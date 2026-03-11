@@ -2,17 +2,9 @@
 
 require __DIR__ . '/bootstrap.php';
 
-// 1. Bloqueia acesso se não estiver logado
-if (empty($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
+// F-06 FIX: usar helper centralizado (nível >= 1)
+requireAdmin();
 
-// 2. Se NÃO for administrador, redireciona para escala.php
-if ((int)$_SESSION['is_admin'] !== 1) {
-    header('Location: escala.php');
-    exit;
-}
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));

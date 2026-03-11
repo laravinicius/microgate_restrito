@@ -2,11 +2,15 @@
 
 require __DIR__ . '/bootstrap.php';
 
-// Apenas admin
-if (empty($_SESSION['user_id']) || $_SESSION['is_admin'] !== 1) {
-    http_response_code(403);
-    die('Acesso negado');
+// F-10 FIX: Este arquivo é uma ferramenta de desenvolvimento.
+// Bloquear completamente em produção (APP_ENV=production).
+if ((getenv('APP_ENV') ?: 'production') === 'production') {
+    http_response_code(404);
+    exit;
 }
+
+// F-06 FIX: usar helper centralizado
+requireAdmin();
 
 // Obter todos os usuários do banco
 $stmt = $pdo->query('SELECT id, username, full_name FROM users ORDER BY username');

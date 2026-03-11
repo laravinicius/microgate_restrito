@@ -12,59 +12,72 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
-$maxAttempts = 8;
-$windowSeconds = 15 * 60;
-$now = time();
+// -------------------------------------------------------------------------
+// F-01 FIX: Rate limiting por IP no banco de dados.
+// O controle anterior usava $_SESSION, que era bypassável simplesmente
+// abrindo uma nova sessão (janela privada). Agora as tentativas falhas são
+// contadas por IP diretamente na tabela auth_access_logs, que já existe.
+// -------------------------------------------------------------------------
+$maxAttempts   = 8;
+$windowMinutes = 15;
+$clientIp      = (string)($_SERVER['REMOTE_ADDR'] ?? '');
 
-if (!isset($_SESSION['login_rate']) || !is_array($_SESSION['login_rate'])) {
-    $_SESSION['login_rate'] = ['count' => 0, 'window_start' => $now];
+try {
+    ensureAuthAuditTable($pdo);
+    $stmtRate = $pdo->prepare(
+        "SELECT COUNT(*) FROM auth_access_logs
+         WHERE ip_address = ?
+           AND success = 0
+           AND created_at > NOW() - INTERVAL ? MINUTE"
+    );
+    $stmtRate->execute([$clientIp, $windowMinutes]);
+    $failedAttempts = (int)$stmtRate->fetchColumn();
+} catch (PDOException $e) {
+    error_log("Erro ao verificar rate limit: " . $e->getMessage());
+    $failedAttempts = 0;
 }
 
-$rate = &$_SESSION['login_rate'];
-if (($now - (int)$rate['window_start']) > $windowSeconds) {
-    $rate = ['count' => 0, 'window_start' => $now];
-}
-
-if ((int)$rate['count'] >= $maxAttempts) {
-    logAuthEvent($pdo, 'login_rate_limited', null, $username, false, 'Muitas tentativas em janela de 15 minutos');
+if ($failedAttempts >= $maxAttempts) {
+    logAuthEvent($pdo, 'login_rate_limited', null, $username, false,
+        "Muitas tentativas em janela de {$windowMinutes} minutos (IP: {$clientIp})");
     header('Location: /login.php?error=2');
     exit;
 }
 
 if ($username === '' || $password === '') {
-    $rate['count']++;
     logAuthEvent($pdo, 'login_failed', null, $username, false, 'Credenciais ausentes');
     header('Location: /login.php?error=1');
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, username, full_name, password_hash, is_admin, is_active FROM users WHERE username = ? LIMIT 1");
+    $stmt = $pdo->prepare(
+        "SELECT id, username, full_name, password_hash, is_admin, is_active
+         FROM users WHERE username = ? LIMIT 1"
+    );
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 } catch (PDOException $e) {
     error_log("Erro de banco de dados no login: " . $e->getMessage());
-    header('Location: /login.php?error=1'); // Redireciona com erro genérico para segurança
+    header('Location: /login.php?error=1');
     exit;
 }
 
 if (!$user || (int)($user['is_active'] ?? 0) !== 1 || !password_verify($password, $user['password_hash'])) {
-    $rate['count']++;
-    logAuthEvent($pdo, 'login_failed', $user ? (int)$user['id'] : null, $username, false, 'Usuário/senha inválidos ou conta inativa');
+    logAuthEvent($pdo, 'login_failed', $user ? (int)$user['id'] : null, $username, false,
+        'Usuário/senha inválidos ou conta inativa');
     header('Location: /login.php?error=1');
     exit;
 }
 
 session_regenerate_id(true);
-unset($_SESSION['login_rate']);
-$_SESSION['user_id'] = (int)$user['id'];
-$_SESSION['username'] = $user['username'];
+$_SESSION['user_id']   = (int)$user['id'];
+$_SESSION['username']  = $user['username'];
 $_SESSION['full_name'] = $user['full_name'];
-$_SESSION['is_admin'] = (int)$user['is_admin'];
+$_SESSION['is_admin']  = (int)$user['is_admin'];
 logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 
-// Redireciona para a página apropriada baseado no tipo de usuário
-if ((int)$user['is_admin'] >= 1) {
+if (isAdmin()) {
     header('Location: /restricted.php');
 } else {
     header('Location: /escala.php');

@@ -1,4 +1,11 @@
 <?php
+// F-02 FIX: Este script só deve ser executado via linha de comando (CLI).
+// Mesmo que o .htaccess falhe, esta verificação impede execução via browser.
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit("Acesso negado. Este script é de uso exclusivo por linha de comando.\n");
+}
+
 require __DIR__ . '/../bootstrap.php';
 
 $sqlFile = __DIR__ . '/../db/mar-2026.sql';

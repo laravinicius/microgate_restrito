@@ -2,63 +2,65 @@
 
 require __DIR__ . '/bootstrap.php';
 
-// Segurança: Apenas admin logado pode cadastrar
-if (empty($_SESSION['user_id']) || (int)$_SESSION['is_admin'] !== 1) {
-    header('Location: login.php');
-    exit;
-}
+// F-06 FIX: usar helper centralizado
+requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = (string)($_POST['csrf_token'] ?? '');
     if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-        die('Ação não autorizada (CSRF Token Inválido)');
+        // F-05 FIX: usar redirect em vez de echo com dados em script inline
+        header('Location: restricted.php?error=csrf');
+        exit;
     }
 
-    $username = trim($_POST['username']);
+    $username  = trim($_POST['username'] ?? '');
     $full_name = trim($_POST['full_name'] ?? '');
-    $password = $_POST['password'];
-    $is_admin = (int)($_POST['is_admin'] ?? 0);
+    $password  = $_POST['password'] ?? '';
+    $is_admin  = (int)($_POST['is_admin'] ?? 0);
 
     $error = '';
 
-    // Validações
+    // Validações — F-09 FIX: mínimo de 8 caracteres para senha
     if (empty($username)) {
-        $error = 'Nome de usuário não pode estar vazio!';
+        $error = 'username_empty';
     } elseif (empty($full_name)) {
-        $error = 'Nome completo não pode estar vazio!';
+        $error = 'fullname_empty';
     } elseif (empty($password)) {
-        $error = 'Senha não pode estar vazia!';
+        $error = 'password_empty';
     } elseif (strlen($username) < 3) {
-        $error = 'Nome de usuário deve ter pelo menos 3 caracteres!';
-    } elseif (strlen($password) < 6) {
-        $error = 'Senha deve ter pelo menos 6 caracteres!';
+        $error = 'username_short';
+    } elseif (strlen($password) < 8) {
+        $error = 'password_short';
     } elseif (!in_array($is_admin, [0, 1, 2], true)) {
-        $error = 'Nível de acesso inválido!';
+        $error = 'invalid_role';
     } else {
-        // Verifica se username já existe
         $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
-        
         if ($stmt->rowCount() > 0) {
-            $error = 'Este nome de usuário já está cadastrado!';
+            $error = 'username_exists';
         }
     }
 
     if (!empty($error)) {
-        echo "<script>alert('Erro: {$error}'); window.location.href='restricted.php';</script>";
+        // F-05 FIX: redirecionar com código de erro em vez de embutir dados
+        // do servidor em alert() JavaScript (evita XSS)
+        header('Location: restricted.php?error=' . urlencode($error));
         exit;
     }
 
-    // Se passou em todas as validações, inserir o usuário
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, full_name, password_hash, is_admin, is_active) VALUES (?, ?, ?, ?, 1)");
+        $stmt = $pdo->prepare(
+            "INSERT INTO users (username, full_name, password_hash, is_admin, is_active)
+             VALUES (?, ?, ?, ?, 1)"
+        );
         $stmt->execute([$username, $full_name, $hash, $is_admin]);
-        echo "<script>alert('Usuário criado com sucesso!'); window.location.href='restricted.php';</script>";
+        header('Location: restricted.php?msg=user_created');
     } catch (PDOException $e) {
         error_log('Erro em cadastro_usuario_post.php: ' . $e->getMessage());
-        echo "<script>alert('Erro ao criar usuário. Tente novamente.'); window.location.href='restricted.php';</script>";
+        header('Location: restricted.php?error=db_error');
     }
+    exit;
 } else {
     header('Location: restricted.php');
     exit;

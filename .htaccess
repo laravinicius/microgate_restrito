@@ -1,0 +1,46 @@
+# =============================================================================
+# .htaccess — Microgate Restrito
+# Headers de segurança HTTP e configurações gerais de proteção.
+# =============================================================================
+
+# --- Headers de Segurança HTTP -----------------------------------------------
+
+<IfModule mod_headers.c>
+    # Impede que a página seja carregada em iframes de outros domínios (anti-Clickjacking)
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Impede que o browser adivinhe o Content-Type (anti-MIME sniffing)
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Controla quanta informação de referência é enviada
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Remove o header que revela a versão do PHP
+    Header always unset X-Powered-By
+
+    # Permissões de recursos do browser (desabilita features não usadas)
+    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+</IfModule>
+
+# --- Ocultar versão do servidor -----------------------------------------------
+ServerSignature Off
+
+# --- Proteção de arquivos sensíveis -------------------------------------------
+
+# Bloqueia acesso direto a arquivos de configuração e ambiente
+<FilesMatch "^(\.env|\.gitignore|\.gitattributes|\.editorconfig|composer\.json|composer\.lock|package\.json|package-lock\.json)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# --- Charset padrão -----------------------------------------------------------
+AddDefaultCharset UTF-8
+
+# --- Compressão GZIP (performance) -------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+</IfModule>

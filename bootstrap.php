@@ -28,6 +28,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once APP_ROOT . '/config/database.php';
+require_once APP_ROOT . '/auth_helper.php';
 
 // Sincroniza o fuso horário da sessão do Banco de Dados com o horário de Brasília
 $pdo->exec("SET time_zone = '-03:00'");

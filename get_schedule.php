@@ -11,10 +11,22 @@ if (empty($_SESSION['user_id'])) {
 }
 
 // Parâmetros: user_id ou username (opcional), start (YYYY-MM-DD), end (YYYY-MM-DD)
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
+$user_id  = isset($_GET['user_id']) ? (int)$_GET['user_id'] : null;
 $username = isset($_GET['username']) ? trim($_GET['username']) : null;
-$start = $_GET['start'] ?? null;
-$end = $_GET['end'] ?? null;
+$start    = isset($_GET['start']) ? trim($_GET['start']) : null;
+$end      = isset($_GET['end'])   ? trim($_GET['end'])   : null;
+
+// F-07 FIX: validar que as datas estão no formato YYYY-MM-DD e são válidas
+// antes de passá-las para a query SQL. Valores inválidos são descartados.
+function isValidDateParam(?string $d): bool
+{
+    if ($d === null || $d === '') return false;
+    $dt = DateTime::createFromFormat('Y-m-d', $d);
+    return $dt !== false && $dt->format('Y-m-d') === $d;
+}
+
+if (!isValidDateParam($start)) $start = null;
+if (!isValidDateParam($end))   $end   = null;
 
 // Se usuário não admin, força que só veja a própria escala
 if ((int)($_SESSION['is_admin'] ?? 0) === 0) {

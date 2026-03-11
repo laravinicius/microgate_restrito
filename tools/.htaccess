@@ -1,0 +1,11 @@
+# F-02 FIX: Bloqueia acesso web direto à pasta tools/.
+# Estes scripts são utilitários de linha de comando e não devem
+# ser acessíveis via browser em nenhuma circunstância.
+
+# Apache 2.2
+Deny from all
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>

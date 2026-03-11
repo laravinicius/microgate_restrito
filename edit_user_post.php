@@ -2,11 +2,8 @@
 
 require __DIR__ . '/bootstrap.php';
 
-// Bloqueia acesso se não estiver logado ou não for administrador
-if (empty($_SESSION['user_id']) || (int)$_SESSION['is_admin'] !== 1) {
-    header('Location: login.php');
-    exit;
-}
+// F-06 FIX: usar helper centralizado (nível >= 1)
+requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: restricted.php');
@@ -47,8 +44,8 @@ if ($stmt->fetch()) {
 try {
     // Prepara a query de update
     if (!empty($new_password)) {
-        // Se forneceu nova senha, valida e atualiza
-        if (strlen($new_password) < 6) {
+        // F-09 FIX: mínimo de 8 caracteres (era 6)
+        if (strlen($new_password) < 8) {
             header('Location: restricted.php?error=password_invalid');
             exit;
         }

@@ -4,15 +4,8 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/auth_audit.php';
 
-if (empty($_SESSION['user_id'])) {
-    header('Location: /login.php');
-    exit;
-}
-
-if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
-    header('Location: /escala.php');
-    exit;
-}
+// F-06 FIX: usar helper centralizado (nível >= 1)
+requireAdmin();
 
 ensureAuthAuditTable($pdo);
 

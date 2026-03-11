@@ -1,0 +1,10 @@
+# F-08 FIX: Bloqueia acesso web direto aos arquivos enviados.
+# Os arquivos de upload devem ser servidos apenas via PHP com autenticação.
+
+# Apache 2.2
+Deny from all
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>

@@ -5,3 +5,15 @@ node_modules/
 .DS_Store
 config/database.php.bak
 downloads/
+
+# F-11 FIX: Dados reais de funcionários/escalas não devem ser versionados.
+# Manter apenas arquivos de exemplo (prefixo "exemplo_" ou "modelo_").
+db/*.sql
+db/*.csv
+!db/exemplo_*.csv
+!db/modelo_*.csv
+
+# Uploads enviados pelo sistema
+uploads/*.csv
+uploads/*.xlsx
+uploads/*.xls
