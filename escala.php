@@ -9,7 +9,7 @@ if (empty($_SESSION['user_id'])) {
 }
 
 // Redireciona administradores para a tela correta
-if ($_SESSION['is_admin'] === 1) {
+if (isAdmin()) {
     header('Location: restricted.php');
     exit;
 }
@@ -52,7 +52,9 @@ if ($_SESSION['is_admin'] === 1) {
             
             <main class="flex-1 pt-24 md:pt-52 pb-20">
                 <div class="max-w-6xl mx-auto px-4">
-                    <div class="mb-16 flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:gap-0">
+
+                    <!-- Cabeçalho com nome do usuário e botão de logout -->
+                    <div class="mb-10 flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:gap-0">
                         <div class="flex-1">
                             <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">Escala Técnica</h1>
                             <p class="text-gray-400">Consulte sua escala de trabalho</p>
@@ -66,6 +68,19 @@ if ($_SESSION['is_admin'] === 1) {
                         </div>
                     </div>
 
+                    <!-- Card de acesso rápido: Quilometragem — padrão visual do projeto -->
+                    <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-10 transition group flex items-start justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                <i data-lucide="gauge" class="w-6 h-6"></i>
+                                Quilometragem
+                            </h3>
+                            <p class="text-gray-300 text-sm">Registre o KM do veículo no início e fim do turno</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
+                    </a>
+
+                    <!-- Calendário de escala -->
                     <div class="mt-8">
                         <div class="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center md:justify-between">
                             <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
@@ -76,12 +91,14 @@ if ($_SESSION['is_admin'] === 1) {
                         </div>
 
                         <div id="calendar-wrap" class="w-full max-w-[90vw] md:max-w-full mx-auto overflow-hidden mb-8">
-                            </div>
+                        </div>
                     </div>
+
                 </div>
             </main>
         </div>
     </div>
+
     <script>
         // Atualizar exibição do mês atual
         document.addEventListener('DOMContentLoaded', function() {

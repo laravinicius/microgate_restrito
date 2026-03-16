@@ -151,7 +151,7 @@ foreach ($resetRequests as $request) {
                     <div class="mb-12 flex flex-col gap-6">
                         <div>
                             <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel Administrativo</h1>
-                                <p class="text-gray-400"><?= $isAdmin ? 'Gestão de usuários e contas' : 'Visualização de Escalas' ?></p>
+                            <p class="text-gray-400"><?= $isAdmin ? 'Gestão de usuários e contas' : 'Visualização de Escalas' ?></p>
                         </div>
                         <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
                             <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
@@ -161,38 +161,63 @@ foreach ($resetRequests as $request) {
                             </a>
                         </div>
                     </div>
+
                     <?php if (isset($_GET['msg'])): ?>
                         <div class="mb-6 bg-green-500/10 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
                             <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
                             <p class="text-green-400">
                                 <?= match($_GET['msg']) {
-                                    'deleted' => 'Usuário excluído com sucesso.',
-                                    'user_updated' => 'Usuário atualizado com sucesso.',
-                                    'reset_handled' => 'Solicitação de reset marcada como atendida.',
-                                    'reset_deleted' => 'Notificação de reset excluída com sucesso.',
-                                    default => 'Operação realizada com sucesso.'
+                                    'deleted'        => 'Usuário excluído com sucesso.',
+                                    'user_created'   => 'Usuário criado com sucesso.',
+                                    'user_updated'   => 'Usuário atualizado com sucesso.',
+                                    'reset_handled'  => 'Solicitação de reset marcada como atendida.',
+                                    'reset_deleted'  => 'Notificação de reset excluída com sucesso.',
+                                    default          => 'Operação realizada com sucesso.'
                                 } ?>
                             </p>
                         </div>
                     <?php endif; ?>
+
                     <?php if (isset($_GET['error'])): ?>
                         <div class="mb-6 bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-center gap-3">
                             <i data-lucide="alert-circle" class="w-5 h-5 text-red-400"></i>
                             <p class="text-red-400">
                                 <?= match($_GET['error']) {
                                     'username_invalid' => 'Nome de usuário inválido (mínimo 3 caracteres).',
-                                    'username_exists' => 'Este nome de usuário já está em uso.',
+                                    'username_short'   => 'Nome de usuário inválido (mínimo 3 caracteres).',
+                                    'username_empty'   => 'Nome de usuário é obrigatório.',
+                                    'fullname_empty'   => 'Nome completo é obrigatório.',
+                                    'username_exists'  => 'Este nome de usuário já está em uso.',
+                                    'password_empty'   => 'Senha é obrigatória.',
+                                    'password_short'   => 'Senha deve ter pelo menos 8 caracteres.',
                                     'password_invalid' => 'Senha deve ter pelo menos 6 caracteres.',
-                                    'invalid_role' => 'Nível de acesso inválido.',
-                                    'csrf' => 'Sessão expirada ou requisição inválida. Tente novamente.',
-                                    'db_error' => 'Erro ao atualizar usuário. Tente novamente.',
-                                    default => 'Ocorreu um erro. Tente novamente.'
+                                    'invalid_role'     => 'Nível de acesso inválido.',
+                                    'csrf'             => 'Sessão expirada ou requisição inválida. Tente novamente.',
+                                    'db_error'         => 'Erro ao atualizar usuário. Tente novamente.',
+                                    default            => 'Ocorreu um erro. Tente novamente.'
                                 } ?>
                             </p>
                         </div>
                     <?php endif; ?>
 
+                    <!-- ── Card de Quilometragem (visível para admin e gerente) ── -->
+                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        <a href="km_report.php" class="bg-brand-dark border border-purple-500/20 hover:border-purple-500/50 rounded-lg p-8 transition group">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                        <i data-lucide="gauge" class="w-6 h-6 text-purple-400"></i>
+                                        Quilometragem
+                                    </h3>
+                                    <p class="text-gray-300 text-sm">Acompanhe o KM rodado por cada técnico, com evidências fotográficas</p>
+                                </div>
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 group-hover:text-purple-400 transition"></i>
+                            </div>
+                        </a>
+                    </div>
+
                     <?php if ($isAdmin): ?>
+                    <!-- ── Cards de Importar Escala e Logs de Acesso (somente admin) ── -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                         <a href="import_schedules.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
                             <div class="flex items-start justify-between">
@@ -220,58 +245,54 @@ foreach ($resetRequests as $request) {
                         </a>
                     </div>
 
+                    <!-- ── Notificações de Reset de Senha ── -->
                     <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
                         <div class="flex items-start justify-between gap-4 mb-6">
                             <div>
                                 <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                                     <i data-lucide="bell-ring" class="w-6 h-6"></i>
                                     Notificações de Reset de Senha
+                                    <?php if ($pendingResetCount > 0): ?>
+                                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full"><?= $pendingResetCount ?></span>
+                                    <?php endif; ?>
                                 </h2>
-                                <p class="text-gray-400 text-sm mt-2">Pedidos feitos na tela de "Esqueci a senha". O contato com o usuário é manual.</p>
+                                <p class="text-gray-400 text-sm mt-2">Pedidos feitos na tela de "Esqueci a senha".</p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold <?= $pendingResetCount > 0 ? 'bg-yellow-500/20 text-yellow-300' : 'bg-green-500/20 text-green-300' ?>">
-                                <?= $pendingResetCount ?> pendente(s)
-                            </span>
                         </div>
 
                         <?php if (empty($resetRequests)): ?>
-                            <div class="text-gray-400 text-sm border border-white/10 rounded-lg p-4">Nenhuma solicitação registrada até o momento.</div>
+                            <p class="text-gray-500 text-sm">Nenhuma solicitação registrada.</p>
                         <?php else: ?>
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <?php foreach ($resetRequests as $request): ?>
-                                    <?php $isPending = ($request['status'] ?? '') === 'pending'; ?>
-                                    <div class="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 <?= $isPending ? 'border-yellow-500/40 bg-yellow-500/5' : 'border-white/10 bg-white/5' ?>">
-                                        <div class="space-y-1">
-                                            <p class="text-white text-sm md:text-base">
-                                                <strong>Usuário:</strong> <?= htmlspecialchars((string)$request['username']) ?>
-                                                <span class="text-gray-400">|</span>
-                                                <strong>Celular:</strong> <?= htmlspecialchars((string)$request['phone']) ?>
-                                            </p>
-                                            <p class="text-xs text-gray-400">
-                                                Solicitado em: <?= htmlspecialchars((string)$request['requested_at']) ?>
-                                                <?php if (!$isPending): ?>
-                                                    | Atendido em: <?= htmlspecialchars((string)$request['handled_at']) ?>
-                                                    <?php if (!empty($request['handled_by_username'])): ?>
-                                                        por <?= htmlspecialchars((string)$request['handled_by_username']) ?>
-                                                    <?php endif; ?>
+                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg <?= $request['status'] === 'pending' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-white/3 border border-white/5' ?>">
+                                        <div>
+                                            <p class="text-white font-semibold"><?= htmlspecialchars($request['username']) ?></p>
+                                            <p class="text-gray-400 text-sm">Celular: <?= htmlspecialchars($request['phone']) ?></p>
+                                            <p class="text-gray-500 text-xs mt-1">
+                                                Solicitado em: <?= date('d/m/Y H:i', strtotime($request['requested_at'])) ?>
+                                                <?php if ($request['status'] === 'handled'): ?>
+                                                    · Atendido por <?= htmlspecialchars($request['handled_by_username'] ?? 'desconhecido') ?>
+                                                    em <?= date('d/m/Y H:i', strtotime($request['handled_at'])) ?>
                                                 <?php endif; ?>
                                             </p>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <?php if ($isPending): ?>
-                                                <form method="POST" class="inline-flex">
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <?php if ($request['status'] === 'pending'): ?>
+                                                <span class="bg-yellow-500/20 text-yellow-400 text-xs font-semibold px-3 py-1 rounded-full">Pendente</span>
+                                                <form method="POST" class="inline">
                                                     <input type="hidden" name="action" value="mark_reset_handled">
                                                     <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                                                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
-                                                        <i data-lucide="check-check" class="w-4 h-4"></i>
-                                                        Marcar como atendida
+                                                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
+                                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                                        Marcar como atendido
                                                     </button>
                                                 </form>
                                             <?php else: ?>
-                                                <span class="text-xs font-semibold bg-green-500/20 text-green-300 px-3 py-1 rounded-full">Atendida</span>
+                                                <span class="bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1 rounded-full">Atendido</span>
                                             <?php endif; ?>
-                                            <form method="POST" class="inline-flex" onsubmit="return confirm('Tem certeza que deseja apagar esta notificação?')">
+                                            <form method="POST" onsubmit="return confirm('Apagar esta notificação?')">
                                                 <input type="hidden" name="action" value="delete_reset_request">
                                                 <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
@@ -287,6 +308,7 @@ foreach ($resetRequests as $request) {
                         <?php endif; ?>
                     </div>
 
+                    <!-- ── Cadastrar Novo Usuário ── -->
                     <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
                         <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                             <i data-lucide="user-plus" class="w-6 h-6"></i>
@@ -324,6 +346,7 @@ foreach ($resetRequests as $request) {
                     </div>
                     <?php endif; ?>
 
+                    <!-- ── Tabela de Usuários Cadastrados ── -->
                     <div class="bg-brand-dark border border-white/10 rounded-lg overflow-hidden">
                         <div class="p-6 border-b border-white/10">
                             <h2 class="text-2xl font-bold text-white flex items-center gap-2">
@@ -356,8 +379,8 @@ foreach ($resetRequests as $request) {
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-300"><?= htmlspecialchars($user['full_name'] ?? '') ?></td>
                                         <td class="px-6 py-4 text-center text-sm">
-                                            <span class="<?= $user['is_admin'] ? 'bg-gray-500/20 text-gray-400' : 'bg-gray-500/20 text-gray-400' ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
-                                                <?php 
+                                            <span class="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-medium inline-block">
+                                                <?php
                                                     echo match((int)$user['is_admin']) {
                                                         1 => 'Admin',
                                                         2 => 'Gerente',
@@ -393,11 +416,13 @@ foreach ($resetRequests as $request) {
                             </table>
                         </div>
                     </div>
+
                 </div>
             </main>
         </div>
     </div>
 
+    <!-- Modal de edição de usuário -->
     <div id="editModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-brand-dark border border-white/10 rounded-lg p-8 max-w-md w-full">
             <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
