@@ -1,32 +1,34 @@
 // js/escala-abas.js
-// Gerencia abas de múltiplos meses para visualização de agenda no painel admin
+// Visualização de agenda por abas de meses — com edição inline para admins
 
-(async function(){
+(async function () {
+
     const wrap = document.getElementById('calendar-wrap');
     if (!wrap) return;
 
-    // Gerar lista de meses (6 meses a partir de hoje)
+    const EDIT_MODE  = !!window.ADMIN_EDIT_MODE;
+    const TARGET_UID = window.TARGET_USER_ID || null;
+    const CSRF       = window.CSRF_TOKEN || '';
+
+    // ── Estado dos eventos (mutável durante edição) ────────────────────────
+    // Chave: "YYYY-MM-DD", valor: objeto de evento (ou null = sem registro)
+    const eventsState = {};
+
+    // ── Abas de meses ──────────────────────────────────────────────────────
     const months = [];
     const now = new Date();
-
     for (let i = 0; i < 6; i++) {
-        const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         months.push({
-            year: date.getFullYear(),
-            month: date.getMonth(),
-            label: date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })
-                .split(' ')
-                .map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w)
-                .join(' ')
+            year: d.getFullYear(),
+            month: d.getMonth(),
+            label: capitalize(d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }))
         });
     }
 
-    // Criar container de abas
     const tabsContainer = document.createElement('div');
     tabsContainer.className = 'mb-6 flex gap-2 overflow-x-auto pb-2 border-b border-white/10';
-    tabsContainer.style.scrollBehavior = 'smooth';
 
-    // Criar botões de abas
     months.forEach((m, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -34,104 +36,79 @@
             ? 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition'
             : 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         btn.textContent = m.label;
-        btn.setAttribute('data-month', m.month);
-        btn.setAttribute('data-year', m.year);
-        btn.onclick = () => selecionarAba(btn, m.year, m.month);
+        btn.onclick = () => selectTab(btn, m.year, m.month);
         tabsContainer.appendChild(btn);
     });
 
     wrap.parentElement.insertBefore(tabsContainer, wrap);
 
-    // Função para carregar calendário de um mês específico
-    async function selecionarAba(btn, year, month) {
-        // Atualizar estilos dos botões
-        Array.from(tabsContainer.querySelectorAll('button')).forEach(b => {
+    // ── Selecionar aba ─────────────────────────────────────────────────────
+    async function selectTab(btn, year, month) {
+        tabsContainer.querySelectorAll('button').forEach(b => {
             b.className = 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         });
         btn.className = 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition';
 
-        // Atualizar display do mês
-        const monthDisplay = document.getElementById('month-display');
-        if (monthDisplay) {
-            const d = new Date(year, month);
-            const label = d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-            monthDisplay.textContent = label.charAt(0).toUpperCase() + label.slice(1);
-        }
+        wrap.innerHTML = '<div style="padding:24px;text-align:center;color:#6b7280;font-size:14px;">Carregando...</div>';
 
-        // Limpar calendário anterior
-        wrap.innerHTML = '';
-
-        // Carregar dados do mês
         const start = new Date(year, month, 1);
-        const end = new Date(year, month + 1, 0);
+        const end   = new Date(year, month + 1, 0);
+        const fmt   = d => d.toISOString().slice(0, 10);
 
-        const fmt = d => d.toISOString().slice(0, 10);
         let apiUrl = `./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`;
-
-        if (window.TARGET_USER_ID) {
-            apiUrl += `&user_id=${window.TARGET_USER_ID}`;
-        }
+        if (TARGET_UID) apiUrl += `&user_id=${TARGET_UID}`;
 
         try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+            const res = await fetch(apiUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const schedule = await res.json();
+            const events   = schedule.data || [];
 
-            const schedule = await response.json();
-            const events = schedule.data || [];
+            // Popula o estado mutável
+            events.forEach(ev => { eventsState[ev.date] = ev; });
 
-            // Map events by date
             const eventsByDate = {};
             events.forEach(ev => {
-                const d = ev.date;
-                eventsByDate[d] = eventsByDate[d] || [];
-                eventsByDate[d].push(ev);
+                eventsByDate[ev.date] = eventsByDate[ev.date] || [];
+                eventsByDate[ev.date].push(ev);
             });
 
-            // ✅ FERIADOS: Map holidays by date
-            const holidays = schedule.holidays || [];
             const holidaysByDate = {};
-            holidays.forEach(h => {
-                holidaysByDate[h.date] = h; // 1 feriado por dia
-            });
+            (schedule.holidays || []).forEach(h => { holidaysByDate[h.date] = h; });
 
-            // Render month (com feriados)
-            const monthEl = renderMonth(start, eventsByDate, holidaysByDate);
-            wrap.appendChild(monthEl);
+            wrap.innerHTML = '';
+            wrap.appendChild(renderMonth(start, eventsByDate, holidaysByDate));
 
-            // Re-render Lucide icons
-            if (window.lucide) {
-                lucide.createIcons();
-            }
+            if (window.lucide) lucide.createIcons();
 
         } catch (err) {
-            console.error("[ERRO] Falha ao buscar agenda:", err);
-            wrap.innerHTML = `<div class="p-4 text-red-400">Erro ao carregar escala: ${err.message}</div>`;
+            wrap.innerHTML = `<div style="padding:16px;color:#f87171;">Erro ao carregar escala: ${err.message}</div>`;
         }
     }
 
-    // Render month function (similar to escala.js)
+    // ── Renderizar mês ─────────────────────────────────────────────────────
     function renderMonth(date, eventsMap, holidaysMap) {
         const el = document.createElement('div');
-        el.className = 'w-full bg-brand-dark border border-white/10 rounded-lg p-2 md:p-6';
+        el.className = 'w-full bg-brand-dark border border-white/10 rounded-lg';
+
+        const monthName = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+        const hdr = document.createElement('div');
+        hdr.className = 'mb-4 px-2';
+        hdr.innerHTML = `<h3 class="text-white font-bold text-lg md:text-2xl">${capitalize(monthName)}</h3>`;
+        el.appendChild(hdr);
 
         const tableWrapper = document.createElement('div');
-        tableWrapper.className = 'pb-2';
-        tableWrapper.style.width = '100%';
-        tableWrapper.style.display = 'block';
-        tableWrapper.style.overflowX = 'auto';
-        tableWrapper.style.webkitOverflowScrolling = 'touch';
+        tableWrapper.style.cssText = 'width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;';
 
         const table = document.createElement('table');
-        table.className = 'border-collapse text-[11px] md:text-base w-full';
-        table.style.minWidth = '700px';
+        table.className = 'border-collapse w-full';
+        table.style.minWidth = '560px';
 
-        // Header
+        // Header semana
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         headerRow.className = 'bg-white/5 border-b border-white/10';
-        ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].forEach(d => {
+        ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].forEach(d => {
             const th = document.createElement('th');
             th.className = 'px-2 md:px-4 py-2 md:py-3 text-center text-[8px] md:text-xs font-semibold text-gray-400 uppercase';
             th.textContent = d;
@@ -140,115 +117,93 @@
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
-        // Body
         const tbody = document.createElement('tbody');
-        const firstDay = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7;
+        const firstDay    = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7;
         const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        const fmt         = d => d.toISOString().slice(0, 10);
+        const todayIso    = fmt(new Date());
 
-        let currentCell = 0;
-        let week = document.createElement('tr');
-        week.className = 'border-b border-white/10';
+        let cell = 0;
+        let week = newWeekRow();
 
-        // Empty cells
         for (let i = 0; i < firstDay; i++) {
-            const td = document.createElement('td');
-            td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5';
-            week.appendChild(td);
-            currentCell++;
+            week.appendChild(emptyCell());
+            cell++;
         }
-
-        // Days
-        const fmt = d => d.toISOString().slice(0, 10);
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const cur = new Date(date.getFullYear(), date.getMonth(), d);
-            const iso = fmt(cur);
+            const cur     = new Date(date.getFullYear(), date.getMonth(), d);
+            const iso     = fmt(cur);
+            const isToday = iso === todayIso;
+            const holiday = holidaysMap[iso] || null;
+            const evs     = eventsMap[iso] || [];
 
             const td = document.createElement('td');
-            td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5 hover:bg-white/10 transition align-top cursor-pointer';
-            td.style.cursor = 'pointer';
+            td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5 hover:bg-white/5 transition cursor-pointer align-top';
+            td.setAttribute('data-date', iso);
+            td.style.position = 'relative';
 
-            // Day number
-            const dayNum = document.createElement('div');
-            dayNum.className = 'text-sm md:text-lg text-gray-300 font-bold mb-1 md:mb-2';
-            dayNum.textContent = d;
-            td.appendChild(dayNum);
+            // Número do dia
+            const dayHeader = document.createElement('div');
+            dayHeader.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;';
 
-            // ✅ FERIADO (camada separada)
-            if (holidaysMap && holidaysMap[iso]) {
-                const holidayLabel = document.createElement('div');
-                holidayLabel.textContent = 'FERIADO';
-                holidayLabel.className = 'text-[9px] md:text-[10px] font-bold mb-1';
-                holidayLabel.style.color = '#ef4444';
-                holidayLabel.title = (holidaysMap[iso].name || 'Feriado');
-                td.appendChild(holidayLabel);
+            const numSpan = document.createElement('span');
+            if (isToday) {
+                numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;'
+                    + 'width:22px;height:22px;border-radius:50%;background:#fff;color:#000;'
+                    + 'font-size:11px;font-weight:700;flex-shrink:0;';
+            } else {
+                numSpan.className = 'text-sm md:text-lg text-gray-300 font-bold';
             }
+            numSpan.textContent = d;
+            dayHeader.appendChild(numSpan);
 
-            // Events
-            const evs = eventsMap[iso] || [];
-            const list = document.createElement('div');
-            list.className = 'flex flex-col gap-1 md:gap-1 text-[8px] md:text-[10px]';
-
-            if (evs.length > 0) {
-                evs.slice(0, 2).forEach(e => {
-                    const badge = document.createElement('div');
-
-                    let bgColor = '#4b5563';
-                    const s = (e.shift || '').toUpperCase();
-
-                    if (s.includes('AGENDA')) {
-                        bgColor = '#16a34a';
-                    } else if (s.includes('FOLGA')) {
-                        bgColor = '#60a5fa';
-                    } else if (s.includes('FÉRIAS') || s.includes('FERIAS') || s.includes('AUSENTE')) {
-                        bgColor = '#f97316';
-                    }
-
-                    badge.style.backgroundColor = bgColor;
-                    badge.className = 'text-white px-1 md:px-2 py-0.5 md:py-1 rounded truncate';
-
-                    const label = s || (e.note || '').toString().slice(0, 15);
-                    badge.textContent = label;
-                    list.appendChild(badge);
+            // Botão de edição (somente admin)
+            if (EDIT_MODE && TARGET_UID) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'day-edit-btn';
+                editBtn.type = 'button';
+                editBtn.innerHTML = '<i data-lucide="pencil" style="width:10px;height:10px;"></i> Editar';
+                editBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    openEditPopover(editBtn, iso, TARGET_UID, td, eventsMap);
                 });
-
-                if (evs.length > 2) {
-                    const more = document.createElement('div');
-                    more.className = 'text-gray-400 text-[9px]';
-                    more.textContent = '+' + (evs.length - 2);
-                    list.appendChild(more);
-                }
+                dayHeader.appendChild(editBtn);
             }
 
+            td.appendChild(dayHeader);
+
+            // Feriado
+            if (holiday) {
+                const hl = document.createElement('div');
+                hl.className = 'text-[9px] md:text-[10px] font-bold mb-1';
+                hl.style.color = '#f87171';
+                hl.textContent = '● ' + (holiday.name || 'Feriado');
+                td.appendChild(hl);
+            }
+
+            // Badges de status
+            const list = document.createElement('div');
+            list.className = 'flex flex-col gap-1';
+            list.setAttribute('data-badges', iso);
+
+            renderBadges(list, evs);
             td.appendChild(list);
 
-            // Evento de clique para mostrar todos os técnicos do dia
-            td.onclick = async (e) => {
-                e.stopPropagation();
-                await mostrarDiaDetalhado(iso, d);
-            };
-
             week.appendChild(td);
-            currentCell++;
+            cell++;
 
-            if (currentCell % 7 === 0) {
+            if (cell % 7 === 0) {
                 tbody.appendChild(week);
-                week = document.createElement('tr');
-                week.className = 'border-b border-white/10';
+                week = newWeekRow();
             }
         }
 
-        // Fill remaining cells
-        while (currentCell % 7 !== 0) {
-            const td = document.createElement('td');
-            td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5';
-            week.appendChild(td);
-            currentCell++;
+        while (cell % 7 !== 0) {
+            week.appendChild(emptyCell());
+            cell++;
         }
-
-        if (currentCell % 7 === 0) {
-            tbody.appendChild(week);
-        }
+        if (week.children.length) tbody.appendChild(week);
 
         table.appendChild(tbody);
         tableWrapper.appendChild(table);
@@ -256,163 +211,203 @@
         return el;
     }
 
-    // Função para mostrar detalhes do dia (todos os técnicos)
-    async function mostrarDiaDetalhado(dateStr, dayOfMonth) {
-        // Fechar se já estava aberta
-        const existingDetail = document.getElementById('day-detail-container');
-        if (existingDetail) {
-            existingDetail.remove();
-        }
-
-        // Criar container
-        const container = document.createElement('div');
-        container.id = 'day-detail-container';
-        container.className = 'mt-8 p-6 bg-brand-dark border border-white/10 rounded-lg';
-
-        // Título (placeholder; será refeito depois do fetch)
-        const title = document.createElement('h3');
-        title.className = 'text-xl font-bold text-white mb-4 flex items-center justify-between';
-        title.innerHTML = `
-            <span>Escala de Todos os Técnicos - ${dayOfMonth}/${dateStr.split('-')[1]}/${dateStr.split('-')[0]}</span>
-            <button onclick="document.getElementById('day-detail-container').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:20px;">✕</button>
-        `;
-        container.appendChild(title);
-
-        // Loading
-        container.innerHTML += '<p class="text-gray-400">Carregando...</p>';
-        wrap.parentElement.appendChild(container);
-
-        try {
-            // Buscar dados de todos os técnicos para esse dia
-            const apiUrl = `./get_schedule.php?start=${dateStr}&end=${dateStr}`;
-            const response = await fetch(apiUrl);
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-            const data = await response.json();
-            const eventos = data.data || [];
-            const holidays = data.holidays || [];
-
-            // Verifica se esse dia é feriado (opcional: mostrar no detalhe)
-            let holidayText = '';
-            if (holidays.length > 0 && holidays[0]?.date === dateStr) {
-                const name = holidays[0]?.name ? ` - ${holidays[0].name}` : '';
-                holidayText = `<span style="color:#ef4444;font-weight:700;margin-left:10px;">FERIADO${name}</span>`;
-            }
-
-            // Limpar loading + refazer header
-            container.innerHTML = `
-                <h3 class="text-xl font-bold text-white mb-4 flex items-center justify-between">
-                    <span>
-                        Escala de Todos os Técnicos - ${dayOfMonth}/${dateStr.split('-')[1]}/${dateStr.split('-')[0]}
-                        ${holidayText}
-                    </span>
-                    <button onclick="document.getElementById('day-detail-container').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:20px;">✕</button>
-                </h3>
-            `;
-
-            // Criar tabela
-            const table = document.createElement('table');
-            table.className = 'w-full border-collapse text-sm';
-            table.style.width = '100%';
-
-            // Header
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            headerRow.className = 'bg-white/5 border-b border-white/10';
-
-            ['Técnico', 'Status', 'Turno/Observação'].forEach(header => {
-                const th = document.createElement('th');
-                th.className = 'px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase';
-                th.textContent = header;
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            // Body
-            const tbody = document.createElement('tbody');
-            tbody.className = 'divide-y divide-white/10';
-
-            if (eventos.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="3" class="px-4 py-3 text-center text-gray-400">Nenhum técnico cadastrado para este dia</td>';
-                tbody.appendChild(tr);
-            } else {
-                // Agrupar por técnico
-                const porTecnico = {};
-                eventos.forEach(ev => {
-                    if (!porTecnico[ev.username]) {
-                        porTecnico[ev.username] = [];
-                    }
-                    porTecnico[ev.username].push(ev);
-                });
-
-                // Montar linhas
-                Object.keys(porTecnico).sort().forEach(username => {
-                    const evs = porTecnico[username];
-                    const ev = evs[0]; // Pega primeiro (deve ser apenas 1 por dia)
-
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-white/5 transition';
-
-                    // Técnico
-                    const tdTecnico = document.createElement('td');
-                    tdTecnico.className = 'px-4 py-3 text-white font-medium';
-                    tdTecnico.textContent = username;
-                    tr.appendChild(tdTecnico);
-
-                    // Status (cor)
-                    const tdStatus = document.createElement('td');
-                    tdStatus.className = 'px-4 py-3';
-                    const statusBadge = document.createElement('span');
-
-                    let bgColor = '#4b5563';
-                    let textColor = '#d1d5db';
-                    const shift = (ev.shift || '').toUpperCase();
-
-                    if (shift.includes('AGENDA')) {
-                        bgColor = '#16a34a';
-                        textColor = '#dcfce7';
-                    } else if (shift.includes('FOLGA')) {
-                        bgColor = '#2563eb';
-                        textColor = '#dbeafe';
-                    } else if (shift.includes('FÉRIAS') || shift.includes('FERIAS') || shift.includes('AUSENTE')) {
-                        bgColor = '#ea580c';
-                        textColor = '#fed7aa';
-                    }
-
-                    statusBadge.style.backgroundColor = bgColor;
-                    statusBadge.style.color = textColor;
-                    statusBadge.className = 'px-3 py-1 rounded text-xs font-semibold inline-block';
-                    statusBadge.textContent = shift || 'Sem info';
-                    tdStatus.appendChild(statusBadge);
-                    tr.appendChild(tdStatus);
-
-                    // Observação
-                    const tdNote = document.createElement('td');
-                    tdNote.className = 'px-4 py-3 text-gray-300 text-sm';
-                    tdNote.textContent = ev.note || '-';
-                    tr.appendChild(tdNote);
-
-                    tbody.appendChild(tr);
-                });
-            }
-
-            table.appendChild(tbody);
-            container.appendChild(table);
-
-        } catch (err) {
-            console.error('Erro ao buscar dia:', err);
-            container.innerHTML = `<p class="text-red-400">Erro ao carregar dados: ${err.message}</p>`;
+    // ── Renderiza badges de status numa célula ─────────────────────────────
+    function renderBadges(container, evs) {
+        container.innerHTML = '';
+        evs.slice(0, 3).forEach(ev => {
+            const badge = document.createElement('div');
+            const shift = (ev.shift || '').toUpperCase();
+            let bg = '#4b5563', fg = '#e5e7eb';
+            if (shift.includes('AGENDA'))                              { bg = '#166534'; fg = '#bbf7d0'; }
+            else if (shift.includes('FOLGA'))                         { bg = '#1e40af'; fg = '#bfdbfe'; }
+            else if (shift.includes('FÉRIAS') || shift.includes('FERIAS')) { bg = '#9a3412'; fg = '#fed7aa'; }
+            else if (shift.includes('AUSENTE'))                       { bg = '#4b5563'; fg = '#e5e7eb'; }
+            badge.style.cssText = `background:${bg};color:${fg};border-radius:3px;padding:2px 6px;`
+                + `font-size:10px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;`;
+            badge.textContent = shift || ev.note || '—';
+            container.appendChild(badge);
+        });
+        if (evs.length > 3) {
+            const more = document.createElement('div');
+            more.style.cssText = 'font-size:10px;color:#9ca3af;';
+            more.textContent = `+${evs.length - 3} mais`;
+            container.appendChild(more);
         }
     }
 
-    // Carregar primeiro mês automaticamente
-    const firstMonth = months[0];
-    const firstBtn = tabsContainer.querySelector('button:first-child');
+    // ── Popover de edição ──────────────────────────────────────────────────
+    let activePopover = null;
+
+    function closeActivePopover() {
+        if (activePopover) {
+            activePopover.remove();
+            activePopover = null;
+        }
+    }
+
+    document.addEventListener('click', e => {
+        if (activePopover && !activePopover.contains(e.target)) closeActivePopover();
+    });
+
+    function openEditPopover(anchorBtn, iso, userId, tdCell, eventsMap) {
+        closeActivePopover();
+
+        const currentEvs = eventsMap[iso] || [];
+        const currentShift = currentEvs.length > 0 ? (currentEvs[0].shift || '').toUpperCase() : '';
+
+        const popover = document.createElement('div');
+        popover.className = 'edit-popover';
+
+        // Título
+        const [y, m, d] = iso.split('-');
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = 'font-size:11px;color:#6b7280;padding:2px 4px 6px;font-weight:600;letter-spacing:0.04em;';
+        titleEl.textContent = `${d}/${m}/${y}`;
+        popover.appendChild(titleEl);
+
+        const options = [
+            { label: '✓ Agenda',  value: 'AGENDA',  cls: 'popover-agenda'  },
+            { label: '◌ Folga',   value: 'FOLGA',   cls: 'popover-folga'   },
+            { label: '✈ Férias',  value: 'FÉRIAS',  cls: 'popover-ferias'  },
+            { label: '— Ausente', value: 'AUSENTE', cls: 'popover-ausente' },
+        ];
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = opt.cls;
+            btn.textContent = opt.label;
+            if (currentShift === opt.value) {
+                btn.style.outline = '2px solid rgba(255,255,255,0.4)';
+                btn.style.outlineOffset = '-2px';
+            }
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                saveDay(userId, iso, opt.value, tdCell, eventsMap, popover);
+            });
+            popover.appendChild(btn);
+        });
+
+        // Divisor
+        if (currentShift !== '') {
+            const divider = document.createElement('div');
+            divider.className = 'popover-divider';
+            popover.appendChild(divider);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'popover-remover';
+            removeBtn.textContent = '✕ Remover';
+            removeBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                saveDay(userId, iso, '', tdCell, eventsMap, popover);
+            });
+            popover.appendChild(removeBtn);
+        }
+
+        // Posiciona o popover abaixo do botão
+        tdCell.appendChild(popover);
+        activePopover = popover;
+
+        // Ajuste de posição se sair da tela
+        const rect = popover.getBoundingClientRect();
+        if (rect.right > window.innerWidth - 8) {
+            popover.style.right = '4px';
+            popover.style.left  = 'auto';
+        }
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // ── Salvar alteração via API ────────────────────────────────────────────
+    async function saveDay(userId, iso, shift, tdCell, eventsMap, popover) {
+        // Feedback visual imediato
+        popover.style.opacity      = '0.5';
+        popover.style.pointerEvents = 'none';
+
+        try {
+            const res = await fetch('./save_schedule_day.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csrf_token: CSRF, user_id: userId, date: iso, shift })
+            });
+
+            // Tenta parsear JSON mesmo em caso de erro HTTP
+            let data;
+            const text = await res.text();
+            try {
+                data = JSON.parse(text);
+            } catch (_) {
+                console.error('Resposta não-JSON do servidor:', text);
+                showToast('Erro do servidor. Ver console para detalhes.', 'error');
+                popover.style.opacity      = '1';
+                popover.style.pointerEvents = '';
+                return;
+            }
+
+            if (!data.success) {
+                showToast(data.message || 'Erro ao salvar.', 'error');
+                popover.style.opacity      = '1';
+                popover.style.pointerEvents = '';
+                return;
+            }
+
+            // Atualiza o estado local
+            if (shift === '') {
+                delete eventsMap[iso];
+            } else {
+                eventsMap[iso] = [{ shift: shift.toUpperCase(), note: '' }];
+            }
+
+            // Re-renderiza apenas os badges da célula
+            const badgesContainer = tdCell.querySelector(`[data-badges="${iso}"]`);
+            if (badgesContainer) renderBadges(badgesContainer, eventsMap[iso] || []);
+
+            closeActivePopover();
+            showToast(shift === '' ? 'Registro removido.' : `Salvo: ${data.shift || shift}`, 'success');
+
+        } catch (err) {
+            console.error('Fetch error:', err);
+            showToast('Erro de conexão: ' + err.message, 'error');
+            popover.style.opacity      = '1';
+            popover.style.pointerEvents = '';
+        }
+    }
+
+    // ── Toast de feedback ──────────────────────────────────────────────────
+    function showToast(msg, type) {
+        let toast = document.getElementById('schedule-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'schedule-toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.className   = `show ${type}`;
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => { toast.className = ''; }, 2800);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function newWeekRow() {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-white/10';
+        return tr;
+    }
+
+    function emptyCell() {
+        const td = document.createElement('td');
+        td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5';
+        return td;
+    }
+
+    function capitalize(s) {
+        if (!s) return '';
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    // ── Inicializa no mês atual ────────────────────────────────────────────
+    const firstBtn = tabsContainer.querySelector('button');
     if (firstBtn) {
-        await selecionarAba(firstBtn, firstMonth.year, firstMonth.month);
+        await selectTab(firstBtn, months[0].year, months[0].month);
     }
 
 })();
