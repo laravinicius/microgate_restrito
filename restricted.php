@@ -1,7 +1,7 @@
 <?php
+declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/forgot_password_requests.php';
 
 // 1. Bloqueia acesso se não estiver logado
 if (empty($_SESSION['user_id'])) {
@@ -16,109 +16,13 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
 }
 
 $isAdmin = ((int)$_SESSION['is_admin'] === 1);
-ensurePasswordResetRequestsTable($pdo);
-
-// Gerar token CSRF se não existir
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Lógica para deletar usuário via POST (evita ação destrutiva por GET)
-if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_user') {
-    $id_to_delete = (int)($_POST['delete_user_id'] ?? 0);
-    $token = (string)($_POST['csrf_token'] ?? '');
-
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
-        header('Location: restricted.php?error=csrf');
-        exit;
-    }
-
-    // Impede que o admin delete a si próprio
-    if ($id_to_delete > 0 && $id_to_delete !== (int)$_SESSION['user_id']) {
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$id_to_delete]);
-        header('Location: restricted.php?msg=deleted');
-        exit;
-    }
-}
-
-if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'mark_reset_handled') {
-    $requestId = (int)($_POST['request_id'] ?? 0);
-    $token = (string)($_POST['csrf_token'] ?? '');
-
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
-        header('Location: restricted.php?error=csrf');
-        exit;
-    }
-
-    if ($requestId > 0) {
-        $markStmt = $pdo->prepare(
-            "UPDATE password_reset_requests
-             SET status = 'handled', handled_at = NOW(), handled_by = :handled_by
-             WHERE id = :id AND status = 'pending'"
-        );
-        $markStmt->execute([
-            ':handled_by' => (int)$_SESSION['user_id'],
-            ':id' => $requestId,
-        ]);
-        header('Location: restricted.php?msg=reset_handled');
-        exit;
-    }
-}
-
-if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_reset_request') {
-    $requestId = (int)($_POST['request_id'] ?? 0);
-    $token = (string)($_POST['csrf_token'] ?? '');
-
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
-        header('Location: restricted.php?error=csrf');
-        exit;
-    }
-
-    if ($requestId > 0) {
-        $deleteStmt = $pdo->prepare(
-            "DELETE FROM password_reset_requests
-             WHERE id = :id"
-        );
-        $deleteStmt->execute([':id' => $requestId]);
-        header('Location: restricted.php?msg=reset_deleted');
-        exit;
-    }
-}
-
-// Busca a lista de usuários para exibir na tabela
-$stmt = $pdo->query("SELECT id, username, full_name, is_admin FROM users ORDER BY id DESC");
-$usuarios = $stmt->fetchAll();
-
-$resetStmt = $pdo->query(
-    "SELECT
-        prr.id,
-        prr.username,
-        prr.phone,
-        prr.status,
-        prr.requested_at,
-        prr.handled_at,
-        handler.username AS handled_by_username
-     FROM password_reset_requests prr
-     LEFT JOIN users handler ON handler.id = prr.handled_by
-     ORDER BY prr.requested_at DESC
-     LIMIT 30"
-);
-$resetRequests = $resetStmt->fetchAll();
-
-$pendingResetCount = 0;
-foreach ($resetRequests as $request) {
-    if (($request['status'] ?? '') === 'pending') {
-        $pendingResetCount++;
-    }
-}
 ?><!DOCTYPE html>
 <html lang="pt-br" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento de Usuários | Microgate Informática</title>
+    <title>Painel | Microgate Informática</title>
     <link rel="shortcut icon" href="./img/ico.ico" type="image/x-icon">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/output.css">
@@ -129,14 +33,40 @@ foreach ($resetRequests as $request) {
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        #header-placeholder nav { top: 0 !important; }
 
-        body {
-            font-family: 'Inter', sans-serif;
+        select option { background-color: #1f1f1f; color: #fff; }
+
+        /* Contador de técnicos no calendário */
+        .cal-count { font-size: 10px; }
+        @media (min-width: 768px) {
+            .cal-count { font-size: 12px; }
         }
 
-        /* Garante que o header carregado via JS fique colado no topo */
-        #header-placeholder nav {
-            top: 0 !important;
+        .nav-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .nav-card:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+            transform: translateY(-1px);
+        }
+        .nav-card .icon {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -145,276 +75,119 @@ foreach ($resetRequests as $request) {
     <div class="boxed-layout">
         <div class="content-wrapper min-h-screen flex flex-col">
             <div id="header-placeholder"></div>
-            
+
             <main class="flex-1 pt-32 md:pt-52 pb-20">
-                <div class="max-w-6xl mx-auto px-4">
-                    <div class="mb-12 flex flex-col gap-6">
+                <div class="max-w-7xl mx-auto px-4">
+
+                    <!-- Cabeçalho -->
+                    <div class="mb-10 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                         <div>
-                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel Administrativo</h1>
-                            <p class="text-gray-400"><?= $isAdmin ? 'Gestão de usuários e contas' : 'Visualização de Escalas' ?></p>
+                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel</h1>
+                            <p class="text-gray-400">Bem-vindo, <strong class="text-white"><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
                         </div>
-                        <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
-                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
-                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm md:text-base">
-                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                Sair da Conta
-                            </a>
-                        </div>
-                    </div>
-
-                    <?php if (isset($_GET['msg'])): ?>
-                        <div class="mb-6 bg-green-500/10 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
-                            <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
-                            <p class="text-green-400">
-                                <?= match($_GET['msg']) {
-                                    'deleted'        => 'Usuário excluído com sucesso.',
-                                    'user_created'   => 'Usuário criado com sucesso.',
-                                    'user_updated'   => 'Usuário atualizado com sucesso.',
-                                    'reset_handled'  => 'Solicitação de reset marcada como atendida.',
-                                    'reset_deleted'  => 'Notificação de reset excluída com sucesso.',
-                                    default          => 'Operação realizada com sucesso.'
-                                } ?>
-                            </p>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (isset($_GET['error'])): ?>
-                        <div class="mb-6 bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-center gap-3">
-                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-400"></i>
-                            <p class="text-red-400">
-                                <?= match($_GET['error']) {
-                                    'username_invalid' => 'Nome de usuário inválido (mínimo 3 caracteres).',
-                                    'username_short'   => 'Nome de usuário inválido (mínimo 3 caracteres).',
-                                    'username_empty'   => 'Nome de usuário é obrigatório.',
-                                    'fullname_empty'   => 'Nome completo é obrigatório.',
-                                    'username_exists'  => 'Este nome de usuário já está em uso.',
-                                    'password_empty'   => 'Senha é obrigatória.',
-                                    'password_short'   => 'Senha deve ter pelo menos 8 caracteres.',
-                                    'password_invalid' => 'Senha deve ter pelo menos 6 caracteres.',
-                                    'invalid_role'     => 'Nível de acesso inválido.',
-                                    'csrf'             => 'Sessão expirada ou requisição inválida. Tente novamente.',
-                                    'db_error'         => 'Erro ao atualizar usuário. Tente novamente.',
-                                    default            => 'Ocorreu um erro. Tente novamente.'
-                                } ?>
-                            </p>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- ── Card de Quilometragem (visível para admin e gerente) ── -->
-                    <div class="grid grid-cols-1 gap-6 mb-6">
-                        <a href="km_report.php" class="bg-brand-dark border border-purple-500/20 hover:border-purple-500/50 rounded-lg p-8 transition group">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                                        <i data-lucide="gauge" class="w-6 h-6 text-purple-400"></i>
-                                        Quilometragem
-                                    </h3>
-                                    <p class="text-gray-300 text-sm">Acompanhe o KM rodado por cada técnico, com evidências fotográficas</p>
-                                </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 group-hover:text-purple-400 transition"></i>
-                            </div>
+                        <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 self-start text-sm">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            Sair
                         </a>
                     </div>
 
-                    <?php if ($isAdmin): ?>
-                    <!-- ── Cards de Importar Escala e Logs de Acesso (somente admin) ── -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                        <a href="import_schedules.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                                        <i data-lucide="upload" class="w-6 h-6"></i>
-                                        Importar Escala
-                                    </h3>
-                                    <p class="text-gray-300 text-sm">Adicione escalas de novos meses usando CSV</p>
-                                </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
-                            </div>
-                        </a>
-                        <a href="access_logs.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                                        <i data-lucide="shield-check" class="w-6 h-6"></i>
-                                        Logs de Acesso
-                                    </h3>
-                                    <p class="text-gray-300 text-sm">Auditoria de login, logout e tentativas falhas</p>
-                                </div>
-                                <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition"></i>
-                            </div>
-                        </a>
-                    </div>
+                    <!-- Cards de navegação rápida -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
 
-                    <!-- ── Notificações de Reset de Senha ── -->
-                    <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
-                        <div class="flex items-start justify-between gap-4 mb-6">
-                            <div>
-                                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                                    <i data-lucide="bell-ring" class="w-6 h-6"></i>
-                                    Notificações de Reset de Senha
-                                    <?php if ($pendingResetCount > 0): ?>
-                                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full"><?= $pendingResetCount ?></span>
-                                    <?php endif; ?>
-                                </h2>
-                                <p class="text-gray-400 text-sm mt-2">Pedidos feitos na tela de "Esqueci a senha".</p>
+                        <a href="km_report.php" class="nav-card">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="icon bg-purple-500/15">
+                                    <i data-lucide="gauge" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white font-semibold text-sm truncate">Quilometragem</p>
+                                    <p class="text-gray-400 text-xs hidden md:block">KM por técnico</p>
+                                </div>
                             </div>
-                        </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 flex-shrink-0 ml-2"></i>
+                        </a>
 
-                        <?php if (empty($resetRequests)): ?>
-                            <p class="text-gray-500 text-sm">Nenhuma solicitação registrada.</p>
-                        <?php else: ?>
-                            <div class="space-y-4">
-                                <?php foreach ($resetRequests as $request): ?>
-                                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg <?= $request['status'] === 'pending' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-white/3 border border-white/5' ?>">
-                                        <div>
-                                            <p class="text-white font-semibold"><?= htmlspecialchars($request['username']) ?></p>
-                                            <p class="text-gray-400 text-sm">Celular: <?= htmlspecialchars($request['phone']) ?></p>
-                                            <p class="text-gray-500 text-xs mt-1">
-                                                Solicitado em: <?= date('d/m/Y H:i', strtotime($request['requested_at'])) ?>
-                                                <?php if ($request['status'] === 'handled'): ?>
-                                                    · Atendido por <?= htmlspecialchars($request['handled_by_username'] ?? 'desconhecido') ?>
-                                                    em <?= date('d/m/Y H:i', strtotime($request['handled_at'])) ?>
-                                                <?php endif; ?>
-                                            </p>
-                                        </div>
-                                        <div class="flex items-center gap-2 flex-shrink-0">
-                                            <?php if ($request['status'] === 'pending'): ?>
-                                                <span class="bg-yellow-500/20 text-yellow-400 text-xs font-semibold px-3 py-1 rounded-full">Pendente</span>
-                                                <form method="POST" class="inline">
-                                                    <input type="hidden" name="action" value="mark_reset_handled">
-                                                    <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
-                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                                                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
-                                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                                        Marcar como atendido
-                                                    </button>
-                                                </form>
-                                            <?php else: ?>
-                                                <span class="bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1 rounded-full">Atendido</span>
-                                            <?php endif; ?>
-                                            <form method="POST" onsubmit="return confirm('Apagar esta notificação?')">
-                                                <input type="hidden" name="action" value="delete_reset_request">
-                                                <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
-                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-4 rounded transition inline-flex items-center gap-2">
-                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                    Apagar
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
+                        <a href="gerenciamento_usuarios.php" class="nav-card">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="icon bg-blue-500/15">
+                                    <i data-lucide="users" class="w-5 h-5 text-blue-400"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white font-semibold text-sm truncate">Usuários</p>
+                                    <p class="text-gray-400 text-xs hidden md:block">Gerenciamento</p>
+                                </div>
                             </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 flex-shrink-0 ml-2"></i>
+                        </a>
+
+                        <?php if ($isAdmin): ?>
+                        <a href="import_schedules.php" class="nav-card">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="icon bg-green-500/15">
+                                    <i data-lucide="upload" class="w-5 h-5 text-green-400"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white font-semibold text-sm truncate">Importar</p>
+                                    <p class="text-gray-400 text-xs hidden md:block">Escala CSV</p>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 flex-shrink-0 ml-2"></i>
+                        </a>
+
+                        <a href="access_logs.php" class="nav-card">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="icon bg-yellow-500/15">
+                                    <i data-lucide="shield-check" class="w-5 h-5 text-yellow-400"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white font-semibold text-sm truncate">Logs</p>
+                                    <p class="text-gray-400 text-xs hidden md:block">Auditoria</p>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 flex-shrink-0 ml-2"></i>
+                        </a>
                         <?php endif; ?>
+
                     </div>
 
-                    <!-- ── Cadastrar Novo Usuário ── -->
-                    <div class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-12">
-                        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                            <i data-lucide="user-plus" class="w-6 h-6"></i>
-                            Cadastrar Novo Usuário
-                        </h2>
-                        <form action="cadastro_usuario_post.php" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                                <input type="text" name="username" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Usuário" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Nome Completo</label>
-                                <input type="text" name="full_name" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="Nome do Técnico" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
-                                <input type="password" name="password" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Nível</label>
-                                <select name="is_admin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition">
-                                    <option value="0" class="text-black">Padrão</option>
-                                    <option value="2" class="text-black">Gerente</option>
-                                    <option value="1" class="text-black">Administrador</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end">
-                                <button type="submit" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
-                                    <i data-lucide="plus" class="w-4 h-4"></i>
-                                    Criar Conta
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <?php endif; ?>
+                    <!-- Calendário de escalas -->
+                    <div class="bg-brand-dark border border-white/10 rounded-xl overflow-hidden">
 
-                    <!-- ── Tabela de Usuários Cadastrados ── -->
-                    <div class="bg-brand-dark border border-white/10 rounded-lg overflow-hidden">
-                        <div class="p-6 border-b border-white/10">
-                            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                                <i data-lucide="users" class="w-6 h-6"></i>
-                                Usuários Cadastrados
-                            </h2>
+                        <!-- Header do calendário -->
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-6 py-4 border-b border-white/10">
+                            <div>
+                                <h2 class="text-white font-bold text-xl flex items-center gap-2">
+                                    <i data-lucide="calendar-days" class="w-5 h-5 text-gray-400"></i>
+                                    Escala de Técnicos
+                                </h2>
+                                <p class="text-gray-400 text-xs mt-1">Clique em um dia para ver quem está disponível</p>
+                            </div>
+                            <div class="flex items-center gap-3 text-xs text-gray-400">
+                                <span class="flex items-center gap-1.5">
+                                    <span style="width:10px;height:10px;border-radius:2px;background:#166534;display:inline-block;flex-shrink:0;"></span>
+                                    <span style="color:#bbf7d0;">Trabalhando</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span style="width:10px;height:10px;border-radius:2px;background:#1e40af;display:inline-block;flex-shrink:0;"></span>
+                                    <span style="color:#bfdbfe;">Folga</span>
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span style="width:10px;height:10px;border-radius:2px;background:#9a3412;display:inline-block;flex-shrink:0;"></span>
+                                    <span style="color:#fed7aa;">Férias</span>
+                                </span>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="bg-white/5 border-b border-white/10">
-                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
-                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
-                                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Completo</th>
-                                        <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
-                                        <?php if ($isAdmin): ?>
-                                        <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
-                                        <?php endif; ?>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-white/10">
-                                    <?php foreach ($usuarios as $user): ?>
-                                    <tr class="hover:bg-white/5 transition">
-                                        <td class="px-6 py-4 text-sm text-gray-300"><?= $user['id'] ?></td>
-                                        <td class="px-6 py-4 text-sm font-medium">
-                                            <button type="button" onclick="abrirAgenda(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" class="text-white hover:text-gray-400 font-semibold transition cursor-pointer inline-flex items-center gap-2">
-                                                <i data-lucide="calendar" class="w-4 h-4"></i>
-                                                <?= htmlspecialchars($user['username']) ?>
-                                            </button>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-300"><?= htmlspecialchars($user['full_name'] ?? '') ?></td>
-                                        <td class="px-6 py-4 text-center text-sm">
-                                            <span class="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-xs font-medium inline-block">
-                                                <?php
-                                                    echo match((int)$user['is_admin']) {
-                                                        1 => 'Admin',
-                                                        2 => 'Gerente',
-                                                        default => 'Padrão'
-                                                    };
-                                                ?>
-                                            </span>
-                                        </td>
-                                        <?php if ($isAdmin): ?>
-                                        <td class="px-6 py-4 text-center text-sm space-x-2 flex justify-center">
-                                            <button type="button" onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>', '<?= htmlspecialchars($user['full_name'] ?? '') ?>', <?= $user['is_admin'] ?>)" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
-                                                <i data-lucide="edit" class="w-4 h-4"></i>
-                                                Editar
-                                            </button>
-                                            <?php if ($user['id'] !== $_SESSION['user_id']): ?>
-                                                <form method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este usuário?')" class="inline-flex">
-                                                    <input type="hidden" name="action" value="delete_user">
-                                                    <input type="hidden" name="delete_user_id" value="<?= (int)$user['id'] ?>">
-                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                                                    <button type="submit" class="text-white hover:text-gray-300 font-semibold transition inline-flex items-center gap-1">
-                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                        Excluir
-                                                    </button>
-                                                </form>
-                                            <?php else: ?>
-                                                <span class="text-gray-500 italic text-xs">Sua conta</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <?php endif; ?>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+
+                        <!-- Abas de meses -->
+                        <div class="px-6 pt-4 pb-3 border-b border-white/10">
+                            <div id="month-tab-wrap" class="flex gap-2 overflow-x-auto flex-wrap"></div>
                         </div>
+
+                        <!-- Corpo do calendário -->
+                        <div class="p-4 md:p-6">
+                            <div id="calendar-wrap"></div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -422,87 +195,7 @@ foreach ($resetRequests as $request) {
         </div>
     </div>
 
-    <!-- Modal de edição de usuário -->
-    <div id="editModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div class="bg-brand-dark border border-white/10 rounded-lg p-8 max-w-md w-full">
-            <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <i data-lucide="edit" class="w-6 h-6"></i>
-                Editar Usuário
-            </h3>
-            <form action="edit_user_post.php" method="POST" id="editForm" class="space-y-4">
-                <input type="hidden" name="user_id" id="editUserId" value="">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                    <input type="text" name="username" id="editUsername" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome Completo</label>
-                    <input type="text" name="full_name" id="editFullName" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Nova Senha (deixe vazio para manter)</label>
-                    <input type="password" name="new_password" id="editPassword" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" placeholder="••••••••">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Nível de Acesso</label>
-                    <select name="is_admin" id="editAdmin" class="w-full bg-white/5 border border-white/10 rounded px-4 py-2 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition">
-                        <option value="0" class="text-black">Padrão</option>
-                        <option value="1" class="text-black">Administrador</option>
-                        <option value="2" class="text-black">Gerente</option>
-                    </select>
-                </div>
-
-                <div class="flex gap-3 pt-4">
-                    <button type="submit" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4"></i>
-                        Salvar
-                    </button>
-                    <button type="button" onclick="closeEditModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded transition flex items-center justify-center gap-2">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                        Cancelar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function openEditModal(userId, username, fullName, isAdmin) {
-            document.getElementById('editUserId').value = userId;
-            document.getElementById('editUsername').value = username;
-            document.getElementById('editFullName').value = fullName;
-            document.getElementById('editAdmin').value = isAdmin;
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-
-        // Fechar modal ao clicar fora dele
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Função para abrir agenda do técnico em popup
-        function abrirAgenda(userId, username) {
-            const url = `visualizar_agenda.php?user_id=${userId}`;
-            const janela = window.open(url, `agenda_${userId}`, 'width=1200,height=800,toolbar=no,location=no,menubar=no,status=no,resizable=yes');
-            if (janela) {
-                janela.focus();
-            }
-        }
-
-        // Renderizar ícones Lucide
-        lucide.createIcons();
-    </script>
+    <script src="./js/escala-admin.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

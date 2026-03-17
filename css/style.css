@@ -1,9 +1,16 @@
 body {
-    background-image: url('/img/background.jpg'); 
+    background-image: url('/img/background.jpg');
     background-attachment: fixed;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+/* iOS/Android: background-attachment:fixed causa salto ao rolar — desabilita no mobile */
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
 }
 
 .content-wrapper {
