@@ -30,45 +30,6 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
     <script src="./js/theme.js"></script>
     <script src="./js/components.js" defer></script>
     <?php require __DIR__ . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        #header-placeholder nav { top: 0 !important; }
-
-        select option { background-color: #1f1f1f; color: #fff; }
-
-        /* Contador de técnicos no calendário */
-        .cal-count { font-size: 10px; }
-        @media (min-width: 768px) {
-            .cal-count { font-size: 12px; }
-        }
-
-        .nav-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            transition: background 0.15s, border-color 0.15s, transform 0.1s;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-        .nav-card:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.15);
-            transform: translateY(-1px);
-        }
-        .nav-card .icon {
-            width: 36px; height: 36px;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-    </style>
 </head>
 
 <body>
@@ -162,18 +123,18 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
                                 </h2>
                                 <p class="text-gray-400 text-xs mt-1">Clique em um dia para ver quem está disponível</p>
                             </div>
-                            <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <div class="flex items-center gap-3 text-xs">
                                 <span class="flex items-center gap-1.5">
-                                    <span style="width:10px;height:10px;border-radius:2px;background:#166534;display:inline-block;flex-shrink:0;"></span>
-                                    <span style="color:#bbf7d0;">Trabalhando</span>
+                                    <span class="legend-swatch legend-swatch--green"></span>
+                                    <span class="legend-label--green">Trabalhando</span>
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <span style="width:10px;height:10px;border-radius:2px;background:#1e40af;display:inline-block;flex-shrink:0;"></span>
-                                    <span style="color:#bfdbfe;">Folga</span>
+                                    <span class="legend-swatch legend-swatch--blue"></span>
+                                    <span class="legend-label--blue">Folga</span>
                                 </span>
                                 <span class="flex items-center gap-1.5">
-                                    <span style="width:10px;height:10px;border-radius:2px;background:#9a3412;display:inline-block;flex-shrink:0;"></span>
-                                    <span style="color:#fed7aa;">Férias</span>
+                                    <span class="legend-swatch legend-swatch--orange"></span>
+                                    <span class="legend-label--orange">Férias</span>
                                 </span>
                             </div>
                         </div>

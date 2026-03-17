@@ -306,8 +306,9 @@
                     const card = document.createElement('div');
                     card.style.cssText = `background:${cardBg[key]};border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;`;
 
-                    const initial = capitalize((ev.username || '?').charAt(0));
-                    const name    = capitalize(ev.username || '-');
+                    const displayName = ev.full_name || ev.username || '-';
+                    const initial = capitalize(displayName.charAt(0));
+                    const name    = displayName;
                     const note    = ev.note ? `<p style="color:#9ca3af;font-size:10px;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ev.note}</p>` : '';
 
                     card.innerHTML = `

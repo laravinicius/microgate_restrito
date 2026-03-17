@@ -116,21 +116,6 @@ foreach ($resetRequests as $r) {
     <script src="./js/theme.js"></script>
     <script src="./js/components.js" defer></script>
     <?php require __DIR__ . '/components/google-analytics.php'; ?>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        #header-placeholder nav { top: 0 !important; }
-
-        /* Fix: inputs e selects com texto visível no dark mode */
-        select, input[type="text"], input[type="password"], input[type="email"], input[type="tel"] {
-            color: #ffffff !important;
-            background-color: rgba(255,255,255,0.05) !important;
-        }
-        select option {
-            background-color: #1f1f1f;
-            color: #ffffff;
-        }
-    </style>
 </head>
 
 <body>
@@ -388,8 +373,8 @@ foreach ($resetRequests as $r) {
     </div>
 
     <!-- Modal de edição de usuário -->
-    <div id="editModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 max-w-md w-full shadow-2xl">
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="edit-modal-box">
             <h3 class="text-xl font-bold text-white mb-5 flex items-center gap-2">
                 <i data-lucide="edit-2" class="w-5 h-5 text-blue-400"></i>
                 Editar Usuário
@@ -401,31 +386,31 @@ foreach ($resetRequests as $r) {
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Nome de Usuário</label>
                     <input type="text" name="username" id="editUsername"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
+                        class="w-full border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
                         required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Nome Completo</label>
                     <input type="text" name="full_name" id="editFullName"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
+                        class="w-full border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
                         required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Nova Senha <span class="text-gray-600 normal-case font-normal">(deixe vazio para manter)</span></label>
                     <input type="password" name="new_password" id="editPassword"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
+                        class="w-full border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm"
                         placeholder="Mín. 8 caracteres">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Nível de Acesso</label>
                     <select name="is_admin" id="editAdmin"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm">
-                        <option value="0" class="text-black">Padrão</option>
-                        <option value="2" class="text-black">Gerente</option>
-                        <option value="1" class="text-black">Administrador</option>
+                        class="w-full border border-white/10 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm">
+                        <option value="0">Padrão</option>
+                        <option value="2">Gerente</option>
+                        <option value="1">Administrador</option>
                     </select>
                 </div>
 
@@ -435,8 +420,7 @@ foreach ($resetRequests as $r) {
                         <i data-lucide="check" class="w-4 h-4"></i>
                         Salvar
                     </button>
-                    <button type="button" onclick="closeEditModal()"
-                        class="flex-1 bg-white/8 hover:bg-white/15 border border-white/10 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2 text-sm">
+                    <button type="button" onclick="closeEditModal()" class="edit-modal-cancel-btn">
                         <i data-lucide="x" class="w-4 h-4"></i>
                         Cancelar
                     </button>
@@ -462,18 +446,58 @@ foreach ($resetRequests as $r) {
             if (e.target === this) closeEditModal();
         });
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeEditModal();
+        // ── Modal de Agenda ──────────────────────────────────────────────
+        function abrirAgenda(userId, username) {
+            const modal  = document.getElementById('agendaModal');
+            const iframe = document.getElementById('agendaIframe');
+            const title  = document.getElementById('agendaTitle');
+
+            title.textContent = 'Agenda — ' + username;
+            iframe.src = `visualizar_agenda.php?user_id=${userId}`;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAgendaModal() {
+            const modal  = document.getElementById('agendaModal');
+            const iframe = document.getElementById('agendaIframe');
+            modal.classList.add('hidden');
+            iframe.src = '';
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('agendaModal').addEventListener('click', function (e) {
+            if (e.target === this) closeAgendaModal();
         });
 
-        function abrirAgenda(userId, username) {
-            const url = `visualizar_agenda.php?user_id=${userId}`;
-            const win = window.open(url, `agenda_${userId}`, 'width=1200,height=800,toolbar=no,location=no,menubar=no,resizable=yes');
-            if (win) win.focus();
-        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeAgendaModal();
+                closeEditModal();
+            }
+        });
 
         lucide.createIcons();
     </script>
+
+    <!-- ── Modal de Agenda (iframe) ── -->
+    <div id="agendaModal" class="hidden">
+        <div class="agenda-box">
+
+            <div class="agenda-modal-header">
+                <div class="agenda-modal-title-wrap">
+                    <i data-lucide="calendar-days" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                    <span id="agendaTitle" class="agenda-modal-title"></span>
+                </div>
+                <button onclick="closeAgendaModal()" class="agenda-modal-close">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Fechar
+                </button>
+            </div>
+
+            <iframe id="agendaIframe" src="" class="agenda-iframe" title="Agenda do técnico"></iframe>
+        </div>
+    </div>
 </body>
 
 </html>

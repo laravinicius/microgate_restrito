@@ -17,7 +17,6 @@ $start    = isset($_GET['start']) ? trim($_GET['start']) : null;
 $end      = isset($_GET['end'])   ? trim($_GET['end'])   : null;
 
 // F-07 FIX: validar que as datas estão no formato YYYY-MM-DD e são válidas
-// antes de passá-las para a query SQL. Valores inválidos são descartados.
 function isValidDateParam(?string $d): bool
 {
     if ($d === null || $d === '') return false;
@@ -34,8 +33,6 @@ if ((int)($_SESSION['is_admin'] ?? 0) === 0) {
     $username = null;
 }
 
-// Se nem user_id nem username informados, deixar como todos (apenas para admin)
-
 // Datas padrão: primeiro dia do mês atual até último dia do mês atual + 2 meses
 if (!$start || !$end) {
     $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
@@ -47,7 +44,7 @@ if (!$start || !$end) {
 
 try {
     $params = [];
-    $sql = "SELECT s.id, s.user_id, u.username, s.date, s.shift, s.note
+    $sql = "SELECT s.id, s.user_id, u.username, u.full_name, s.date, s.shift, s.note
             FROM schedules s
             JOIN users u ON u.id = s.user_id
             WHERE s.date BETWEEN ? AND ?";
@@ -62,7 +59,7 @@ try {
         $params[] = $username;
     }
 
-    $sql .= " ORDER BY s.date, u.username";
+    $sql .= " ORDER BY s.date, u.full_name, u.username";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

@@ -1,4 +1,14 @@
+/* =============================================================================
+   style.css — Microgate Restrito
+   Todos os estilos customizados do projeto centralizados aqui.
+   ============================================================================= */
+
+/* ── Tipografia global ─────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
 body {
+    font-family: 'Inter', sans-serif;
     background-image: url('/img/background.jpg');
     background-attachment: fixed;
     background-size: cover;
@@ -6,12 +16,14 @@ body {
     background-repeat: no-repeat;
 }
 
-/* iOS/Android: background-attachment:fixed causa salto ao rolar — desabilita no mobile */
+/* iOS/Android: background-attachment:fixed causa salto ao rolar */
 @media (max-width: 768px) {
     body {
         background-attachment: scroll;
     }
 }
+
+/* ── Layout base ───────────────────────────────────────────────────────────── */
 
 .content-wrapper {
     background-color: #1f1f1fc9 !important;
@@ -21,6 +33,241 @@ body {
 .boxed-layout {
     max-width: 1280px;
     margin: 0 auto;
-    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
     min-height: 100vh;
+}
+
+/* Header injetado via JS deve ficar colado no topo */
+#header-placeholder nav {
+    top: 0 !important;
+}
+
+/* ── Formulários: inputs e selects no dark mode ────────────────────────────── */
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+select {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+select option {
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+/* ── Cards de navegação rápida (painel admin) ──────────────────────────────── */
+
+.nav-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.nav-card .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ── Legenda do calendário (painel admin) ──────────────────────────────────── */
+
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.legend-swatch--green  { background: #166534; }
+.legend-swatch--blue   { background: #1e40af; }
+.legend-swatch--orange { background: #9a3412; }
+
+.legend-label--green  { color: #bbf7d0; }
+.legend-label--blue   { color: #bfdbfe; }
+.legend-label--orange { color: #fed7aa; }
+
+/* ── Contador de técnicos nas células do calendário ────────────────────────── */
+
+.cal-count {
+    font-size: 10px;
+}
+
+@media (min-width: 768px) {
+    .cal-count {
+        font-size: 12px;
+    }
+}
+
+/* ── Modal de edição de usuário ────────────────────────────────────────────── */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.edit-modal-box {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%;
+    max-width: 448px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+}
+
+.edit-modal-cancel-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.edit-modal-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Modal de agenda do técnico (iframe) ───────────────────────────────────── */
+
+#agendaModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+}
+
+#agendaModal.hidden {
+    display: none;
+}
+
+.agenda-box {
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1100px;
+    height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+.agenda-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    min-height: 52px;
+}
+
+.agenda-modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.agenda-modal-title {
+    color: #f9fafb;
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.agenda-modal-close {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: #d1d5db;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 12px;
+    transition: background 0.15s;
+}
+
+.agenda-modal-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.agenda-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: #141414;
+    display: block;
+}
+
+/* Mobile: modal de agenda ocupa tela inteira */
+@media (max-width: 767px) {
+    #agendaModal {
+        padding: 0;
+        align-items: flex-start;
+    }
+
+    .agenda-box {
+        border-radius: 0;
+        border: none;
+        height: 100dvh;
+        height: 100vh; /* fallback para browsers sem suporte a dvh */
+        max-width: 100%;
+    }
 }
