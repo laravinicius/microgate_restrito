@@ -20,6 +20,22 @@
 
     # Permissões de recursos do browser (desabilita features não usadas)
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+
+    # ── Cache: páginas PHP nunca ficam em cache ───────────────────────────────
+    # no-cache: browser revalida com o servidor a cada requisição
+    # no-store: não salva cópia local (bom para conteúdo autenticado)
+    # must-revalidate: não usa cópia expirada mesmo offline
+    <FilesMatch "\.php$">
+        Header always set Cache-Control "no-cache, no-store, must-revalidate"
+        Header always set Pragma "no-cache"
+        Header always set Expires "0"
+    </FilesMatch>
+
+    # ── Cache: assets estáticos ficam em cache por 1 semana ───────────────────
+    # O nome do arquivo muda no build (ex: output.css?v=...) então é seguro cachear
+    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|woff|woff2|svg|webp)$">
+        Header always set Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
+    </FilesMatch>
 </IfModule>
 
 # --- Ocultar versão do servidor -----------------------------------------------
