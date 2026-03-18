@@ -247,6 +247,8 @@ $technicians = $techStmt->fetchAll();
                         <th class="text-center">Tempo</th>
                         <th class="text-right">KM Final</th>
                         <th class="text-right">Total rodado</th>
+                        <th class="text-center">Localização inicial</th>
+                        <th class="text-center">Localização final</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Evidências</th>
                     </tr>
@@ -460,6 +462,12 @@ function renderTable(records) {
         const kmDriven = r.km_driven !== null
             ? `<span class="text-white font-semibold">${r.km_driven.toLocaleString('pt-BR')} km</span>`
             : '<span class="text-gray-600">—</span>';
+        const locationStart = r.location_start_url
+            ? `<a href="${esc(r.location_start_url)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-white text-sm">Abrir mapa</a>`
+            : '<span class="text-gray-600 text-xs">—</span>';
+        const locationEnd = r.location_end_url
+            ? `<a href="${esc(r.location_end_url)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-white text-sm">Abrir mapa</a>`
+            : '<span class="text-gray-600 text-xs">—</span>';
 
         return `
         <tr>
@@ -471,6 +479,8 @@ function renderTable(records) {
             <td class="text-center text-sm">${tempoTotal}</td>
             <td class="text-right font-mono text-sm">${kmEnd}</td>
             <td class="text-right">${kmDriven}</td>
+            <td class="text-center">${locationStart}</td>
+            <td class="text-center">${locationEnd}</td>
             <td class="text-center">${badge}</td>
             <td><div class="flex items-center justify-center gap-2">${photoStart}${photoEnd}</div></td>
         </tr>`;

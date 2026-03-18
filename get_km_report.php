@@ -50,6 +50,10 @@ $sql = "
         u.username,
         ml.km_start,
         ml.km_end,
+        ml.lat_start,
+        ml.lng_start,
+        ml.lat_end,
+        ml.lng_end,
         CASE
             WHEN ml.km_start IS NOT NULL AND ml.km_end IS NOT NULL
             THEN ml.km_end - ml.km_start
@@ -74,6 +78,11 @@ $rows = $stmt->fetchAll();
 
 $records = [];
 foreach ($rows as $row) {
+    $latStart = $row['lat_start'] !== null ? (float)$row['lat_start'] : null;
+    $lngStart = $row['lng_start'] !== null ? (float)$row['lng_start'] : null;
+    $latEnd   = $row['lat_end']   !== null ? (float)$row['lat_end']   : null;
+    $lngEnd   = $row['lng_end']   !== null ? (float)$row['lng_end']   : null;
+
     $records[] = [
         'id'          => (int)$row['id'],
         'log_date'    => $row['log_date'],
@@ -83,6 +92,16 @@ foreach ($rows as $row) {
         'km_start'    => $row['km_start'] !== null ? (int)$row['km_start'] : null,
         'km_end'      => $row['km_end']   !== null ? (int)$row['km_end']   : null,
         'km_driven'   => $row['km_driven'] !== null ? (int)$row['km_driven'] : null,
+        'lat_start'   => $latStart,
+        'lng_start'   => $lngStart,
+        'lat_end'     => $latEnd,
+        'lng_end'     => $lngEnd,
+        'location_start_url' => ($latStart !== null && $lngStart !== null)
+            ? 'https://www.google.com/maps?q=' . rawurlencode(number_format($latStart, 6, '.', '') . ',' . number_format($lngStart, 6, '.', ''))
+            : null,
+        'location_end_url'   => ($latEnd !== null && $lngEnd !== null)
+            ? 'https://www.google.com/maps?q=' . rawurlencode(number_format($latEnd, 6, '.', '') . ',' . number_format($lngEnd, 6, '.', ''))
+            : null,
         'saved_at_start' => $row['saved_at_start'] ?? null,
         'saved_at_end'   => $row['saved_at_end']   ?? null,
         'has_photo_start' => !empty($row['photo_start']),

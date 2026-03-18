@@ -37,7 +37,7 @@ $km      = isset($body['km'])   ? (int)$body['km']   : -1;
 $photo   = (string)($body['photo']    ?? '');
 $logDate = (string)($body['log_date'] ?? '');
 
-// Localização — opcionais, podem vir null se usuário negou permissão ou timeout
+// Localização
 $lat = isset($body['lat']) && is_numeric($body['lat']) ? (float)$body['lat'] : null;
 $lng = isset($body['lng']) && is_numeric($body['lng']) ? (float)$body['lng'] : null;
 
@@ -47,6 +47,7 @@ if ($lng !== null && ($lng < -180 || $lng > 180)) $lng = null;
 
 if (!in_array($type, ['start', 'end'], true)) jsonError('Tipo inválido.');
 if ($km < 0 || $km > 9_999_999)               jsonError('Quilometragem fora do intervalo (0–9.999.999).');
+if ($lat === null || $lng === null)           jsonError('Nao foi possivel obter a localizacao atual. Tente novamente.');
 
 $dt = new DateTimeImmutable($logDate);
 $serverToday = new DateTimeImmutable('today', new DateTimeZone('America/Sao_Paulo'));
@@ -102,11 +103,13 @@ if (file_put_contents($fullPath, $imageData) === false) {
 // Persiste no banco
 try {
     if ($type === 'start') {
-        $sql = "INSERT INTO mileage_logs (user_id, log_date, km_start, photo_start, saved_at_start)
-                VALUES (:uid, :date, :km, :photo, NOW())
+        $sql = "INSERT INTO mileage_logs (user_id, log_date, km_start, photo_start, lat_start, lng_start, saved_at_start)
+                VALUES (:uid, :date, :km, :photo, :lat, :lng, NOW())
                 ON DUPLICATE KEY UPDATE
                     km_start       = VALUES(km_start),
                     photo_start    = VALUES(photo_start),
+                    lat_start      = VALUES(lat_start),
+                    lng_start      = VALUES(lng_start),
                     saved_at_start = VALUES(saved_at_start),
                     updated_at     = CURRENT_TIMESTAMP";
         $params = [
@@ -114,15 +117,20 @@ try {
             ':date'  => $logDate,
             ':km'    => $km,
             ':photo' => $relativePath,
+            ':lat'   => $lat,
+            ':lng'   => $lng,
         ];
     } else {
         $sql = "UPDATE mileage_logs
                 SET km_end = :km, photo_end = :photo,
+                    lat_end = :lat, lng_end = :lng,
                     saved_at_end = NOW(), updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = :uid AND log_date = :date";
         $params = [
             ':km'    => $km,
             ':photo' => $relativePath,
+            ':lat'   => $lat,
+            ':lng'   => $lng,
             ':uid'   => $userId,
             ':date'  => $logDate,
         ];

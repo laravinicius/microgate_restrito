@@ -128,6 +128,45 @@ if (empty($_SESSION['csrf_token'])) {
 
         .step-line { height: 2px; flex: 1; background: rgba(255,255,255,0.1); transition: background 0.4s; }
         .step-line.done { background: #4ade80; }
+
+        #location-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(6px);
+        }
+        #location-overlay.open { display: flex; }
+        .location-overlay-box {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: #171717;
+            padding: 28px 24px;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+        }
+        .location-spinner {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 16px;
+            border-radius: 999px;
+            border: 3px solid rgba(255,255,255,0.16);
+            border-top-color: #4ade80;
+            animation: spin 0.9s linear infinite;
+        }
+        .location-overlay-note {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin-top: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -286,6 +325,15 @@ if (empty($_SESSION['csrf_token'])) {
     </div>
 
     <div id="toast"></div>
+    <div id="location-overlay" aria-hidden="true">
+        <div class="location-overlay-box">
+            <div class="location-spinner"></div>
+            <h2 id="location-overlay-title" class="text-white text-xl font-bold">Obtendo localização</h2>
+            <p id="location-overlay-message" class="location-overlay-note">
+                Aguarde enquanto capturamos a localização atual do dispositivo para enviar junto com o registro.
+            </p>
+        </div>
+    </div>
 
     <script>
     // ─── DATA E HORA DO DISPOSITIVO ────────────────────────────────────────────
@@ -304,6 +352,98 @@ if (empty($_SESSION['csrf_token'])) {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     }
+
+    const locationState = {
+        cached: null,
+        fetchedAt: 0,
+        pendingPromise: null
+    };
+
+    function showLocationOverlay(message) {
+        document.getElementById('location-overlay-message').textContent = message;
+        document.getElementById('location-overlay').classList.add('open');
+    }
+
+    function hideLocationOverlay() {
+        document.getElementById('location-overlay').classList.remove('open');
+    }
+
+    function cacheLocation(latitude, longitude) {
+        locationState.cached = {
+            lat: Number(latitude),
+            lng: Number(longitude)
+        };
+        locationState.fetchedAt = Date.now();
+        return locationState.cached;
+    }
+
+    function getFreshCachedLocation() {
+        if (!locationState.cached) return null;
+        const ageMs = Date.now() - locationState.fetchedAt;
+        return ageMs <= 2 * 60 * 1000 ? locationState.cached : null;
+    }
+
+    function requestCurrentLocation(options = {}) {
+        const {
+            timeout = 15000,
+            maximumAge = 0,
+            enableHighAccuracy = true
+        } = options;
+
+        if (!navigator.geolocation) {
+            return Promise.reject(new Error('Este dispositivo nao suporta geolocalizacao.'));
+        }
+
+        if (locationState.pendingPromise) {
+            return locationState.pendingPromise;
+        }
+
+        locationState.pendingPromise = new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const coords = cacheLocation(position.coords.latitude, position.coords.longitude);
+                    locationState.pendingPromise = null;
+                    resolve(coords);
+                },
+                (error) => {
+                    locationState.pendingPromise = null;
+                    const messages = {
+                        1: 'A localizacao do dispositivo nao foi autorizada.',
+                        2: 'Nao foi possivel determinar a localizacao atual.',
+                        3: 'Tempo esgotado ao obter a localizacao. Tente novamente.'
+                    };
+                    reject(new Error(messages[error.code] || 'Falha ao obter a localizacao atual.'));
+                },
+                {
+                    enableHighAccuracy,
+                    timeout,
+                    maximumAge
+                }
+            );
+        });
+
+        return locationState.pendingPromise;
+    }
+
+    async function getLocationForSave() {
+        const cached = getFreshCachedLocation();
+        if (cached) return cached;
+
+        try {
+            return await requestCurrentLocation({ timeout: 12000, maximumAge: 0, enableHighAccuracy: true });
+        } catch (error) {
+            if (locationState.cached) {
+                return locationState.cached;
+            }
+            throw error;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (navigator.geolocation) {
+            requestCurrentLocation({ timeout: 8000, maximumAge: 60000, enableHighAccuracy: true }).catch(() => {});
+        }
+    });
 
     // ─── PREVIEW E COMPRESSÃO DE FOTO ─────────────────────────────────────────
     function previewPhoto(input, areaId, dataId) {
@@ -361,6 +501,9 @@ if (empty($_SESSION['csrf_token'])) {
         lucide.createIcons();
 
         try {
+            showLocationOverlay('Aguarde enquanto capturamos a localizacao atual do dispositivo e enviamos o registro.');
+            const coords = await getLocationForSave();
+
             const res = await fetch('save_km.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -370,10 +513,13 @@ if (empty($_SESSION['csrf_token'])) {
                     km:         parseInt(kmVal, 10),
                     photo:      photo,
                     log_date:   getDeviceDate(),
+                    lat:        coords.lat,
+                    lng:        coords.lng
                 })
             });
 
             const data = await res.json();
+            hideLocationOverlay();
 
             if (data.success) {
                 showToast('Registrado com sucesso!', 'success');
@@ -385,7 +531,8 @@ if (empty($_SESSION['csrf_token'])) {
                 lucide.createIcons();
             }
         } catch (err) {
-            showToast('Erro de conexão. Tente novamente.', 'error');
+            hideLocationOverlay();
+            showToast(err?.message || 'Erro de conexão. Tente novamente.', 'error');
             btn.disabled = false;
             btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar KM ${type === 'start' ? 'Inicial' : 'Final'}`;
             lucide.createIcons();
