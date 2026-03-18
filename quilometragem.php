@@ -328,9 +328,9 @@ if (empty($_SESSION['csrf_token'])) {
     <div id="location-overlay" aria-hidden="true">
         <div class="location-overlay-box">
             <div class="location-spinner"></div>
-            <h2 id="location-overlay-title" class="text-white text-xl font-bold">Obtendo localização</h2>
+            <h2 id="location-overlay-title" class="text-white text-xl font-bold">Enviando dados</h2>
             <p id="location-overlay-message" class="location-overlay-note">
-                Aguarde enquanto capturamos a localização atual do dispositivo para enviar junto com o registro.
+                Aguarde enquanto enviamos o registro com a localização atual do dispositivo.
             </p>
         </div>
     </div>
@@ -501,7 +501,7 @@ if (empty($_SESSION['csrf_token'])) {
         lucide.createIcons();
 
         try {
-            showLocationOverlay('Aguarde enquanto capturamos a localizacao atual do dispositivo e enviamos o registro.');
+            showLocationOverlay('Aguarde enquanto enviamos o registro com a localizacao atual do dispositivo.');
             const coords = await getLocationForSave();
 
             const res = await fetch('save_km.php', {
