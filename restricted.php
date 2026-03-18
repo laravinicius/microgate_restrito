@@ -76,6 +76,19 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
                             <i data-lucide="chevron-right" class="w-5 h-5 md:w-4 md:h-4 text-gray-500 flex-shrink-0 ml-2"></i>
                         </a>
 
+                        <a href="test_location.php" class="nav-card">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="icon bg-emerald-500/15">
+                                    <i data-lucide="map-pinned" class="w-6 h-6 md:w-5 md:h-5 text-emerald-400"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white font-semibold text-base md:text-sm truncate">Teste Localizacao</p>
+                                    <p class="text-gray-400 text-xs hidden md:block">GPS no navegador</p>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 md:w-4 md:h-4 text-gray-500 flex-shrink-0 ml-2"></i>
+                        </a>
+
                         <?php if ($isAdmin): ?>
                         <a href="import_schedules.php" class="nav-card">
                             <div class="flex items-center gap-3 min-w-0">
