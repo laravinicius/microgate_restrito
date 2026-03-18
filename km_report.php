@@ -3,10 +3,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
-// Somente gerente / admin
 requireAdmin();
 
-// Lista de técnicos para o filtro (is_admin = 0)
 $techStmt = $pdo->query(
     "SELECT id, full_name, username FROM users WHERE is_admin = 0 AND is_active = 1 ORDER BY full_name ASC"
 );
@@ -30,10 +28,8 @@ $technicians = $techStmt->fetchAll();
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-
         #header-placeholder nav { top: 0 !important; }
 
-        /* ── Filtros ── */
         .filter-input {
             background: rgba(255,255,255,0.06);
             border: 1px solid rgba(255,255,255,0.12);
@@ -44,13 +40,13 @@ $technicians = $techStmt->fetchAll();
             width: 100%;
             transition: border-color 0.2s;
         }
-        .filter-input:focus {
-            outline: none;
-            border-color: rgba(167,139,250,0.5);
-        }
+        .filter-input:focus { outline: none; border-color: rgba(167,139,250,0.5); }
         .filter-input option { background: #1a1a2e; color: white; }
 
-        /* ── Cards de resumo ── */
+        /* Atalhos de período — só visíveis quando técnico selecionado */
+        .period-shortcuts { display: none; }
+        .period-shortcuts.visible { display: flex; }
+
         .summary-card {
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
@@ -58,7 +54,6 @@ $technicians = $techStmt->fetchAll();
             padding: 20px;
         }
 
-        /* ── Tabela ── */
         .km-table { width: 100%; border-collapse: collapse; }
         .km-table th {
             padding: 12px 16px;
@@ -82,7 +77,6 @@ $technicians = $techStmt->fetchAll();
         .km-table tr:hover td { background: rgba(255,255,255,0.03); }
         .km-table tr:last-child td { border-bottom: none; }
 
-        /* ── Badges ── */
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 8px; border-radius: 20px;
@@ -92,19 +86,16 @@ $technicians = $techStmt->fetchAll();
         .badge-partial { background: rgba(251,191,36,0.12);  color: #fbbf24; }
         .badge-missing { background: rgba(239,68,68,0.12);   color: #f87171; }
 
-        /* ── Botão de foto ── */
         .btn-photo {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 4px 10px; border-radius: 6px;
             font-size: 0.75rem; font-weight: 500;
-            background: rgba(167,139,250,0.1);
-            color: #a78bfa;
+            background: rgba(167,139,250,0.1); color: #a78bfa;
             border: 1px solid rgba(167,139,250,0.2);
             cursor: pointer; transition: background 0.2s;
         }
         .btn-photo:hover { background: rgba(167,139,250,0.2); }
 
-        /* ── Modal de foto ── */
         #photo-modal {
             position: fixed; inset: 0; z-index: 9999;
             background: rgba(0,0,0,0.85);
@@ -115,22 +106,16 @@ $technicians = $techStmt->fetchAll();
         #photo-modal .modal-box {
             background: #111827;
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            overflow: hidden;
+            border-radius: 16px; overflow: hidden;
             max-width: 600px; width: 100%;
         }
-        #photo-modal img {
-            width: 100%; display: block;
-            max-height: 70vh; object-fit: contain;
-            background: #000;
-        }
+        #photo-modal img { width: 100%; display: block; max-height: 70vh; object-fit: contain; background: #000; }
         #photo-modal .modal-footer {
             padding: 14px 20px;
             display: flex; align-items: center; justify-content: space-between;
             border-top: 1px solid rgba(255,255,255,0.08);
         }
 
-        /* ── Skeleton ── */
         .skeleton {
             background: linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);
             background-size: 200% 100%;
@@ -139,7 +124,6 @@ $technicians = $techStmt->fetchAll();
         }
         @keyframes shimmer { to { background-position: -200% 0; } }
 
-        /* ── Btn primário ── */
         .btn-primary {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 10px 20px; border-radius: 8px;
@@ -158,6 +142,15 @@ $technicians = $techStmt->fetchAll();
             cursor: pointer; transition: background 0.2s;
         }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+        .shortcut-btn {
+            padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: #d1d5db;
+            font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .shortcut-btn:hover { background: rgba(255,255,255,0.12); }
+        .shortcut-btn.active { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
     </style>
 </head>
 
@@ -169,24 +162,25 @@ $technicians = $techStmt->fetchAll();
 <main class="flex-1 pt-32 md:pt-52 pb-20">
 <div class="max-w-7xl mx-auto px-4">
 
-    <!-- Cabeçalho -->
-    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Quilometragem</h1>
-            <p class="text-gray-400">Acompanhe o KM rodado por cada técnico</p>
-        </div>
-        <a href="restricted.php" class="btn-secondary w-full md:w-auto justify-center">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Painel principal
-        </a>
-    </div>
+    <?php
+        $pageTitle    = 'Quilometragem';
+        $pageSubtitle = 'Acompanhe o KM rodado por cada técnico';
+        $backUrl      = 'restricted.php';
+        require __DIR__ . '/components/page_header.php';
+    ?>
 
     <!-- ── Filtros ── -->
     <div class="bg-brand-dark border border-white/10 rounded-xl p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+
+        <!-- Linha 1: Data + Técnico + Botão -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Técnico</label>
-                <select id="filter-user" class="filter-input">
+                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Data</label>
+                <input type="date" id="filter-date" class="filter-input">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Técnico <span class="text-gray-600 normal-case">(opcional)</span></label>
+                <select id="filter-user" class="filter-input" onchange="onTechChange()">
                     <option value="0">Todos os técnicos</option>
                     <?php foreach ($technicians as $tech): ?>
                     <option value="<?= (int)$tech['id'] ?>">
@@ -195,14 +189,6 @@ $technicians = $techStmt->fetchAll();
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div>
-                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Data inicial</label>
-                <input type="date" id="filter-from" class="filter-input">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Data final</label>
-                <input type="date" id="filter-to" class="filter-input">
-            </div>
             <div class="flex items-end">
                 <button class="btn-primary w-full justify-center" onclick="loadReport()">
                     <i data-lucide="search" class="w-4 h-4"></i>
@@ -210,19 +196,20 @@ $technicians = $techStmt->fetchAll();
                 </button>
             </div>
         </div>
-        <!-- Atalhos de período -->
-        <div class="flex flex-wrap gap-2">
-            <button class="badge badge-done cursor-pointer" onclick="setRange(0)">Hoje</button>
-            <button class="badge badge-partial cursor-pointer" onclick="setRange(7)">Últimos 7 dias</button>
-            <button class="badge badge-missing cursor-pointer" onclick="setRange(30)">Últimos 30 dias</button>
-            <button class="text-gray-400 text-xs underline cursor-pointer" onclick="setRange('month')">Mês atual</button>
+
+        <!-- Atalhos de período — só aparecem quando técnico selecionado -->
+        <div id="period-shortcuts" class="period-shortcuts flex-wrap gap-2 pt-3 border-t border-white/10">
+            <span class="text-xs text-gray-500 self-center mr-1">Período:</span>
+            <button class="shortcut-btn" id="btn-hoje"        onclick="setRange('hoje')">Hoje</button>
+            <button class="shortcut-btn" id="btn-7dias"       onclick="setRange('7dias')">Últimos 7 dias</button>
+            <button class="shortcut-btn" id="btn-mes-atual"   onclick="setRange('mes-atual')">Mês atual</button>
         </div>
     </div>
 
-    <!-- ── Cards de resumo por técnico ── -->
+    <!-- Cards de resumo por técnico -->
     <div id="summary-cards" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"></div>
 
-    <!-- ── Tabela de registros ── -->
+    <!-- Tabela de registros -->
     <div class="bg-brand-dark border border-white/10 rounded-xl overflow-hidden">
         <div class="p-6 border-b border-white/10 flex items-center justify-between">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -232,20 +219,17 @@ $technicians = $techStmt->fetchAll();
             <span id="total-badge" class="text-gray-400 text-sm"></span>
         </div>
 
-        <!-- Estado de carregamento -->
         <div id="table-loading" class="p-6 space-y-3">
             <?php for ($i = 0; $i < 5; $i++): ?>
             <div class="skeleton w-full" style="height:18px;"></div>
             <?php endfor; ?>
         </div>
 
-        <!-- Estado vazio -->
         <div id="table-empty" class="hidden p-16 text-center text-gray-500">
             <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
-            <p>Nenhum registro encontrado para o período selecionado.</p>
+            <p>Nenhum registro encontrado.</p>
         </div>
 
-        <!-- Tabela real -->
         <div id="table-wrap" class="hidden overflow-x-auto">
             <table class="km-table">
                 <thead>
@@ -269,7 +253,7 @@ $technicians = $techStmt->fetchAll();
 </div>
 </div>
 
-<!-- ── Modal de foto ── -->
+<!-- Modal de foto -->
 <div id="photo-modal" onclick="closeModal(event)">
     <div class="modal-box">
         <img id="modal-img" src="" alt="Evidência KM">
@@ -288,42 +272,88 @@ $technicians = $techStmt->fetchAll();
 </div>
 
 <script>
-// ── Inicialização com período padrão: últimos 7 dias ─────────────────────────
+// ── Estado ────────────────────────────────────────────────────────────────────
+let activeShortcut = null;
+
+// ── Init: padrão = hoje, sem técnico selecionado ──────────────────────────────
 (function init() {
-    const today = new Date();
-    const from  = new Date(today);
-    from.setDate(from.getDate() - 7);
-
-    document.getElementById('filter-to').value   = fmtDate(today);
-    document.getElementById('filter-from').value = fmtDate(from);
-
+    document.getElementById('filter-date').value = fmtDate(new Date());
     loadReport();
 })();
 
-function fmtDate(d) {
-    return d.toISOString().slice(0, 10);
+// ── Quando muda o técnico ─────────────────────────────────────────────────────
+function onTechChange() {
+    const hasTech = document.getElementById('filter-user').value !== '0';
+    const shortcuts = document.getElementById('period-shortcuts');
+    shortcuts.classList.toggle('visible', hasTech);
+
+    // Limpa shortcut ativo ao trocar técnico
+    setActiveShortcut(null);
+
+    if (!hasTech) {
+        // Volta para data única (hoje)
+        document.getElementById('filter-date').value = fmtDate(new Date());
+    }
 }
 
-function setRange(days) {
+// ── Atalhos de período ────────────────────────────────────────────────────────
+function setRange(range) {
+    setActiveShortcut(range);
     const today = new Date();
-    document.getElementById('filter-to').value = fmtDate(today);
 
-    if (days === 'month') {
+    if (range === 'hoje') {
+        document.getElementById('filter-date').value = fmtDate(today);
+    } else if (range === '7dias') {
+        // Armazena range nos data attributes do input (usamos dataset)
+        const from = new Date(today); from.setDate(from.getDate() - 6);
+        document.getElementById('filter-date').dataset.rangeFrom = fmtDate(from);
+        document.getElementById('filter-date').dataset.rangeTo   = fmtDate(today);
+        document.getElementById('filter-date').value = '';
+    } else if (range === 'mes-atual') {
         const from = new Date(today.getFullYear(), today.getMonth(), 1);
-        document.getElementById('filter-from').value = fmtDate(from);
-    } else {
-        const from = new Date(today);
-        from.setDate(from.getDate() - (days === 0 ? 0 : days - 1));
-        document.getElementById('filter-from').value = fmtDate(from);
+        document.getElementById('filter-date').dataset.rangeFrom = fmtDate(from);
+        document.getElementById('filter-date').dataset.rangeTo   = fmtDate(today);
+        document.getElementById('filter-date').value = '';
     }
+
     loadReport();
 }
 
-// ── Carrega dados da API ─────────────────────────────────────────────────────
+function setActiveShortcut(range) {
+    activeShortcut = range;
+    ['hoje','7dias','mes-atual'].forEach(r => {
+        const btn = document.getElementById('btn-' + r);
+        if (btn) btn.classList.toggle('active', r === range);
+    });
+}
+
+// Limpa o range armazenado quando o usuário edita a data manualmente
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('filter-date').addEventListener('input', () => {
+        delete document.getElementById('filter-date').dataset.rangeFrom;
+        delete document.getElementById('filter-date').dataset.rangeTo;
+        setActiveShortcut(null);
+    });
+});
+
+// ── Monta params e carrega dados ──────────────────────────────────────────────
 async function loadReport() {
-    const userId   = document.getElementById('filter-user').value;
-    const dateFrom = document.getElementById('filter-from').value;
-    const dateTo   = document.getElementById('filter-to').value;
+    const userId    = document.getElementById('filter-user').value;
+    const dateInput = document.getElementById('filter-date');
+    const hasTech   = userId !== '0';
+
+    let dateFrom, dateTo;
+
+    if (hasTech && dateInput.dataset.rangeFrom) {
+        // Range de período (atalhos)
+        dateFrom = dateInput.dataset.rangeFrom;
+        dateTo   = dateInput.dataset.rangeTo;
+    } else {
+        // Data única
+        const d = dateInput.value || fmtDate(new Date());
+        dateFrom = d;
+        dateTo   = d;
+    }
 
     showLoading(true);
 
@@ -333,15 +363,10 @@ async function loadReport() {
         const res  = await fetch(`get_km_report.php?${params}`);
         const data = await res.json();
 
-        if (!data.success) {
-            showLoading(false);
-            showEmpty(true);
-            return;
-        }
+        if (!data.success) { showLoading(false); showEmpty(true); return; }
 
         renderSummary(data.summary);
         renderTable(data.records);
-
         document.getElementById('total-badge').textContent =
             data.total === 0 ? '' : `${data.total} registro${data.total !== 1 ? 's' : ''}`;
 
@@ -352,15 +377,10 @@ async function loadReport() {
     }
 }
 
-// ── Cards de resumo ──────────────────────────────────────────────────────────
+// ── Cards de resumo ───────────────────────────────────────────────────────────
 function renderSummary(summary) {
     const container = document.getElementById('summary-cards');
-
-    if (!summary || summary.length === 0) {
-        container.innerHTML = '';
-        return;
-    }
-
+    if (!summary || summary.length === 0) { container.innerHTML = ''; return; }
     container.innerHTML = summary.map(s => `
         <div class="summary-card">
             <p class="text-gray-400 text-xs uppercase tracking-wider mb-1 truncate">${esc(s.full_name)}</p>
@@ -370,72 +390,50 @@ function renderSummary(summary) {
     `).join('');
 }
 
-// ── Tabela de registros ───────────────────────────────────────────────────────
+// ── Tabela ────────────────────────────────────────────────────────────────────
 function renderTable(records) {
     showLoading(false);
-
-    if (!records || records.length === 0) {
-        showEmpty(true);
-        return;
-    }
-
+    if (!records || records.length === 0) { showEmpty(true); return; }
     showEmpty(false);
     document.getElementById('table-wrap').classList.remove('hidden');
 
     const tbody = document.getElementById('table-body');
-
     tbody.innerHTML = records.map(r => {
-        // Formata a data: YYYY-MM-DD → DD/MM/YYYY
         const [y, m, d] = r.log_date.split('-');
         const dateLabel = `${d}/${m}/${y}`;
         const weekday   = new Date(r.log_date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' });
 
-        // Status badge
         let badge;
-        if (r.km_start !== null && r.km_end !== null) {
+        if (r.km_start !== null && r.km_end !== null)
             badge = '<span class="badge badge-done"><i data-lucide="check" style="width:11px;height:11px;"></i> Completo</span>';
-        } else if (r.km_start !== null) {
+        else if (r.km_start !== null)
             badge = '<span class="badge badge-partial"><i data-lucide="clock" style="width:11px;height:11px;"></i> Só inicial</span>';
-        } else {
+        else
             badge = '<span class="badge badge-missing"><i data-lucide="x" style="width:11px;height:11px;"></i> Incompleto</span>';
-        }
 
-        // Botões de foto
         const photoStart = r.photo_start_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')">
-                <i data-lucide="image" style="width:12px;height:12px;"></i> Inicial
-               </button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Inicial</button>`
             : '<span class="text-gray-600 text-xs">—</span>';
 
         const photoEnd = r.photo_end_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')">
-                <i data-lucide="image" style="width:12px;height:12px;"></i> Final
-               </button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Final</button>`
             : '<span class="text-gray-600 text-xs">—</span>';
 
-        const kmStart   = r.km_start  !== null ? r.km_start.toLocaleString('pt-BR')  : '<span class="text-gray-600">—</span>';
-        const kmEnd     = r.km_end    !== null ? r.km_end.toLocaleString('pt-BR')    : '<span class="text-gray-600">—</span>';
-        const kmDriven  = r.km_driven !== null
+        const kmStart  = r.km_start  !== null ? r.km_start.toLocaleString('pt-BR')  : '<span class="text-gray-600">—</span>';
+        const kmEnd    = r.km_end    !== null ? r.km_end.toLocaleString('pt-BR')    : '<span class="text-gray-600">—</span>';
+        const kmDriven = r.km_driven !== null
             ? `<span class="text-white font-semibold">${r.km_driven.toLocaleString('pt-BR')} km</span>`
             : '<span class="text-gray-600">—</span>';
 
         return `
         <tr>
-            <td>
-                <p class="text-white font-medium">${dateLabel}</p>
-                <p class="text-gray-500 text-xs">${weekday}</p>
-            </td>
+            <td><p class="text-white font-medium">${dateLabel}</p><p class="text-gray-500 text-xs">${weekday}</p></td>
             <td class="text-white">${esc(r.full_name)}</td>
             <td class="text-right font-mono text-sm">${kmStart}</td>
             <td class="text-right font-mono text-sm">${kmEnd}</td>
             <td class="text-right">${kmDriven}</td>
             <td class="text-center">${badge}</td>
-            <td>
-                <div class="flex items-center justify-center gap-2">
-                    ${photoStart}
-                    ${photoEnd}
-                </div>
-            </td>
+            <td><div class="flex items-center justify-center gap-2">${photoStart}${photoEnd}</div></td>
         </tr>`;
     }).join('');
 
@@ -456,7 +454,7 @@ function showEmpty(show) {
 
 // ── Modal de foto ─────────────────────────────────────────────────────────────
 function openPhoto(url, name, label) {
-    document.getElementById('modal-img').src       = url;
+    document.getElementById('modal-img').src              = url;
     document.getElementById('modal-title').textContent    = name;
     document.getElementById('modal-subtitle').textContent = label;
     document.getElementById('photo-modal').classList.add('open');
@@ -464,21 +462,17 @@ function openPhoto(url, name, label) {
 }
 
 function closeModal(e) {
-    // Fecha apenas se clicar no backdrop
-    if (e.target.id === 'photo-modal') {
-        e.target.classList.remove('open');
-    }
+    if (e.target.id === 'photo-modal') e.target.classList.remove('open');
 }
 
-// ── Escape para XSS ──────────────────────────────────────────────────────────
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function fmtDate(d) { return d.toISOString().slice(0, 10); }
+
 function esc(str) {
     if (str === null || str === undefined) return '';
     return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 lucide.createIcons();

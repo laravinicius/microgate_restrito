@@ -52,18 +52,6 @@ $logs = $stmt->fetchAll();
     <script src="./js/theme.js"></script>
     <script src="./js/components.js" defer></script>
     <?php require __DIR__ . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        #header-placeholder nav {
-            top: 0 !important;
-        }
-    </style>
 </head>
 <body>
     <div class="boxed-layout">
@@ -72,26 +60,13 @@ $logs = $stmt->fetchAll();
 
             <main class="flex-1 pt-32 md:pt-52 pb-20">
                 <div class="max-w-7xl mx-auto px-4">
-                    <div class="mb-12 flex flex-col gap-6">
-                        <div>
-                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Logs de auditoria</h1>
-                            <p class="text-gray-400">Últimos 300 eventos de login, logout e falhas</p>
-                        </div>
-                        <div class="flex flex-row items-center justify-between md:justify-start gap-4 border-t border-white/5 pt-6">
-                            <p class="text-gray-300 text-sm md:text-base"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars((string)($_SESSION['full_name'] ?? $_SESSION['username'])) ?></strong></p>
-                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-400 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm md:text-base">
-                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                Sair da Conta
-                            </a>
-                        </div>
-                    </div>
 
-                    <div class="mb-6">
-                        <a href="restricted.php" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white px-4 py-2 rounded-lg transition">
-                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                            Voltar ao Painel
-                        </a>
-                    </div>
+                    <?php
+                        $pageTitle    = 'Logs de Auditoria';
+                        $pageSubtitle = 'Últimos 300 eventos de login, logout e falhas';
+                        $backUrl      = 'restricted.php';
+                        require __DIR__ . '/components/page_header.php';
+                    ?>
 
                     <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
                         <input

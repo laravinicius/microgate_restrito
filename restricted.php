@@ -40,17 +40,12 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
             <main class="flex-1 pt-32 md:pt-52 pb-20">
                 <div class="max-w-7xl mx-auto px-4">
 
-                    <!-- Cabeçalho -->
-                    <div class="mb-10 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                        <div>
-                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Painel</h1>
-                            <p class="text-base text-gray-400">Bem-vindo, <strong class="text-white"><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
-                        </div>
-                        <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-3 px-5 rounded-lg transition flex items-center gap-2 self-start text-base md:text-sm md:py-2 md:px-4">
-                            <i data-lucide="log-out" class="w-5 h-5 md:w-4 md:h-4"></i>
-                            Sair
-                        </a>
-                    </div>
+                    <?php
+                        $pageTitle    = 'Painel';
+                        $pageSubtitle = 'Bem-vindo, ' . ($_SESSION['full_name'] ?? $_SESSION['username']);
+                        $backUrl      = '';
+                        require __DIR__ . '/components/page_header.php';
+                    ?>
 
                     <!-- Cards de navegação rápida -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">

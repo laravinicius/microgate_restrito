@@ -126,23 +126,12 @@ foreach ($resetRequests as $r) {
             <main class="flex-1 pt-32 md:pt-52 pb-20">
                 <div class="max-w-6xl mx-auto px-4">
 
-                    <!-- Cabeçalho -->
-                    <div class="mb-10 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                        <div>
-                            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Gerenciamento de Usuários</h1>
-                            <p class="text-gray-400">Criação, edição e exclusão de contas</p>
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-3 items-start">
-                            <a href="restricted.php" class="bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm">
-                                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                                Voltar ao Painel
-                            </a>
-                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm">
-                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                Sair
-                            </a>
-                        </div>
-                    </div>
+                    <?php
+                        $pageTitle    = 'Gerenciamento de Usuários';
+                        $pageSubtitle = 'Criação, edição e exclusão de contas';
+                        $backUrl      = 'restricted.php';
+                        require __DIR__ . '/components/page_header.php';
+                    ?>
 
                     <!-- Mensagens de feedback -->
                     <?php if (isset($_GET['msg'])): ?>
