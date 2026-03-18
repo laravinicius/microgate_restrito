@@ -6,6 +6,7 @@ node_modules/
 config/database.php.bak
 downloads/
 debug_usuarios.php
+android_st/
 
 # F-11 FIX: Dados reais de funcionários/escalas não devem ser versionados.
 # Manter apenas arquivos de exemplo (prefixo "exemplo_" ou "modelo_").

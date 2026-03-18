@@ -79,16 +79,19 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
                                             class="w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white text-sm"
                                         >
                                     </div>
-                                    <a
-                                        id="maps-link"
-                                        href="#"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm"
-                                    >
-                                        <i data-lucide="map" class="w-4 h-4"></i>
-                                        Abrir no Google Maps
-                                    </a>
+                                    <div>
+                                        <label class="block text-xs uppercase tracking-wide text-gray-400 mb-2">Mapa</label>
+                                        <div class="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                                            <iframe
+                                                id="maps-embed"
+                                                title="Mapa da localizacao atual"
+                                                src="about:blank"
+                                                class="w-full h-80"
+                                                loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade"
+                                            ></iframe>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -105,7 +108,7 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
             const status = document.getElementById('location-status');
             const result = document.getElementById('location-result');
             const coordinates = document.getElementById('location-coordinates');
-            const mapsLink = document.getElementById('maps-link');
+            const mapsEmbed = document.getElementById('maps-embed');
             const browserContext = document.getElementById('browser-context');
 
             function updateContextInfo(permissionState) {
@@ -128,14 +131,14 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
             function showResult(latitude, longitude) {
                 const lat = Number(latitude).toFixed(6);
                 const lng = Number(longitude).toFixed(6);
-                const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng);
+                const mapsUrl = 'https://maps.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng) + '&z=16&output=embed';
 
                 feedback.classList.remove('hidden');
                 status.textContent = 'Localizacao obtida com sucesso.';
                 status.className = 'text-sm text-emerald-400';
                 result.classList.remove('hidden');
                 coordinates.value = 'Lat: ' + lat + ' | Long: ' + lng;
-                mapsLink.href = mapsUrl;
+                mapsEmbed.src = mapsUrl;
 
                 if (window.lucide) {
                     window.lucide.createIcons();
