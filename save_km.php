@@ -153,7 +153,26 @@ try {
     $stmt->execute($params);
 
 } catch (PDOException $e) {
-    error_log('save_km.php DB error: ' . $e->getMessage());
+    try {
+        $dbName = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
+        $dbHost = (string)$pdo->query('SELECT @@hostname')->fetchColumn();
+        $hasLatStart = $pdo->prepare("SHOW COLUMNS FROM mileage_logs LIKE 'lat_start'");
+        $hasLatStart->execute();
+        $latStartExists = $hasLatStart->fetch() ? 'yes' : 'no';
+
+        error_log(
+            'save_km.php DB error: ' . $e->getMessage() .
+            ' | database=' . $dbName .
+            ' | host=' . $dbHost .
+            ' | lat_start_exists=' . $latStartExists
+        );
+    } catch (Throwable $diagnosticError) {
+        error_log(
+            'save_km.php DB error: ' . $e->getMessage() .
+            ' | diagnostic_failed=' . $diagnosticError->getMessage()
+        );
+    }
+
     @unlink($fullPath);
     jsonError('Erro ao salvar no banco de dados.', 500);
 }
