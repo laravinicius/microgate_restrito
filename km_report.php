@@ -10,6 +10,10 @@ if (!isAdmin() && !isKmManager()) {
     exit;
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $techStmt = $pdo->query(
     "SELECT id, full_name, username FROM users WHERE is_admin = 0 AND is_active = 1 ORDER BY full_name ASC"
 );
@@ -156,6 +160,32 @@ $technicians = $techStmt->fetchAll();
         }
         .shortcut-btn:hover { background: rgba(255,255,255,0.12); }
         .shortcut-btn.active { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
+
+        #manual-modal {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        #manual-modal.open { display: flex; }
+        #manual-modal .modal-box {
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 560px;
+            overflow: hidden;
+        }
+        .manual-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .manual-form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 
@@ -178,7 +208,7 @@ $technicians = $techStmt->fetchAll();
     <div class="bg-brand-dark border border-white/10 rounded-xl p-6 mb-8">
 
         <!-- Linha 1: Data + Técnico + Botão -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
                 <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Data</label>
                 <input type="date" id="filter-date" class="filter-input">
@@ -198,6 +228,12 @@ $technicians = $techStmt->fetchAll();
                 <button class="btn-primary w-full justify-center" onclick="loadReport()">
                     <i data-lucide="search" class="w-4 h-4"></i>
                     Buscar
+                </button>
+            </div>
+            <div class="flex items-end">
+                <button class="btn-secondary w-full justify-center" onclick="openManualModal()">
+                    <i data-lucide="square-pen" class="w-4 h-4"></i>
+                    Cadastro manual
                 </button>
             </div>
         </div>
@@ -263,6 +299,65 @@ $technicians = $techStmt->fetchAll();
 </div>
 </div>
 
+<!-- Modal de cadastro manual -->
+<div id="manual-modal" onclick="closeManualModal(event)">
+    <div class="modal-box">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between">
+            <div>
+                <h3 class="text-white font-bold text-lg">Cadastro manual</h3>
+                <p class="text-gray-400 text-sm mt-1">Preencha os dados obrigatórios para lançar o KM manualmente.</p>
+            </div>
+            <button onclick="document.getElementById('manual-modal').classList.remove('open')" class="btn-secondary text-sm px-4 py-2">
+                <i data-lucide="x" class="w-4 h-4"></i>
+                Fechar
+            </button>
+        </div>
+
+        <form id="manual-form" class="p-6 space-y-5" onsubmit="submitManualEntry(event)">
+            <div class="manual-form-grid">
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Data</label>
+                    <input type="date" id="manual-date" class="filter-input" required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Técnico</label>
+                    <select id="manual-user" class="filter-input" required>
+                        <option value="">Selecione</option>
+                        <?php foreach ($technicians as $tech): ?>
+                        <option value="<?= (int)$tech['id'] ?>">
+                            <?= htmlspecialchars($tech['full_name'] ?: $tech['username']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">KM inicial</label>
+                    <input type="number" id="manual-km-start" class="filter-input" min="0" required oninput="updateManualTotal()">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">KM final</label>
+                    <input type="number" id="manual-km-end" class="filter-input" min="0" required oninput="updateManualTotal()">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-gray-400 uppercase tracking-wider mb-2">Total rodado</label>
+                <input type="text" id="manual-total" class="filter-input" readonly value="—">
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-end">
+                <button type="button" class="btn-secondary justify-center" onclick="document.getElementById('manual-modal').classList.remove('open')">
+                    Cancelar
+                </button>
+                <button type="submit" id="manual-submit-btn" class="btn-primary justify-center">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Salvar cadastro
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal de foto -->
 <div id="photo-modal" onclick="closeModal(event)">
     <div class="modal-box">
@@ -284,6 +379,7 @@ $technicians = $techStmt->fetchAll();
 <script>
 // ── Estado ────────────────────────────────────────────────────────────────────
 let activeShortcut = null;
+const MANUAL_CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token']) ?>;
 
 // ── Init: padrão = hoje, sem técnico selecionado ──────────────────────────────
 (function init() {
@@ -400,6 +496,90 @@ function renderSummary(summary) {
     `).join('');
 }
 
+function openManualModal() {
+    document.getElementById('manual-date').value = document.getElementById('filter-date').value || fmtDate(new Date());
+    document.getElementById('manual-user').value = document.getElementById('filter-user').value !== '0'
+        ? document.getElementById('filter-user').value
+        : '';
+    document.getElementById('manual-km-start').value = '';
+    document.getElementById('manual-km-end').value = '';
+    document.getElementById('manual-total').value = '—';
+    document.getElementById('manual-modal').classList.add('open');
+    lucide.createIcons();
+}
+
+function closeManualModal(e) {
+    if (e.target.id === 'manual-modal') e.target.classList.remove('open');
+}
+
+function updateManualTotal() {
+    const kmStart = Number(document.getElementById('manual-km-start').value);
+    const kmEnd = Number(document.getElementById('manual-km-end').value);
+    const totalField = document.getElementById('manual-total');
+
+    if (!Number.isFinite(kmStart) || !Number.isFinite(kmEnd) || kmStart < 0 || kmEnd < kmStart) {
+        totalField.value = '—';
+        return;
+    }
+
+    totalField.value = `${(kmEnd - kmStart).toLocaleString('pt-BR')} km`;
+}
+
+async function submitManualEntry(event) {
+    event.preventDefault();
+
+    const date = document.getElementById('manual-date').value;
+    const userId = document.getElementById('manual-user').value;
+    const kmStart = Number(document.getElementById('manual-km-start').value);
+    const kmEnd = Number(document.getElementById('manual-km-end').value);
+    const submitBtn = document.getElementById('manual-submit-btn');
+
+    if (!date || !userId || !Number.isFinite(kmStart) || !Number.isFinite(kmEnd)) {
+        showToast('Preencha todos os campos obrigatorios.', 'error');
+        return;
+    }
+
+    if (kmStart < 0 || kmEnd < kmStart) {
+        showToast('KM final nao pode ser menor que o KM inicial.', 'error');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i> Salvando...';
+    lucide.createIcons();
+
+    try {
+        const res = await fetch('save_manual_km.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                csrf_token: MANUAL_CSRF_TOKEN,
+                log_date: date,
+                user_id: Number(userId),
+                km_start: kmStart,
+                km_end: kmEnd
+            })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            showToast(data.message || 'Erro ao salvar cadastro manual.', 'error');
+            return;
+        }
+
+        document.getElementById('manual-modal').classList.remove('open');
+        showToast('Cadastro manual salvo com sucesso.', 'success');
+        loadReport();
+    } catch (error) {
+        showToast('Erro de conexao ao salvar cadastro manual.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Salvar cadastro';
+        lucide.createIcons();
+    }
+}
+
 // ── Tabela ────────────────────────────────────────────────────────────────────
 function renderTable(records) {
     showLoading(false);
@@ -499,6 +679,32 @@ function showLoading(show) {
 function showEmpty(show) {
     document.getElementById('table-empty').classList.toggle('hidden', !show);
     if (show) document.getElementById('table-wrap').classList.add('hidden');
+}
+
+function showToast(msg, type) {
+    const existing = document.getElementById('manual-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'manual-toast';
+    toast.textContent = msg;
+    toast.style.cssText = [
+        'position:fixed',
+        'bottom:24px',
+        'left:50%',
+        'transform:translateX(-50%)',
+        'padding:12px 20px',
+        'border-radius:10px',
+        'z-index:10000',
+        'font-size:14px',
+        'font-weight:600',
+        type === 'success'
+            ? 'background:#166534;color:#dcfce7;border:1px solid #4ade80'
+            : 'background:#7f1d1d;color:#fecaca;border:1px solid #ef4444'
+    ].join(';');
+
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
 }
 
 // ── Modal de foto ─────────────────────────────────────────────────────────────
