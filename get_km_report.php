@@ -56,7 +56,9 @@ $sql = "
             ELSE NULL
         END AS km_driven,
         ml.photo_start,
+        ml.saved_at_start,
         ml.photo_end,
+        ml.saved_at_end,
         ml.created_at,
         ml.updated_at
     FROM mileage_logs ml
@@ -81,6 +83,8 @@ foreach ($rows as $row) {
         'km_start'    => $row['km_start'] !== null ? (int)$row['km_start'] : null,
         'km_end'      => $row['km_end']   !== null ? (int)$row['km_end']   : null,
         'km_driven'   => $row['km_driven'] !== null ? (int)$row['km_driven'] : null,
+        'saved_at_start' => $row['saved_at_start'] ?? null,
+        'saved_at_end'   => $row['saved_at_end']   ?? null,
         'has_photo_start' => !empty($row['photo_start']),
         'has_photo_end'   => !empty($row['photo_end']),
         'photo_start_url' => !empty($row['photo_start'])

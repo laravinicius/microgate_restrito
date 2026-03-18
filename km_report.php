@@ -242,6 +242,9 @@ $technicians = $techStmt->fetchAll();
                         <th>Data</th>
                         <th>Técnico</th>
                         <th class="text-right">KM Inicial</th>
+                        <th class="text-center">Entrada</th>
+                        <th class="text-center">Saída</th>
+                        <th class="text-center">Tempo</th>
                         <th class="text-right">KM Final</th>
                         <th class="text-right">Total rodado</th>
                         <th class="text-center">Status</th>
@@ -408,6 +411,34 @@ function renderTable(records) {
         const dateLabel = `${d}/${m}/${y}`;
         const weekday   = new Date(r.log_date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short' });
 
+        const fmtTime = (ts) => {
+            if (!ts) return null;
+            return new Date(ts.replace(' ', 'T'));
+        };
+        const tsStart = fmtTime(r.saved_at_start);
+        const tsEnd   = fmtTime(r.saved_at_end);
+
+        const fmtHM = (d) => d
+            ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : null;
+
+        const timeStart = fmtHM(tsStart) || '<span class="text-gray-600">—</span>';
+        const timeEnd   = fmtHM(tsEnd)   || '<span class="text-gray-600">—</span>';
+
+        // Tempo total entre entrada e saída
+        let tempoTotal = '<span class="text-gray-600">—</span>';
+        if (tsStart && tsEnd) {
+            const diffMs  = tsEnd - tsStart;
+            const diffMin = Math.round(diffMs / 60000);
+            if (diffMin >= 60) {
+                const h = Math.floor(diffMin / 60);
+                const m = diffMin % 60;
+                tempoTotal = `<span class="text-white font-medium">${h}h${m > 0 ? String(m).padStart(2,'0')+'m' : ''}</span>`;
+            } else {
+                tempoTotal = `<span class="text-white font-medium">${diffMin}min</span>`;
+            }
+        }
+
         let badge;
         if (r.km_start !== null && r.km_end !== null)
             badge = '<span class="badge badge-done"><i data-lucide="check" style="width:11px;height:11px;"></i> Completo</span>';
@@ -435,6 +466,9 @@ function renderTable(records) {
             <td><p class="text-white font-medium">${dateLabel}</p><p class="text-gray-500 text-xs">${weekday}</p></td>
             <td class="text-white">${esc(r.full_name)}</td>
             <td class="text-right font-mono text-sm">${kmStart}</td>
+            <td class="text-center text-sm text-gray-300">${timeStart}</td>
+            <td class="text-center text-sm text-gray-300">${timeEnd}</td>
+            <td class="text-center text-sm">${tempoTotal}</td>
             <td class="text-right font-mono text-sm">${kmEnd}</td>
             <td class="text-right">${kmDriven}</td>
             <td class="text-center">${badge}</td>
