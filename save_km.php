@@ -80,16 +80,29 @@ if ($type === 'end') {
 }
 
 // Salva foto
-$baseDir = __DIR__ . '/uploads/km/' . $userId;
-if (!is_dir($baseDir)) {
-    if (!mkdir($baseDir, 0750, true)) jsonError('Erro ao preparar armazenamento.', 500);
+$kmRootDir = __DIR__ . '/uploads/km';
+$baseDir   = $kmRootDir . '/' . $userId;
+
+if (!is_dir($kmRootDir) && !mkdir($kmRootDir, 0775, true) && !is_dir($kmRootDir)) {
+    error_log('save_km.php storage error: unable to create km root dir "' . $kmRootDir . '"');
+    jsonError('Erro ao preparar armazenamento.', 500);
 }
 
-$kmHtaccess = __DIR__ . '/uploads/km/.htaccess';
+$kmHtaccess = $kmRootDir . '/.htaccess';
 if (!file_exists($kmHtaccess)) {
-    file_put_contents($kmHtaccess,
+    @file_put_contents(
+        $kmHtaccess,
         "Deny from all\n<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
     );
+}
+
+if (!is_dir($baseDir) && !mkdir($baseDir, 0750, true) && !is_dir($baseDir)) {
+    $mkdirError = error_get_last();
+    error_log(
+        'save_km.php storage error: unable to create user dir "' . $baseDir . '"' .
+        ($mkdirError ? ' - ' . $mkdirError['message'] : '')
+    );
+    jsonError('Erro ao preparar armazenamento.', 500);
 }
 
 $filename     = $logDate . '_' . $type . '.jpg';
