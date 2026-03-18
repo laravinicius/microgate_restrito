@@ -1,42 +1,27 @@
 <?php
 declare(strict_types=1);
 
-/**
- * get_km_report.php
- *
- * API GET — retorna registros de quilometragem para o painel do gerente.
- * Acesso: is_admin >= 1 apenas.
- *
- * Parâmetros GET opcionais:
- *   user_id    int    – filtra por técnico específico (0 = todos)
- *   date_from  string – data inicial YYYY-MM-DD (padrão: 30 dias atrás)
- *   date_to    string – data final   YYYY-MM-DD (padrão: hoje)
- */
-
 require __DIR__ . '/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ── Autenticação e permissão ──────────────────────────────────────────────────
 if (!isLoggedIn()) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Não autenticado.']);
     exit;
 }
 
-if (!isAdmin()) {
+// Permite acesso a admins (1, 2) e Gerente KM (3)
+if (!isAdmin() && !isKmManager()) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Acesso restrito a gerentes.']);
+    echo json_encode(['success' => false, 'message' => 'Acesso restrito.']);
     exit;
 }
 
-// ── Parâmetros e validação ────────────────────────────────────────────────────
 $userId   = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-
 $dateFrom = trim((string)($_GET['date_from'] ?? ''));
 $dateTo   = trim((string)($_GET['date_to']   ?? ''));
 
-// Datas padrão: últimos 30 dias
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
     $dateFrom = date('Y-m-d', strtotime('-30 days'));
 }
@@ -44,12 +29,10 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
     $dateTo = date('Y-m-d');
 }
 
-// Garante que date_from <= date_to
 if ($dateFrom > $dateTo) {
     [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
 }
 
-// ── Query principal ───────────────────────────────────────────────────────────
 $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
 $userFilter = '';
 
@@ -87,7 +70,6 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
 
-// ── Monta resposta ────────────────────────────────────────────────────────────
 $records = [];
 foreach ($rows as $row) {
     $records[] = [
@@ -110,7 +92,6 @@ foreach ($rows as $row) {
     ];
 }
 
-// ── Resumo por técnico (para cards de totais) ─────────────────────────────────
 $summaryMap = [];
 foreach ($records as $r) {
     $uid = $r['user_id'];
@@ -120,7 +101,7 @@ foreach ($records as $r) {
             'full_name'     => $r['full_name'],
             'total_driven'  => 0,
             'days_recorded' => 0,
-            'days_complete' => 0,   // tem km_start E km_end
+            'days_complete' => 0,
         ];
     }
     $summaryMap[$uid]['days_recorded']++;

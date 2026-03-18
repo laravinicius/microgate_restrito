@@ -3,7 +3,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
-requireAdmin();
+// Gerente KM (nível 3) também tem acesso
+requireLogin();
+if (!isAdmin() && !isKmManager()) {
+    header('Location: /escala.php');
+    exit;
+}
 
 $techStmt = $pdo->query(
     "SELECT id, full_name, username FROM users WHERE is_admin = 0 AND is_active = 1 ORDER BY full_name ASC"
@@ -165,7 +170,7 @@ $technicians = $techStmt->fetchAll();
     <?php
         $pageTitle    = 'Quilometragem';
         $pageSubtitle = 'Acompanhe o KM rodado por cada técnico';
-        $backUrl      = 'restricted.php';
+        $backUrl      = isKmManager() ? '' : 'restricted.php';
         require __DIR__ . '/components/page_header.php';
     ?>
 

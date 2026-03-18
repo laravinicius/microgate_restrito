@@ -12,12 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
-// -------------------------------------------------------------------------
-// F-01 FIX: Rate limiting por IP no banco de dados.
-// O controle anterior usava $_SESSION, que era bypassável simplesmente
-// abrindo uma nova sessão (janela privada). Agora as tentativas falhas são
-// contadas por IP diretamente na tabela auth_access_logs, que já existe.
-// -------------------------------------------------------------------------
 $maxAttempts   = 8;
 $windowMinutes = 15;
 $clientIp      = (string)($_SERVER['REMOTE_ADDR'] ?? '');
@@ -75,9 +69,14 @@ $_SESSION['user_id']   = (int)$user['id'];
 $_SESSION['username']  = $user['username'];
 $_SESSION['full_name'] = $user['full_name'];
 $_SESSION['is_admin']  = (int)$user['is_admin'];
+
 logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 
-if (isAdmin()) {
+$level = (int)$user['is_admin'];
+
+if ($level === 3) {
+    header('Location: /km_report.php');
+} elseif ($level >= 1) {
     header('Location: /restricted.php');
 } else {
     header('Location: /escala.php');

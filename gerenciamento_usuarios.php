@@ -255,9 +255,10 @@ foreach ($resetRequests as $r) {
                                 <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Nível</label>
                                 <select name="is_admin"
                                     class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm">
-                                    <option value="0" class="text-black">Padrão</option>
-                                    <option value="2" class="text-black">Gerente</option>
-                                    <option value="1" class="text-black">Administrador</option>
+                                    <option value="0">Padrão</option>
+                                    <option value="3">Gerente KM</option>
+                                    <option value="2">Gerente</option>
+                                    <option value="1">Administrador</option>
                                 </select>
                             </div>
                             <div class="flex items-end">
@@ -312,11 +313,13 @@ foreach ($resetRequests as $r) {
                                             $levelClass = match($level) {
                                                 1 => 'bg-red-500/15 text-red-400',
                                                 2 => 'bg-purple-500/15 text-purple-400',
+                                                3 => 'bg-yellow-500/15 text-yellow-400',
                                                 default => 'bg-gray-500/15 text-gray-400'
                                             };
                                             $levelLabel = match($level) {
                                                 1 => 'Admin',
                                                 2 => 'Gerente',
+                                                3 => 'Gerente KM',
                                                 default => 'Padrão'
                                             };
                                             ?>
@@ -398,6 +401,7 @@ foreach ($resetRequests as $r) {
                     <select name="is_admin" id="editAdmin"
                         class="w-full border border-white/10 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition text-sm">
                         <option value="0">Padrão</option>
+                        <option value="3">Gerente KM</option>
                         <option value="2">Gerente</option>
                         <option value="1">Administrador</option>
                     </select>

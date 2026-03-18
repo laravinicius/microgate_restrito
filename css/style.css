@@ -42,6 +42,81 @@ body {
     top: 0 !important;
 }
 
+/* ── Cabeçalho padrão de página ────────────────────────────────────────────── */
+/* Usado em todas as páginas: título à esquerda, botões à direita               */
+
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.page-header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .page-header-actions {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+@media (min-width: 768px) {
+    .page-header {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+}
+
+/* ── Botões padrão de navegação ────────────────────────────────────────────── */
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #dc2626;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-logout:hover {
+    background: #b91c1c;
+}
+
 /* ── Formulários: inputs e selects no dark mode ────────────────────────────── */
 
 input[type="text"],
@@ -55,8 +130,8 @@ select {
 }
 
 select option {
-    background-color: #1f1f1f;
-    color: #ffffff;
+    background-color: #1f1f1f !important;
+    color: #ffffff !important;
 }
 
 /* ── Cards de navegação rápida (painel admin) ──────────────────────────────── */
