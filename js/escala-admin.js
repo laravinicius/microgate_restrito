@@ -38,8 +38,8 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = idx === 0
-            ? 'px-4 py-2 rounded-lg bg-white/15 border border-white/20 text-white font-semibold whitespace-nowrap text-sm transition'
-            : 'px-4 py-2 rounded-lg bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white font-medium whitespace-nowrap text-sm transition';
+            ? 'px-4 py-2 rounded-lg bg-white/15 border border-white/20 text-white font-semibold whitespace-nowrap text-sm md:text-xs transition'
+            : 'px-4 py-2 rounded-lg bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white font-medium whitespace-nowrap text-sm md:text-xs transition';
         btn.textContent = m.label;
         btn.onclick = () => selectTab(btn, m.year, m.month);
         tabsContainer.appendChild(btn);
@@ -142,7 +142,7 @@
 
             const td = document.createElement('td');
             td.className = 'border border-white/5 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5';
-            td.style.cssText = 'height:90px;padding:8px;vertical-align:top;' + (isWknd ? 'background:rgba(255,255,255,0.015);' : '');
+            td.style.cssText = 'height:100px;padding:8px;vertical-align:top;' + (isWknd ? 'background:rgba(255,255,255,0.015);' : '');
             td.setAttribute('data-date', iso);
 
             // Número do dia
@@ -151,9 +151,9 @@
 
             const numSpan = document.createElement('span');
             if (isToday) {
-                numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#ffffff;color:#000000;font-size:11px;font-weight:700;flex-shrink:0;';
+                numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#ffffff;color:#000000;font-size:12px;font-weight:700;flex-shrink:0;';
             } else {
-                numSpan.style.cssText = 'font-size:13px;font-weight:700;color:' + (isWknd ? '#6b7280' : '#e5e7eb') + ';';
+                numSpan.style.cssText = 'font-size:14px;font-weight:700;color:' + (isWknd ? '#6b7280' : '#e5e7eb') + ';';
             }
             numSpan.textContent = d;
             dayRow.appendChild(numSpan);
@@ -262,19 +262,19 @@
 
         panel.innerHTML = `
         <style>@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}</style>
-        <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10">
             <div>
-                <h3 class="text-white font-bold text-lg capitalize">${weekday}, ${dateLabel}</h3>
-                ${holiday ? `<span class="text-red-400 text-xs font-semibold">● ${holiday.name || 'Feriado'}</span>` : ''}
-                <div class="flex gap-4 mt-1 text-xs">
-                    <span class="text-green-400 font-medium">${groups['AGENDA'].length} trabalhando</span>
-                    <span class="text-blue-400">${groups['FOLGA'].length} de folga</span>
-                    ${groups['FÉRIAS'].length ? `<span class="text-orange-400">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
+                <h3 class="text-white font-bold text-xl md:text-lg capitalize">${weekday}, ${dateLabel}</h3>
+                ${holiday ? `<span class="text-red-400 text-sm font-semibold">● ${holiday.name || 'Feriado'}</span>` : ''}
+                <div class="flex flex-wrap gap-3 mt-1 text-sm md:text-xs">
+                    <span style="color:#4ade80;font-weight:500;">${groups['AGENDA'].length} trabalhando</span>
+                    <span style="color:#60a5fa;">${groups['FOLGA'].length} de folga</span>
+                    ${groups['FÉRIAS'].length ? `<span style="color:#fb923c;">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
                     ${groups['OUTRO'].length  ? `<span class="text-gray-400">${groups['OUTRO'].length} outros</span>` : ''}
                 </div>
             </div>
             <button onclick="document.getElementById('day-detail-panel').remove();document.querySelectorAll('.ring-2').forEach(e=>e.classList.remove('ring-2','ring-white/30'))"
-                class="text-gray-400 hover:text-white transition p-2 rounded-lg hover:bg-white/5">
+                class="text-gray-400 hover:text-white transition p-2 rounded-lg hover:bg-white/5 flex-shrink-0 ml-2">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>`;
@@ -296,7 +296,7 @@
 
                 const section = document.createElement('div');
                 section.style.cssText = 'padding:16px 24px;';
-                section.innerHTML = `<p style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${headColor[key]};margin-bottom:10px;">${labels[key]} (${groups[key].length})</p>`;
+                section.innerHTML = `<p style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${headColor[key]};margin-bottom:10px;">${labels[key]} (${groups[key].length})</p>`;
 
                 const grid = document.createElement('div');
                 grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
@@ -329,14 +329,14 @@
 
         // Avatar
         const avatar = document.createElement('div');
-        avatar.style.cssText = `width:30px;height:30px;border-radius:50%;background:${avatarBg[groupKey]};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff;`;
+        avatar.style.cssText = `width:34px;height:34px;border-radius:50%;background:${avatarBg[groupKey]};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;`;
         avatar.textContent = initial;
 
         // Info
         const info = document.createElement('div');
         info.style.cssText = 'min-width:0;flex:1;';
-        info.innerHTML = `<p style="color:#f9fafb;font-size:13px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</p>
-                          <p style="color:#9ca3af;font-size:10px;margin:2px 0 0 0;">${capitalize((ev.shift||'').toLowerCase())}</p>`;
+        info.innerHTML = `<p style="color:#f9fafb;font-size:14px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</p>
+                          <p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;">${capitalize((ev.shift||'').toLowerCase())}</p>`;
 
         card.appendChild(avatar);
         card.appendChild(info);
