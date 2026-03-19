@@ -20,6 +20,9 @@ if (!empty($_GET['error'])) {
         case '2':
             $error_msg = 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
             break;
+        case 'session_expired':
+            $error_msg = 'Sua sessão expirou por inatividade. Faça login novamente.';
+            break;
         default:
             $error_msg = 'Erro ao efetuar login.';
     }
@@ -61,6 +64,8 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
     <link rel="stylesheet" href="./css/output.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="./js/theme.js"></script>
+    <!-- session-guard ANTES dos outros scripts para agir imediatamente -->
+    <script src="./js/session-guard.js"></script>
     <script src="./js/components.js" defer></script>
     <?php require __DIR__ . '/components/google-analytics.php'; ?>
 
@@ -113,7 +118,6 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
                                 <div>
                                     <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
                                     <div class="relative">
-                                        
                                         <input 
                                             type="text" 
                                             id="username"
