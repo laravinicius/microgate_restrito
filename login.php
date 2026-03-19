@@ -137,9 +137,17 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
                                             type="password" 
                                             id="password"
                                             name="password" 
-                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
+                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-12 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
                                             placeholder="••••••••"
                                             required>
+                                        <button
+                                            type="button"
+                                            id="toggle-password"
+                                            class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 hover:text-gray-900 transition"
+                                            aria-label="Mostrar senha"
+                                            aria-pressed="false">
+                                            <i data-lucide="eye" class="w-5 h-5"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -210,11 +218,30 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
     <script>
         const forgotToggleBtn = document.getElementById('toggle-forgot-password');
         const forgotPanel = document.getElementById('forgot-password-panel');
+        const passwordInput = document.getElementById('password');
+        const passwordToggleBtn = document.getElementById('toggle-password');
 
         if (forgotToggleBtn && forgotPanel) {
             forgotToggleBtn.addEventListener('click', function () {
                 const isHidden = forgotPanel.classList.toggle('hidden');
                 forgotToggleBtn.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
+            });
+        }
+
+        if (passwordInput && passwordToggleBtn) {
+            passwordToggleBtn.addEventListener('click', function () {
+                const showPassword = passwordInput.type === 'password';
+
+                passwordInput.type = showPassword ? 'text' : 'password';
+                passwordToggleBtn.setAttribute('aria-label', showPassword ? 'Ocultar senha' : 'Mostrar senha');
+                passwordToggleBtn.setAttribute('aria-pressed', showPassword ? 'true' : 'false');
+                passwordToggleBtn.innerHTML = showPassword
+                    ? '<i data-lucide="eye-off" class="w-5 h-5"></i>'
+                    : '<i data-lucide="eye" class="w-5 h-5"></i>';
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
             });
         }
     </script>
