@@ -120,7 +120,7 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
                     </div>
 
                     <!-- Calendário de escalas -->
-                    <div class="bg-brand-dark border border-white/10 rounded-xl overflow-hidden">
+                    <div class="bg-brand-dark border border-white/10 rounded-xl overflow-visible">
 
                         <!-- Header do calendário -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-4 border-b border-white/10">

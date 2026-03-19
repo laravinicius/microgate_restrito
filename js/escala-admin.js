@@ -257,7 +257,7 @@
         const panel = document.createElement('div');
         panel.id = 'day-detail-panel';
         panel.setAttribute('data-date', iso);
-        panel.className = 'mt-4 bg-brand-dark border border-white/10 rounded-xl overflow-hidden';
+        panel.className = 'mt-4 bg-brand-dark border border-white/10 rounded-xl overflow-visible';
         panel.style.animation = 'slideDown 0.2s ease';
 
         panel.innerHTML = `
@@ -362,7 +362,10 @@
     // ── Editor inline de turno ───────────────────────────────────────────────
     function openInlineEditor(ev, iso, card, groupKey, cardBg, avatarBg) {
         // Fecha outros editores abertos
-        document.querySelectorAll('.inline-shift-editor').forEach(el => el.remove());
+        document.querySelectorAll('.inline-shift-editor').forEach(el => {
+            el.parentElement.style.zIndex = '';
+            el.remove();
+        });
 
         const displayName  = ev.full_name || ev.username || '-';
         const currentShift = (ev.shift || '').toUpperCase();
@@ -374,6 +377,7 @@
         const editor = document.createElement('div');
         editor.className = 'inline-shift-editor';
         editor.style.cssText = 'position:absolute;top:calc(100% + 6px);right:0;z-index:200;background:#1e1e1e;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,0.7);';
+        card.style.zIndex = '30';
 
         // Cabeçalho do editor
         const editorHeader = document.createElement('p');
@@ -434,6 +438,7 @@
         // Fechar ao clicar fora
         const closeEditor = (e) => {
             if (!editor.contains(e.target)) {
+                card.style.zIndex = '';
                 editor.remove();
                 document.removeEventListener('click', closeEditor);
             }
