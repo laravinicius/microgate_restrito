@@ -37,7 +37,7 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
         <div class="content-wrapper min-h-screen flex flex-col">
             <div id="header-placeholder"></div>
 
-            <main class="flex-1 pt-32 md:pt-52 pb-20">
+            <main class="page-main flex-1">
                 <div class="max-w-7xl mx-auto px-4">
 
                     <?php

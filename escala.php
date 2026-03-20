@@ -36,12 +36,6 @@ if (isAdmin()) {
         body {
             font-family: 'Inter', sans-serif;
         }
-
-        @media (min-width: 768px) {
-            main {
-                margin-top: 120px !important;
-            }
-        }
     </style>
 </head>
 
@@ -50,23 +44,20 @@ if (isAdmin()) {
         <div class="content-wrapper min-h-screen flex flex-col">
             <div id="header-placeholder"></div>
             
-            <main class="flex-1 pt-24 md:pt-52 pb-20">
-                <div class="max-w-6xl mx-auto px-4">
+            <main class="page-main flex-1">
+                <div class="max-w-7xl mx-auto px-4">
 
-                    <!-- Cabeçalho com nome do usuário e botão de logout -->
-                    <div class="mb-10 flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:gap-0">
-                        <div class="flex-1">
-                            <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">Escala Técnica</h1>
-                            <p class="text-gray-400">Consulte sua escala de trabalho</p>
-                        </div>
-                        <div class="flex flex-col items-start md:items-end gap-4">
-                            <p class="text-gray-300 text-sm"><span class="text-gray-400">Logado como:</span> <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong></p>
-                            <a href="logout.php" class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-lg transition flex items-center gap-2 w-full md:w-auto justify-center md:justify-start text-sm md:text-base">
-                                <i data-lucide="log-out" class="w-4 h-4"></i>
-                                Sair da Conta
-                            </a>
-                        </div>
-                    </div>
+                    <?php
+                        $pageTitle    = 'Escala Técnica';
+                        $pageSubtitle = 'Consulte sua escala de trabalho';
+                        $backUrl      = '';
+                        require __DIR__ . '/components/page_header.php';
+                    ?>
+
+                    <p class="text-gray-300 text-sm mb-6">
+                        <span class="text-gray-400">Logado como:</span>
+                        <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong>
+                    </p>
 
                     <!-- Card de acesso rápido: Quilometragem — padrão visual do projeto -->
                     <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-10 transition group flex items-start justify-between">

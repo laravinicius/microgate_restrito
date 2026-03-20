@@ -33,8 +33,8 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
         <div class="content-wrapper min-h-screen flex flex-col">
             <div id="header-placeholder"></div>
 
-            <main class="flex-1 pt-32 md:pt-52 pb-20">
-                <div class="max-w-4xl mx-auto px-4">
+            <main class="page-main flex-1">
+                <div class="max-w-7xl mx-auto px-4">
                     <?php
                         $pageTitle    = 'Teste de Localizacao';
                         $pageSubtitle = 'Validacao inicial da captura de latitude e longitude no navegador.';
@@ -43,7 +43,7 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
                         require __DIR__ . '/components/page_header.php';
                     ?>
 
-                    <section class="bg-brand-dark border border-white/10 rounded-xl p-6 md:p-8">
+                    <section class="max-w-4xl bg-brand-dark border border-white/10 rounded-xl p-6 md:p-8">
                         <div class="max-w-2xl">
                             <h2 class="text-white font-bold text-2xl md:text-xl mb-2">Obter localizacao atual</h2>
                             <p class="text-gray-400 text-sm mb-6">
