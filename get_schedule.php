@@ -33,6 +33,8 @@ if ((int)($_SESSION['is_admin'] ?? 0) === 0) {
     $username = null;
 }
 
+session_write_close();
+
 // Datas padrão: primeiro dia do mês atual até último dia do mês atual + 2 meses
 if (!$start || !$end) {
     $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));

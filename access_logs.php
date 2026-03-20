@@ -12,6 +12,7 @@ ensureAuthAuditTable($pdo);
 $search = trim((string)($_GET['q'] ?? ''));
 $eventType = trim((string)($_GET['event'] ?? ''));
 $success = ($_GET['success'] ?? '') === '' ? '' : (string)$_GET['success'];
+$onlyTechnicians = !isset($_GET['only_technicians']) || $_GET['only_technicians'] === '1';
 
 $sql = "SELECT l.id, l.user_id, l.username, l.event_type, l.success, l.ip_address, l.user_agent, l.details, l.created_at, u.full_name
         FROM auth_access_logs l
@@ -33,6 +34,10 @@ if ($eventType !== '') {
 if ($success === '0' || $success === '1') {
     $sql .= " AND l.success = :success";
     $params[':success'] = (int)$success;
+}
+
+if ($onlyTechnicians) {
+    $sql .= " AND COALESCE(u.is_admin, 0) = 0";
 }
 
 $sql .= " ORDER BY l.created_at DESC LIMIT 300";
@@ -88,6 +93,16 @@ $logs = $stmt->fetchAll();
                             <option value="0" class="text-black" <?= $success === '0' ? 'selected' : '' ?>>Falha</option>
                         </select>
                         <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded px-3 py-2">Aplicar Filtros</button>
+                        <label class="md:col-span-4 inline-flex items-center gap-2 text-sm text-gray-300 select-none">
+                            <input
+                                type="checkbox"
+                                name="only_technicians"
+                                value="1"
+                                <?= $onlyTechnicians ? 'checked' : '' ?>
+                                class="rounded border border-white/10 bg-white/5 text-gray-600 focus:ring-gray-500"
+                            >
+                            Ignorar administradores e gerentes, mostrando apenas técnicos
+                        </label>
                     </form>
 
                     <div class="bg-brand-dark border border-white/10 rounded-lg overflow-x-auto">
