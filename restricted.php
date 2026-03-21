@@ -138,7 +138,7 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
                                 </span>
                                 <span class="flex items-center gap-1.5">
                                     <span class="legend-swatch legend-swatch--blue"></span>
-                                    <span class="legend-label--blue">Folga</span>
+                                    <span class="legend-label--blue">Sem agenda</span>
                                 </span>
                                 <span class="flex items-center gap-1.5">
                                     <span class="legend-swatch legend-swatch--orange"></span>

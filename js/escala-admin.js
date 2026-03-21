@@ -181,7 +181,7 @@
                     const f = document.createElement('span');
                     f.className = 'cal-count';
                     f.style.cssText = 'color:#60a5fa;white-space:nowrap;';
-                    f.textContent = folga + ' folga';
+                    f.textContent = folga + ' sem agenda';
                     cntWrap.appendChild(f);
                 }
                 if (ausente > 0) {
@@ -233,6 +233,15 @@
         return td;
     }
 
+    function formatShiftLabel(shift) {
+        const normalized = (shift || '').toUpperCase();
+        if (normalized.includes('FOLGA')) return 'Sem agenda';
+        if (normalized.includes('AGENDA')) return 'Agenda';
+        if (normalized.includes('FÉRIAS') || normalized.includes('FERIAS')) return 'Férias';
+        if (normalized.includes('AUSENTE')) return 'Ausente';
+        return capitalize((shift || '').toLowerCase());
+    }
+
     // ── Painel de detalhes do dia ────────────────────────────────────────────
     function openDayPanel(iso, day, month, year, eventsMap, holidaysMap) {
         document.getElementById('day-detail-panel')?.remove();
@@ -268,7 +277,7 @@
                 ${holiday ? `<span class="text-red-400 text-sm font-semibold">● ${holiday.name || 'Feriado'}</span>` : ''}
                 <div class="flex flex-wrap gap-3 mt-1 text-sm md:text-xs">
                     <span style="color:#4ade80;font-weight:500;">${groups['AGENDA'].length} trabalhando</span>
-                    <span style="color:#60a5fa;">${groups['FOLGA'].length} de folga</span>
+                    <span style="color:#60a5fa;">${groups['FOLGA'].length} sem agenda</span>
                     ${groups['FÉRIAS'].length ? `<span style="color:#fb923c;">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
                     ${groups['OUTRO'].length  ? `<span class="text-gray-400">${groups['OUTRO'].length} outros</span>` : ''}
                 </div>
@@ -286,7 +295,7 @@
             body.className = 'divide-y divide-white/5';
 
             const order     = ['AGENDA', 'FOLGA', 'FÉRIAS', 'OUTRO'];
-            const labels    = { AGENDA: 'Trabalhando', FOLGA: 'De Folga', 'FÉRIAS': 'Férias / Ausente', OUTRO: 'Outros' };
+            const labels    = { AGENDA: 'Trabalhando', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias / Ausente', OUTRO: 'Outros' };
             const headColor = { AGENDA: '#4ade80', FOLGA: '#60a5fa', 'FÉRIAS': '#fb923c', OUTRO: '#9ca3af' };
             const cardBg    = { AGENDA: 'rgba(34,197,94,0.10)',   FOLGA: 'rgba(59,130,246,0.10)',  'FÉRIAS': 'rgba(249,115,22,0.10)',  OUTRO: 'rgba(107,114,128,0.10)' };
             const avatarBg  = { AGENDA: 'rgba(34,197,94,0.20)',   FOLGA: 'rgba(59,130,246,0.20)',  'FÉRIAS': 'rgba(249,115,22,0.20)',  OUTRO: 'rgba(107,114,128,0.20)' };
@@ -336,7 +345,7 @@
         const info = document.createElement('div');
         info.style.cssText = 'min-width:0;flex:1;';
         info.innerHTML = `<p style="color:#f9fafb;font-size:14px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</p>
-                          <p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;">${capitalize((ev.shift||'').toLowerCase())}</p>`;
+                          <p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;">${formatShiftLabel(ev.shift || '')}</p>`;
 
         card.appendChild(avatar);
         card.appendChild(info);
@@ -372,7 +381,7 @@
 
         const shifts      = ['AGENDA', 'FOLGA', 'FÉRIAS', 'AUSENTE'];
         const shiftColors = { AGENDA: '#4ade80', FOLGA: '#60a5fa', 'FÉRIAS': '#fb923c', AUSENTE: '#9ca3af' };
-        const shiftLabels = { AGENDA: 'Agenda', FOLGA: 'Folga', 'FÉRIAS': 'Férias', AUSENTE: 'Ausente' };
+        const shiftLabels = { AGENDA: 'Agenda', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias', AUSENTE: 'Ausente' };
 
         const editor = document.createElement('div');
         editor.className = 'inline-shift-editor';

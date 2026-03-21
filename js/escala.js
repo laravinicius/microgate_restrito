@@ -112,6 +112,7 @@
         const table = document.createElement('table');
         table.className = 'border-collapse text-[11px] md:text-base w-full';
         table.style.minWidth = '700px';
+        table.style.tableLayout = 'fixed';
 
         // Header row
         const thead = document.createElement('thead');
@@ -121,6 +122,7 @@
         ['Seg','Ter','Qua','Qui','Sex','Sab','Dom'].forEach(d=>{
             const th = document.createElement('th');
             th.className = 'px-2 md:px-4 py-2 md:py-3 text-center text-[8px] md:text-xs font-semibold text-gray-400 uppercase';
+            th.style.width = '14.2857%';
             th.textContent = d;
             headerRow.appendChild(th);
         });
@@ -193,8 +195,13 @@
 
                     badge.style.backgroundColor = bgColor;
                     badge.className = `text-white px-1 md:px-2 py-0.5 md:py-1 rounded truncate`;
+                    badge.style.display = 'block';
+                    badge.style.width = '100%';
+                    badge.style.boxSizing = 'border-box';
 
-                    const label = s || (e.note || '').toString().slice(0,15);
+                    const label = s.includes('FOLGA')
+                        ? 'SEM AGENDA'
+                        : (s || (e.note || '').toString().slice(0,15));
                     badge.textContent = label;
                     list.appendChild(badge);
                 });

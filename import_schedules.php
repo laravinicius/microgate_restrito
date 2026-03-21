@@ -27,6 +27,16 @@ function safeToUtf8($str) {
     return $str;
 }
 
+function normalizeScheduleShift($shift) {
+    $shift = safeToUtf8(trim((string)$shift));
+    $upper = strtoupper($shift);
+
+    if ($upper === 'SEM AGENDA') return 'FOLGA';
+    if ($upper === 'FERIAS') return 'FÉRIAS';
+
+    return $shift;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
     $csrfToken = (string)($_POST['csrf_token'] ?? '');
     if (!hash_equals($_SESSION['csrf_token'], $csrfToken)) {
@@ -125,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     if (!$matched) { $unknown[] = $name; continue; }
                     $schedule = [];
                     foreach ($dayCols as $colIdx => $dayInfo) {
-                        $shift = safeToUtf8(trim($row[$colIdx] ?? ''));
+                        $shift = normalizeScheduleShift($row[$colIdx] ?? '');
                         if ($shift !== '') $schedule[] = ['date'=>$dayInfo['date'],'shift'=>$shift,'username'=>$matched];
                     }
                     if (!empty($schedule)) {
@@ -247,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <ul class="text-gray-400 text-sm mt-2 ml-4 list-disc">
                                     <li>Primeira coluna: Nomes dos técnicos</li>
                                     <li>Próximas colunas: Datas no formato <strong>DD/MM/YYYY</strong></li>
-                                    <li>Valores nas células: AGENDA, FOLGA, FÉRIAS ou vazio</li>
+                                    <li>Valores nas células: AGENDA, SEM AGENDA, FÉRIAS ou vazio</li>
                                     <li>Separador: Ponto-e-vírgula (;)</li>
                                 </ul>
                                 <div class="bg-orange-500/20 border border-orange-500/50 rounded p-2 mt-3">

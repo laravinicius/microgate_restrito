@@ -224,7 +224,7 @@
             else if (shift.includes('AUSENTE'))                       { bg = '#4b5563'; fg = '#e5e7eb'; }
             badge.style.cssText = `background:${bg};color:${fg};border-radius:3px;padding:2px 6px;`
                 + `font-size:10px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;`;
-            badge.textContent = shift || ev.note || '—';
+            badge.textContent = shift.includes('FOLGA') ? 'SEM AGENDA' : (shift || ev.note || '—');
             container.appendChild(badge);
         });
         if (evs.length > 3) {
@@ -267,7 +267,7 @@
 
         const options = [
             { label: '✓ Agenda',  value: 'AGENDA',  cls: 'popover-agenda'  },
-            { label: '◌ Folga',   value: 'FOLGA',   cls: 'popover-folga'   },
+            { label: '◌ Sem agenda', value: 'FOLGA', cls: 'popover-folga' },
             { label: '✈ Férias',  value: 'FÉRIAS',  cls: 'popover-ferias'  },
             { label: '— Ausente', value: 'AUSENTE', cls: 'popover-ausente' },
         ];

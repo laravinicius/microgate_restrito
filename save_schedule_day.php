@@ -61,7 +61,7 @@ if (!$dt || $dt->format('Y-m-d') !== $date) {
 }
 
 $shiftUpper    = $shift !== '' ? strtoupper($shift) : '';
-$allowedShifts = ['AGENDA', 'FOLGA', 'FÉRIAS', 'FERIAS', 'AUSENTE', ''];
+$allowedShifts = ['AGENDA', 'FOLGA', 'SEM AGENDA', 'FÉRIAS', 'FERIAS', 'AUSENTE', ''];
 
 if (!in_array($shiftUpper, $allowedShifts, true)) {
     http_response_code(400);
@@ -72,6 +72,10 @@ if (!in_array($shiftUpper, $allowedShifts, true)) {
 // Normaliza FERIAS → FÉRIAS
 if ($shiftUpper === 'FERIAS') {
     $shiftUpper = 'FÉRIAS';
+}
+
+if ($shiftUpper === 'SEM AGENDA') {
+    $shiftUpper = 'FOLGA';
 }
 
 // Verifica se o usuário existe
