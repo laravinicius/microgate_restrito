@@ -94,6 +94,7 @@ $logs = $stmt->fetchAll();
                         </select>
                         <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded px-3 py-2">Aplicar Filtros</button>
                         <label class="md:col-span-4 inline-flex items-center gap-2 text-sm text-gray-300 select-none">
+                            <input type="hidden" name="only_technicians" value="0">
                             <input
                                 type="checkbox"
                                 name="only_technicians"
