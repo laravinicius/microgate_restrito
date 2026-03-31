@@ -92,7 +92,7 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
                 <section class="rounded-[20px] border border-white/10 bg-[rgba(255,255,255,0.04)] px-5 py-6 sm:px-7 sm:py-8">
                     <div class="mb-6 text-center sm:mb-7">
                         <img src="./img/microgate2.png" alt="Microgate" class="mx-auto h-11 w-auto object-contain sm:h-14">
-                        <h1 class="mt-5 text-3xl font-bold tracking-tight text-white">Sistema de Compras</h1>
+                        <h1 class="mt-5 text-3xl font-bold tracking-tight text-white">Restrito</h1>
                         <p class="mt-3 text-[11px] font-semibold uppercase tracking-[0.32em] text-white/55">Entrar</p>
                     </div>
 
