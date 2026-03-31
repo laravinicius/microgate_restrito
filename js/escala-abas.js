@@ -2,6 +2,7 @@
 // Visualização de agenda por abas de meses — com edição inline para admins
 
 (async function () {
+    const routes = window.APP_ROUTES || {};
 
     const wrap = document.getElementById('calendar-wrap');
     if (!wrap) return;
@@ -55,7 +56,7 @@
         const end   = new Date(year, month + 1, 0);
         const fmt   = d => d.toISOString().slice(0, 10);
 
-        let apiUrl = `./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`;
+        let apiUrl = `${routes.getSchedule || '/app/actions/schedule/get_schedule.php'}?start=${fmt(start)}&end=${fmt(end)}`;
         if (TARGET_UID) apiUrl += `&user_id=${TARGET_UID}`;
 
         try {
@@ -324,7 +325,7 @@
         popover.style.pointerEvents = 'none';
 
         try {
-            const res = await fetch('./save_schedule_day.php', {
+            const res = await fetch(routes.saveScheduleDay || '/app/actions/schedule/save_schedule_day.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ csrf_token: CSRF, user_id: userId, date: iso, shift })

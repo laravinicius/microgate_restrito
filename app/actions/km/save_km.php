@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -80,7 +80,7 @@ if ($type === 'end') {
 }
 
 // Salva foto
-$kmRootDir = __DIR__ . '/uploads/km';
+$kmRootDir = dirname(__DIR__, 3) . '/uploads/km';
 $baseDir   = $kmRootDir . '/' . $userId;
 
 if (!is_dir($kmRootDir) && !mkdir($kmRootDir, 0775, true) && !is_dir($kmRootDir)) {
@@ -107,7 +107,7 @@ if (!is_dir($baseDir) && !mkdir($baseDir, 0750, true) && !is_dir($baseDir)) {
 
 $filename     = $logDate . '_' . $type . '.jpg';
 $relativePath = 'uploads/km/' . $userId . '/' . $filename;
-$fullPath     = __DIR__ . '/' . $relativePath;
+$fullPath     = dirname(__DIR__, 3) . '/' . $relativePath;
 
 if (file_put_contents($fullPath, $imageData) === false) {
     jsonError('Erro ao salvar a foto.', 500);

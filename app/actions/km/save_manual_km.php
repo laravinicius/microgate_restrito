@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

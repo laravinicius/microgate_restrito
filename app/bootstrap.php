@@ -5,7 +5,7 @@ declare(strict_types=1);
 date_default_timezone_set('America/Sao_Paulo');
 
 if (!defined('APP_ROOT')) {
-    define('APP_ROOT', __DIR__);
+    define('APP_ROOT', dirname(__DIR__));
 }
 
 // Tempo máximo de inatividade em segundos (30 minutos)
@@ -33,8 +33,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once APP_ROOT . '/config/database.php';
-require_once APP_ROOT . '/auth_helper.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/auth/auth_helper.php';
+require_once __DIR__ . '/helpers/urls.php';
 
 // ─── Verificação de inatividade server-side ───────────────────────────────────
 // Verifica quanto tempo se passou desde a última atividade do usuário logado.

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 if (!isLoggedIn()) {
     http_response_code(401);
@@ -65,7 +65,7 @@ if (!$stmt->fetch()) {
     exit('Foto não encontrada.');
 }
 
-$fullPath = __DIR__ . '/' . $normalized;
+$fullPath = dirname(__DIR__, 3) . '/' . $normalized;
 
 if (!file_exists($fullPath) || !is_file($fullPath)) {
     http_response_code(404);

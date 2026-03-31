@@ -2,6 +2,7 @@
 // Calendário administrativo com edição de escala (somente perfil Admin nível 1).
 
 (async function () {
+    const routes = window.APP_ROUTES || {};
     const wrap = document.getElementById('calendar-wrap');
     if (!wrap) return;
 
@@ -68,7 +69,7 @@
         const fmt   = d => d.toISOString().slice(0, 10);
 
         try {
-            const res = await fetch(`./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`);
+            const res = await fetch(`${routes.getSchedule || '/app/actions/schedule/get_schedule.php'}?start=${fmt(start)}&end=${fmt(end)}`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
 
@@ -462,7 +463,7 @@
         editorEl.querySelectorAll('button').forEach(b => b.disabled = true);
 
         try {
-            const res = await fetch('./save_schedule.php', {
+            const res = await fetch(routes.saveScheduleDay || '/app/actions/schedule/save_schedule_day.php', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify({

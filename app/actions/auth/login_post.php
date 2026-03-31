@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/auth_audit.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
+require_once dirname(__DIR__, 2) . '/auth/auth_audit.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /login.php');
+    header('Location: ' . route_url('login.php'));
     exit;
 }
 
@@ -34,13 +34,13 @@ try {
 if ($failedAttempts >= $maxAttempts) {
     logAuthEvent($pdo, 'login_rate_limited', null, $username, false,
         "Muitas tentativas em janela de {$windowMinutes} minutos (IP: {$clientIp})");
-    header('Location: /login.php?error=2');
+    header('Location: ' . route_url('login.php?error=2'));
     exit;
 }
 
 if ($username === '' || $password === '') {
     logAuthEvent($pdo, 'login_failed', null, $username, false, 'Credenciais ausentes');
-    header('Location: /login.php?error=1');
+    header('Location: ' . route_url('login.php?error=1'));
     exit;
 }
 
@@ -53,14 +53,14 @@ try {
     $user = $stmt->fetch();
 } catch (PDOException $e) {
     error_log("Erro de banco de dados no login: " . $e->getMessage());
-    header('Location: /login.php?error=1');
+    header('Location: ' . route_url('login.php?error=1'));
     exit;
 }
 
 if (!$user || (int)($user['is_active'] ?? 0) !== 1 || !password_verify($password, $user['password_hash'])) {
     logAuthEvent($pdo, 'login_failed', $user ? (int)$user['id'] : null, $username, false,
         'Usuário/senha inválidos ou conta inativa');
-    header('Location: /login.php?error=1');
+    header('Location: ' . route_url('login.php?error=1'));
     exit;
 }
 
@@ -75,10 +75,10 @@ logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 $level = (int)$user['is_admin'];
 
 if ($level === 3) {
-    header('Location: /km_report.php');
+    header('Location: ' . route_url('km_report.php'));
 } elseif ($level >= 1) {
-    header('Location: /restricted.php');
+    header('Location: ' . route_url('restricted.php'));
 } else {
-    header('Location: /escala.php');
+    header('Location: ' . route_url('escala.php'));
 }
 exit;

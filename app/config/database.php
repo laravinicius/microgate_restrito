@@ -1,6 +1,6 @@
 <?php
 // Carregar variáveis de ambiente do arquivo .env se ele existir
-$envPath = __DIR__ . '/../.env';
+$envPath = (defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 2)) . '/.env';
 if (file_exists($envPath)) {
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {

@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 if (empty($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . route_url('login.php'));
     exit;
 }
 
 if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
-    header('Location: escala.php');
+    header('Location: ' . route_url('escala.php'));
     exit;
 }
 ?><!DOCTYPE html>
@@ -19,13 +19,14 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste de Localizacao | Microgate Informatica</title>
-    <link rel="shortcut icon" href="./img/ico.ico" type="image/x-icon">
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="stylesheet" href="./css/output.css">
+    <link rel="shortcut icon" href="<?= htmlspecialchars(asset_url('img/ico.ico')) ?>" type="image/x-icon">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/style.css')) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/output.css')) ?>">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="./js/theme.js"></script>
-    <script src="./js/components.js" defer></script>
-    <?php require __DIR__ . '/components/google-analytics.php'; ?>
+    <script src="<?= htmlspecialchars(asset_url('js/app-routes.js')) ?>"></script>
+    <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
+    <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
+    <?php require dirname(__DIR__, 3) . '/components/google-analytics.php'; ?>
 </head>
 
 <body>
@@ -38,9 +39,9 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
                     <?php
                         $pageTitle    = 'Teste de Localizacao';
                         $pageSubtitle = 'Validacao inicial da captura de latitude e longitude no navegador.';
-                        $backUrl      = 'restricted.php';
+                        $backUrl      = route_url('restricted.php');
                         $backLabel    = 'Voltar ao Painel';
-                        require __DIR__ . '/components/page_header.php';
+                        require dirname(__DIR__, 3) . '/components/page_header.php';
                     ?>
 
                     <section class="max-w-4xl bg-brand-dark border border-white/10 rounded-xl p-6 md:p-8">

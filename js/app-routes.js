@@ -1,0 +1,16 @@
+window.APP_ROUTES = {
+    login: '/login.php',
+    logout: '/logout.php',
+    restricted: '/restricted.php',
+    escala: '/escala.php',
+    kmReport: '/km_report.php',
+    gerenciamentoUsuarios: '/gerenciamento_usuarios.php',
+    accessLogs: '/access_logs.php',
+    headerComponent: '/components/header.html',
+    getSchedule: '/app/actions/schedule/get_schedule.php',
+    saveScheduleDay: '/app/actions/schedule/save_schedule_day.php',
+    saveKm: '/app/actions/km/save_km.php',
+    getKmReport: '/app/actions/km/get_km_report.php',
+    saveManualKm: '/app/actions/km/save_manual_km.php',
+    serveKmPhoto: '/app/actions/km/serve_km_photo.php',
+};

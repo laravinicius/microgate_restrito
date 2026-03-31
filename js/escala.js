@@ -2,6 +2,7 @@
 // Mobile-first calendar for 1 or 2 months (mês atual; e libera o próximo mês 7 dias antes do dia 1)
 
 (async function(){
+    const routes = window.APP_ROUTES || {};
     const wrap = document.getElementById('calendar-wrap');
     if (!wrap) return;
 
@@ -25,7 +26,7 @@
 
     // --- CORREÇÃO DE CAMINHO (LINUX/SSH) ---
     // Usa './' para garantir que busque na pasta do projeto, e não na raiz do servidor.
-    let apiUrl = `./get_schedule.php?start=${fmt(start)}&end=${fmt(end)}`;
+    let apiUrl = `${routes.getSchedule || '/app/actions/schedule/get_schedule.php'}?start=${fmt(start)}&end=${fmt(end)}`;
 
     // Verifica se estamos no modo "Visualizador" (escala_viewer.php)
     // A variável window.TARGET_USER_ID é definida no PHP do viewer.

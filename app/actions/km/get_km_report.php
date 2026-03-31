@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -107,10 +107,10 @@ foreach ($rows as $row) {
         'has_photo_start' => !empty($row['photo_start']),
         'has_photo_end'   => !empty($row['photo_end']),
         'photo_start_url' => !empty($row['photo_start'])
-            ? 'serve_km_photo.php?file=' . urlencode($row['photo_start'])
+            ? '/app/actions/km/serve_km_photo.php?file=' . urlencode($row['photo_start'])
             : null,
         'photo_end_url'   => !empty($row['photo_end'])
-            ? 'serve_km_photo.php?file=' . urlencode($row['photo_end'])
+            ? '/app/actions/km/serve_km_photo.php?file=' . urlencode($row['photo_end'])
             : null,
     ];
 }

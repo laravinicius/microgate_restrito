@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/auth_audit.php';
+require __DIR__ . '/app/bootstrap.php';
+require_once __DIR__ . '/app/auth/auth_audit.php';
 
 $userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 $username = trim((string)($_SESSION['username'] ?? ''));

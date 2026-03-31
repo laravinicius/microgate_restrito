@@ -1,56 +1,91 @@
-# Microgate Restrito - Sistema de Gestão de Escalas
+# Microgate Restrito
 
-Este é um sistema web desenvolvido para a gestão de escalas de técnicos, permitindo o controle de usuários, visualização de calendários e importação automatizada de dados via arquivos CSV.
+Sistema web em PHP para gestão de escalas técnicas, usuários, auditoria de acesso e controle de quilometragem.
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias
 
-### Backend
-- **PHP 8.x**: Linguagem principal para lógica de servidor e processamento de dados.
-- **PDO (PHP Data Objects)**: Utilizado para comunicação segura com o banco de dados, prevenindo SQL Injection.
-- **BCRYPT**: Criptografia de alta segurança para armazenamento de senhas.
+- PHP 8.x
+- MySQL com PDO
+- Tailwind CSS
+- JavaScript vanilla
+- Lucide Icons
 
-### Frontend
-- **Tailwind CSS**: Framework utilitário para um design moderno, responsivo e com suporte a modo escuro (Dark Mode).
-- **Vanilla JavaScript (ES6+)**: Lógica de interface, renderização dinâmica de calendários e consumo de APIs internas.
-- **Lucide Icons**: Biblioteca de ícones leves e consistentes.
-- **Google Fonts (Inter)**: Tipografia focada em legibilidade.
+## Funcionalidades
 
-### Banco de Dados
-- **MySQL**: Armazenamento de usuários, escalas e feriados.
+- Painel administrativo com gestão de usuários
+- Calendário de escala para técnicos e administradores
+- Importação de escala por CSV
+- Relatório e registro de quilometragem
+- Auditoria de login/logout
+- Proteção com sessão, CSRF e variáveis de ambiente
 
-## 🛠️ Funcionalidades Principais
+## Estrutura Atual
 
-- **Painel Administrativo**: Gestão completa de usuários (Criação, Edição e Exclusão).
-- **Importação de Escala**: Processador de arquivos CSV com lógica de *fuzzy matching* para associar nomes da planilha aos usuários do sistema.
-- **Calendário Responsivo**: Visualização de escala *mobile-first* com suporte a abas para múltiplos meses.
-- **Segurança**:
-    - Proteção contra ataques **CSRF** via tokens de sessão.
-    - Proteção contra **XSS** através de sanitização de outputs.
-    - Gerenciamento de credenciais sensíveis via variáveis de ambiente (`.env`).
-    - Controle de acesso baseado em níveis (Admin vs. Padrão).
+### Raiz pública
 
-## 📋 Estrutura do Projeto
+Os arquivos PHP da raiz são entrypoints públicos e mantêm as URLs estáveis do sistema:
 
-- `/config`: Configurações de conexão com o banco de dados.
-- `/css`: Estilos processados pelo Tailwind.
-- `/js`: Scripts de comportamento do calendário e componentes.
-- `/db`: Modelos de arquivos para importação.
-- `restricted.php`: Painel de controle do administrador.
-- `import_schedules.php`: Motor de processamento de escalas.
-- `get_schedule.php`: API interna que fornece dados para o calendário.
+- [index.php](/var/www/microgate_restrito/index.php)
+- [login.php](/var/www/microgate_restrito/login.php)
+- [restricted.php](/var/www/microgate_restrito/restricted.php)
+- [escala.php](/var/www/microgate_restrito/escala.php)
+- [quilometragem.php](/var/www/microgate_restrito/quilometragem.php)
+- [km_report.php](/var/www/microgate_restrito/km_report.php)
+- [gerenciamento_usuarios.php](/var/www/microgate_restrito/gerenciamento_usuarios.php)
+- [access_logs.php](/var/www/microgate_restrito/access_logs.php)
+- [visualizar_agenda.php](/var/www/microgate_restrito/visualizar_agenda.php)
+- [logout.php](/var/www/microgate_restrito/logout.php)
 
-## 🔧 Configuração
+### App interno
 
-1. Clone o repositório.
-2. Configure o arquivo `.env` na raiz do projeto com as credenciais do seu banco de dados:
-   ```env
-   DB_HOST=localhost
-   DB_NAME=nome_do_banco
-   DB_USER=usuario
-   DB_PASS=senha
-   ```
-3. Certifique-se de que o servidor web tenha permissão de leitura para os arquivos e que o `mod_rewrite` (no caso do Apache) esteja ativo se necessário.
-4. Importe a estrutura do banco de dados (tabelas `users`, `schedules` e `holidays`).
+- `app/bootstrap.php`: bootstrap da aplicação
+- `app/config/`: configuração de banco
+- `app/auth/`: autenticação e auditoria
+- `app/helpers/`: helpers compartilhados, como URLs
+- `app/views/pages/`: implementação real das telas
+- `app/actions/`: endpoints e ações do sistema
+- `app/support/debug/`: utilitários de debug
 
----
+### Assets
+
+- `css/`: CSS gerado e estilos globais
+- `js/`: scripts de frontend e mapa central de rotas
+- `img/`: imagens do sistema
+- `uploads/`: uploads de evidências
+
+## Fluxo de Organização
+
+- A raiz expõe apenas as entradas públicas
+- As telas reais ficam em `app/views/pages`
+- As ações HTTP ficam em `app/actions`
+- Rotas e assets usam helpers no PHP e `js/app-routes.js` no frontend
+
+## Configuração
+
+1. Configure o arquivo `.env` na raiz do projeto:
+
+```env
+DB_HOST=localhost
+DB_NAME=nome_do_banco
+DB_USER=usuario
+DB_PASS=senha
+```
+
+2. Garanta permissão de leitura e escrita para `uploads/` quando necessário.
+3. Configure o servidor web para servir este diretório como raiz pública.
+4. Certifique-se de que as tabelas principais existam no banco, como:
+
+- `users`
+- `schedules`
+- `holidays`
+- `mileage_logs`
+- `auth_access_logs`
+- `password_reset_requests`
+
+## Observações
+
+- O arquivo `.env` continua na raiz do projeto.
+- As URLs públicas antigas foram preservadas de propósito.
+- O arquivo [page_header.php](/var/www/microgate_restrito/page_header.php) na raiz existe só como compatibilidade e delega para [components/page_header.php](/var/www/microgate_restrito/components/page_header.php).
+
 Desenvolvido para **Microgate Informática**.

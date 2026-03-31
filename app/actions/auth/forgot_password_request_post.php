@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/forgot_password_requests.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
+require_once dirname(__DIR__, 3) . '/forgot_password_requests.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /login.php');
+    header('Location: ' . route_url('login.php'));
     exit;
 }
 
@@ -16,15 +16,15 @@ $phone    = trim((string)($_POST['phone'] ?? ''));
 
 // Resposta genérica usada em TODOS os casos de erro para não vazar informação
 // (F-03 FIX: não revelar se usuário existe ou não)
-$genericSuccess = '/login.php?forgot_msg=requested';
+$genericSuccess = route_url('login.php?forgot_msg=requested');
 
 if ($username === '' || strlen($username) < 3 || strlen($username) > 100) {
-    header('Location: /login.php?forgot_error=invalid_input');
+    header('Location: ' . route_url('login.php?forgot_error=invalid_input'));
     exit;
 }
 
 if ($phone === '' || strlen($phone) > 30 || !preg_match('/^[0-9+\-\s()]{8,30}$/', $phone)) {
-    header('Location: /login.php?forgot_error=invalid_input');
+    header('Location: ' . route_url('login.php?forgot_error=invalid_input'));
     exit;
 }
 

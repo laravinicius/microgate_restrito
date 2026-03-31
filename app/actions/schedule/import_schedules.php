@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 // F-06 FIX: usar helper centralizado (nível >= 1)
 requireAdmin();
@@ -211,13 +211,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Importar Escala | Microgate Informática</title>
-    <link rel="shortcut icon" href="./img/ico.ico" type="image/x-icon">
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="stylesheet" href="./css/output.css">
+    <link rel="shortcut icon" href="<?= htmlspecialchars(asset_url('img/ico.ico')) ?>" type="image/x-icon">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/style.css')) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/output.css')) ?>">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="./js/theme.js"></script>
-    <script src="./js/components.js" defer></script>
-    <?php require __DIR__ . '/components/google-analytics.php'; ?>
+    <script src="<?= htmlspecialchars(asset_url('js/app-routes.js')) ?>"></script>
+    <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
+    <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
+    <?php require dirname(__DIR__, 3) . '/components/google-analytics.php'; ?>
 </head>
 <body>
     <div class="boxed-layout">
@@ -229,8 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <?php
                         $pageTitle    = 'Importar Escala';
                         $pageSubtitle = 'Adicione escalas de novos meses usando CSV';
-                        $backUrl      = 'restricted.php';
-                        require __DIR__ . '/components/page_header.php';
+                        $backUrl      = route_url('restricted.php');
+                        require dirname(__DIR__, 3) . '/components/page_header.php';
                     ?>
 
                     <?php if ($message): ?>
@@ -264,11 +265,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     <p class="text-gray-300 text-xs"><strong>⚠️ IMPORTANTE:</strong> O Excel pode corromper as datas! Salve como CSV (separado por ponto-e-vírgula).</p>
                                 </div>
                                 <p class="text-gray-400 text-sm mt-3 flex flex-col gap-2">
-                                    <a href="./db/modelo_escala_04_2026.csv" download class="inline-flex items-center gap-1 hover:text-gray-300 transition">
+                                    <a href="<?= htmlspecialchars(asset_url('db/modelo_escala_04_2026.csv')) ?>" download class="inline-flex items-center gap-1 hover:text-gray-300 transition">
                                         <i data-lucide="download" class="w-4 h-4"></i>
                                         📥 Baixar modelo corrigido
                                     </a>
-                                    <a href="./debug_usuarios.php" target="_blank" class="inline-flex items-center gap-1 hover:text-gray-300 transition">
+                                    <a href="<?= htmlspecialchars(debug_url('debug_usuarios.php')) ?>" target="_blank" class="inline-flex items-center gap-1 hover:text-gray-300 transition">
                                         <i data-lucide="search" class="w-4 h-4"></i>
                                         🔍 Ver quais usuários serão encontrados
                                     </a>

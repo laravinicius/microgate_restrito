@@ -30,7 +30,7 @@ $backLabel    = $backLabel    ?? 'Voltar ao Painel';
                 <?= htmlspecialchars($backLabel) ?>
             </a>
         <?php endif; ?>
-        <a href="logout.php"
+        <a href="<?= htmlspecialchars(route_url('logout.php')) ?>"
            class="bg-red-600 hover:bg-red-700 border-2 border-red-500 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2 text-sm">
             <i data-lucide="log-out" class="w-4 h-4"></i>
             Sair

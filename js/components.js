@@ -1,6 +1,7 @@
 async function loadComponents() {
+    const routes = window.APP_ROUTES || {};
     const components = [
-        { id: 'header-placeholder', file: './components/header.html' },
+        { id: 'header-placeholder', file: routes.headerComponent || '/components/header.html' },
     ];
 
     for (const comp of components) {

@@ -20,8 +20,10 @@
 (function () {
     'use strict';
 
+    var routes = window.APP_ROUTES || {};
+
     var SESSION_KEY      = 'mg_tab_alive';
-    var LOGOUT_ENDPOINT  = '/logout.php';
+    var LOGOUT_ENDPOINT  = routes.logout || '/logout.php';
 
     // Páginas que não devem disparar o redirect (o usuário já está saindo)
     var isPublicPage = (
@@ -47,7 +49,7 @@
             navigator.sendBeacon(LOGOUT_ENDPOINT);
         }
         // Redireciona para login sem adicionar no histórico
-        window.location.replace('/login.php');
+        window.location.replace(routes.login || '/login.php');
         return;
     }
 

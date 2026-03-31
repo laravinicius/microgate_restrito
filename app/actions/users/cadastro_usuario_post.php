@@ -1,13 +1,13 @@
 <?php
 
-require __DIR__ . '/bootstrap.php';
+require dirname(__DIR__, 2) . '/bootstrap.php';
 
 requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = (string)($_POST['csrf_token'] ?? '');
     if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
-        header('Location: gerenciamento_usuarios.php?error=csrf');
+        header('Location: ' . route_url('gerenciamento_usuarios.php?error=csrf'));
         exit;
     }
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($error)) {
-        header('Location: gerenciamento_usuarios.php?error=' . urlencode($error));
+        header('Location: ' . route_url('gerenciamento_usuarios.php?error=' . urlencode($error)));
         exit;
     }
 
@@ -40,13 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "INSERT INTO users (username, full_name, password_hash, is_admin, is_active) VALUES (?,?,?,?,1)"
         );
         $stmt->execute([$username, $full_name, $hash, $is_admin]);
-        header('Location: gerenciamento_usuarios.php?msg=user_created');
+        header('Location: ' . route_url('gerenciamento_usuarios.php?msg=user_created'));
     } catch (PDOException $e) {
         error_log('Erro em cadastro_usuario_post.php: ' . $e->getMessage());
-        header('Location: gerenciamento_usuarios.php?error=db_error');
+        header('Location: ' . route_url('gerenciamento_usuarios.php?error=db_error'));
     }
     exit;
 }
 
-header('Location: gerenciamento_usuarios.php');
+header('Location: ' . route_url('gerenciamento_usuarios.php'));
 exit;
