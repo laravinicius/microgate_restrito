@@ -58,7 +58,7 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Microgate Informática</title>
+    <title>Entrar | Sistema de Compras</title>
     <link rel="shortcut icon" href="./img/ico.ico" type="image/x-icon">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/output.css">
@@ -78,146 +78,145 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
     </style>
 </head>
 
-<body>
-    <div class="boxed-layout">
-        <div class="content-wrapper min-h-screen flex flex-col">
-            <div id="header-placeholder"></div>
+<body class="min-h-screen bg-[#0f0f10] text-white">
+    <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('./img/background.jpg');"></div>
+            <div class="absolute inset-0 bg-[rgba(8,8,10,0.72)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_38%)]"></div>
+            <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[rgba(8,8,10,0.75)] to-transparent"></div>
+        </div>
 
-            <main class="flex-1 flex items-center justify-center px-4 py-20">
-                <div class="w-full max-w-md">
-                    <!-- Card de Login -->
-                    <div class="bg-brand-dark border border-white/10 rounded-lg overflow-hidden">
-                        <!-- Header do Card -->
-                        <div class="p-8 border-b border-white/10 text-center">
-                            <h1 class="text-3xl font-bold text-white mb-2">Área Restrita</h1>
-                            <p class="text-gray-400 text-sm">Faça login para acessar o painel</p>
+        <div class="relative w-full max-w-[420px]">
+            <div class="rounded-[24px] border border-white/12 bg-[rgba(18,18,20,0.55)] p-3 shadow-[0_28px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:p-4">
+                <section class="rounded-[20px] border border-white/10 bg-[rgba(255,255,255,0.04)] px-5 py-6 sm:px-7 sm:py-8">
+                    <div class="mb-6 text-center sm:mb-7">
+                        <img src="./img/microgate2.png" alt="Microgate" class="mx-auto h-11 w-auto object-contain sm:h-14">
+                        <h1 class="mt-5 text-3xl font-bold tracking-tight text-white">Sistema de Compras</h1>
+                        <p class="mt-3 text-[11px] font-semibold uppercase tracking-[0.32em] text-white/55">Entrar</p>
+                    </div>
+
+                    <form method="post" action="login_post.php" class="space-y-[18px]" id="login-form">
+                        <div>
+                            <label for="username" class="mb-2 block text-sm font-medium text-white/82">Usuário</label>
+                            <div class="relative">
+                                <i data-lucide="user" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35"></i>
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    class="w-full rounded-2xl border border-white/12 bg-white/6 py-3.5 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-white/22 focus:bg-white/10 focus:ring-4 focus:ring-white/8"
+                                    placeholder="Informe seu usuário"
+                                    required
+                                    autofocus>
+                            </div>
                         </div>
 
-                        <!-- Formulário -->
-                        <div class="p-8">
-                            <?php if (!empty($error_msg)): ?>
-                                <div class="mb-4 p-3 rounded bg-red-600/95 text-white flex items-center gap-3">
-                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                                    <div class="text-sm"><?php echo htmlspecialchars($error_msg); ?></div>
-                                </div>
-                            <?php endif; ?>
-                            <?php if (!empty($forgot_success_msg)): ?>
-                                <div class="mb-4 p-3 rounded bg-green-600/95 text-white flex items-center gap-3">
-                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
-                                    <div class="text-sm"><?php echo htmlspecialchars($forgot_success_msg); ?></div>
-                                </div>
-                            <?php endif; ?>
-                            <?php if (!empty($forgot_error_msg)): ?>
-                                <div class="mb-4 p-3 rounded bg-red-600/95 text-white flex items-center gap-3">
-                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                                    <div class="text-sm"><?php echo htmlspecialchars($forgot_error_msg); ?></div>
-                                </div>
-                            <?php endif; ?>
-                            <form method="post" action="login_post.php" class="space-y-5">
-                                <!-- Campo Username -->
-                                <div>
-                                    <label for="username" class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                                    <div class="relative">
-                                        <input 
-                                            type="text" 
-                                            id="username"
-                                            name="username" 
-                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
-                                            placeholder="usuário"
-                                            required
-                                            autofocus>
-                                    </div>
-                                </div>
-
-                                <!-- Campo Senha -->
-                                <div>
-                                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Senha</label>
-                                    <div class="relative">
-                                        <input 
-                                            type="password" 
-                                            id="password"
-                                            name="password" 
-                                            class="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-12 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition" 
-                                            placeholder="••••••••"
-                                            required>
-                                        <button
-                                            type="button"
-                                            id="toggle-password"
-                                            class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 hover:text-gray-900 transition"
-                                            aria-label="Mostrar senha"
-                                            aria-pressed="false">
-                                            <i data-lucide="eye" class="w-5 h-5"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Botão Login -->
-                                <button 
-                                    type="submit" 
-                                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 mt-8">
-                                    <i data-lucide="log-in" class="w-5 h-5"></i>
-                                    Entrar
-                                </button>
-                            </form>
-
-                            <div class="mt-8 border-t border-white/10 pt-6">
+                        <div>
+                            <label for="password" class="mb-2 block text-sm font-medium text-white/82">Senha</label>
+                            <div class="relative">
+                                <i data-lucide="lock-keyhole" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35"></i>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    class="w-full rounded-2xl border border-white/12 bg-white/6 py-3.5 pl-11 pr-12 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-white/22 focus:bg-white/10 focus:ring-4 focus:ring-white/8"
+                                    placeholder="Informe sua senha"
+                                    required>
                                 <button
                                     type="button"
-                                    id="toggle-forgot-password"
-                                    class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
-                                    aria-expanded="<?= $show_forgot_panel ? 'true' : 'false' ?>"
-                                    aria-controls="forgot-password-panel">
-                                    <i data-lucide="key-round" class="w-5 h-5"></i>
-                                    Esqueci minha senha
+                                    id="toggle-password"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-white/42 transition hover:text-white/72"
+                                    aria-label="Mostrar senha"
+                                    aria-pressed="false">
+                                    <i data-lucide="eye" class="h-5 w-5"></i>
                                 </button>
+                            </div>
+                        </div>
 
-                                <div id="forgot-password-panel" class="mt-4 <?= $show_forgot_panel ? '' : 'hidden' ?>">
-                                    <p class="text-gray-400 text-sm mb-4">Informe seu usuário e celular para solicitar o reset manual da senha.</p>
-                                    <form method="post" action="forgot_password_request_post.php" class="space-y-4">
-                                        <div>
-                                            <label for="forgot-username" class="block text-sm font-medium text-gray-300 mb-2">Nome de Usuário</label>
-                                            <input
-                                                type="text"
-                                                id="forgot-username"
-                                                name="username"
-                                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition"
-                                                placeholder="usuário"
-                                                required>
-                                        </div>
-                                        <div>
-                                            <label for="forgot-phone" class="block text-sm font-medium text-gray-300 mb-2">Celular para contato</label>
-                                            <input
-                                                type="tel"
-                                                id="forgot-phone"
-                                                name="phone"
-                                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none transition"
-                                                placeholder="(00) 00000-0000"
-                                                required>
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2">
-                                            <i data-lucide="send" class="w-5 h-5"></i>
-                                            Enviar Solicitação
-                                        </button>
-                                    </form>
-                                </div>
+                        <?php if (!empty($error_msg)): ?>
+                            <div class="rounded-2xl border border-red-400/20 bg-red-950/45 px-4 py-3 text-sm font-semibold text-red-100">
+                                <?php echo htmlspecialchars($error_msg); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <button
+                            type="submit"
+                            id="login-submit"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-white/16 bg-white/12 px-4 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:border-white/26 hover:bg-white/18 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="log-in" class="h-4 w-4"></i>
+                            <span id="login-submit-label">Entrar</span>
+                        </button>
+                    </form>
+
+                    <div class="mt-6 border-t border-white/10 pt-5">
+                        <?php if (!empty($forgot_success_msg)): ?>
+                            <div class="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-950/35 px-4 py-3 text-sm font-medium text-emerald-100">
+                                <?php echo htmlspecialchars($forgot_success_msg); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($forgot_error_msg)): ?>
+                            <div class="mb-4 rounded-2xl border border-red-400/20 bg-red-950/45 px-4 py-3 text-sm font-semibold text-red-100">
+                                <?php echo htmlspecialchars($forgot_error_msg); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <button
+                            type="button"
+                            id="toggle-forgot-password"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white/88 transition hover:border-white/18 hover:bg-white/[0.10]"
+                            aria-expanded="<?= $show_forgot_panel ? 'true' : 'false' ?>"
+                            aria-controls="forgot-password-panel">
+                            <i data-lucide="key-round" class="h-4 w-4"></i>
+                            Esqueci minha senha
+                        </button>
+
+                        <div id="forgot-password-panel" class="mt-4 <?= $show_forgot_panel ? '' : 'hidden' ?>">
+                            <div class="rounded-[18px] border border-white/8 bg-[rgba(255,255,255,0.03)] p-4 sm:p-5">
+                                <p class="mb-4 text-sm leading-6 text-white/58">Informe seu usuário e celular para solicitar o reset manual da senha.</p>
+                                <form method="post" action="forgot_password_request_post.php" class="space-y-4">
+                                    <div>
+                                        <label for="forgot-username" class="mb-2 block text-sm font-medium text-white/78">Usuário</label>
+                                        <input
+                                            type="text"
+                                            id="forgot-username"
+                                            name="username"
+                                            class="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-white/22 focus:bg-white/10 focus:ring-4 focus:ring-white/8"
+                                            placeholder="Informe seu usuário"
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label for="forgot-phone" class="mb-2 block text-sm font-medium text-white/78">Celular para contato</label>
+                                        <input
+                                            type="tel"
+                                            id="forgot-phone"
+                                            name="phone"
+                                            class="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-white/22 focus:bg-white/10 focus:ring-4 focus:ring-white/8"
+                                            placeholder="(00) 00000-0000"
+                                            required>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        class="flex w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/24 hover:bg-white/16">
+                                        <i data-lucide="send" class="h-4 w-4"></i>
+                                        Enviar Solicitação
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mensagem de Segurança -->
-                    <div class="mt-8 text-center text-gray-400 text-sm">
-                        <p>Seus dados são protegidos e criptografados.</p>
-                    </div>
-                </div>
-            </main>
-
+                    <p class="mt-6 text-center text-xs text-white/42">Seus dados são protegidos e criptografados.</p>
+                </section>
+            </div>
         </div>
-    </div>
+    </main>
     <script>
         const forgotToggleBtn = document.getElementById('toggle-forgot-password');
         const forgotPanel = document.getElementById('forgot-password-panel');
+        const loginForm = document.getElementById('login-form');
+        const loginSubmitBtn = document.getElementById('login-submit');
+        const loginSubmitLabel = document.getElementById('login-submit-label');
         const passwordInput = document.getElementById('password');
         const passwordToggleBtn = document.getElementById('toggle-password');
 
@@ -242,6 +241,13 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
                 if (window.lucide) {
                     lucide.createIcons();
                 }
+            });
+        }
+
+        if (loginForm && loginSubmitBtn && loginSubmitLabel) {
+            loginForm.addEventListener('submit', function () {
+                loginSubmitBtn.disabled = true;
+                loginSubmitLabel.textContent = 'Entrando...';
             });
         }
     </script>
