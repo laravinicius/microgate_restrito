@@ -104,6 +104,19 @@ $technicianPayload = array_map(static function (array $tech): array {
             font-size: 0.65rem;
             letter-spacing: 0.04em;
         }
+        .km-table--daily-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(96,165,250,0.35);
+            color: #bfdbfe;
+            font-size: 0.68rem;
+            line-height: 1;
+            white-space: nowrap;
+        }
 
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
@@ -336,6 +349,7 @@ $technicianPayload = array_map(static function (array $tech): array {
                                     <th class="text-right">KM Final</th>
                                     <th class="text-right">Total</th>
                                     <th class="text-center">Horários</th>
+                                    <th class="text-center">Localização</th>
                                     <th class="text-center">Status</th>
                                     <th class="text-center">Evidências</th>
                                 </tr>
@@ -1071,6 +1085,17 @@ function buildDailyRows(records) {
             ? `<span class="text-white font-semibold">${r.km_driven.toLocaleString('pt-BR')} km</span>`
             : '<span class="text-gray-600">—</span>';
 
+        const locationStart = r.location_start_url
+            ? `<a href="${esc(r.location_start_url)}" target="_blank" rel="noopener noreferrer" class="km-table--daily-link">Inicial</a>`
+            : '';
+        const locationEnd = r.location_end_url
+            ? `<a href="${esc(r.location_end_url)}" target="_blank" rel="noopener noreferrer" class="km-table--daily-link">Final</a>`
+            : '';
+
+        const localizacao = (locationStart || locationEnd)
+            ? `<div class="flex flex-wrap items-center justify-center gap-1">${locationStart}${locationEnd}</div>`
+            : '<span class="text-gray-600 text-xs">—</span>';
+
         return `
         <tr>
             <td><p class="text-white font-medium">${dateLabel}</p></td>
@@ -1079,6 +1104,7 @@ function buildDailyRows(records) {
             <td class="text-right font-mono">${kmEnd}</td>
             <td class="text-right">${kmDriven}</td>
             <td class="text-center text-xs text-gray-300">${timeRange}</td>
+            <td class="text-center">${localizacao}</td>
             <td class="text-center">${badge}</td>
             <td class="text-center">${evidencias}</td>
         </tr>`;
