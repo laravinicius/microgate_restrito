@@ -449,7 +449,7 @@ foreach ($resetRequests as $r) {
             title.textContent = 'Agenda — ' + username;
             iframe.src = `visualizar_agenda.php?user_id=${userId}`;
             modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('no-scroll');
         }
 
         function closeAgendaModal() {
@@ -457,7 +457,7 @@ foreach ($resetRequests as $r) {
             const iframe = document.getElementById('agendaIframe');
             modal.classList.add('hidden');
             iframe.src = '';
-            document.body.style.overflow = '';
+            document.body.classList.remove('no-scroll');
         }
 
         document.getElementById('agendaModal').addEventListener('click', function (e) {

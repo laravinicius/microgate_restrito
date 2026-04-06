@@ -50,7 +50,7 @@
         });
         btn.className = 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition';
 
-        wrap.innerHTML = '<div style="padding:24px;text-align:center;color:#6b7280;font-size:14px;">Carregando...</div>';
+        wrap.innerHTML = '<div class="p-6 text-center text-sm text-gray-500">Carregando...</div>';
 
         const start = new Date(year, month, 1);
         const end   = new Date(year, month + 1, 0);
@@ -83,7 +83,7 @@
             if (window.lucide) lucide.createIcons();
 
         } catch (err) {
-            wrap.innerHTML = `<div style="padding:16px;color:#f87171;">Erro ao carregar escala: ${err.message}</div>`;
+            wrap.innerHTML = `<div class="p-4 text-red-400">Erro ao carregar escala: ${err.message}</div>`;
         }
     }
 
@@ -99,11 +99,10 @@
         el.appendChild(hdr);
 
         const tableWrapper = document.createElement('div');
-        tableWrapper.style.cssText = 'width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;';
+        tableWrapper.className = 'w-full block overflow-x-auto';
 
         const table = document.createElement('table');
-        table.className = 'border-collapse w-full';
-        table.style.minWidth = '560px';
+        table.className = 'border-collapse w-full min-w-[560px]';
 
         // Header semana
         const thead = document.createElement('thead');
@@ -140,19 +139,16 @@
             const evs     = eventsMap[iso] || [];
 
             const td = document.createElement('td');
-            td.className = 'h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5 hover:bg-white/5 transition cursor-pointer align-top';
+            td.className = 'relative h-24 md:h-32 p-2 md:p-3 bg-white/2 border border-white/5 hover:bg-white/5 transition cursor-pointer align-top';
             td.setAttribute('data-date', iso);
-            td.style.position = 'relative';
 
             // Número do dia
             const dayHeader = document.createElement('div');
-            dayHeader.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;';
+            dayHeader.className = 'mb-1 flex items-start justify-between';
 
             const numSpan = document.createElement('span');
             if (isToday) {
-                numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;'
-                    + 'width:22px;height:22px;border-radius:50%;background:#fff;color:#000;'
-                    + 'font-size:11px;font-weight:700;flex-shrink:0;';
+                numSpan.className = 'inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-black';
             } else {
                 numSpan.className = 'text-sm md:text-lg text-gray-300 font-bold';
             }
@@ -164,7 +160,7 @@
                 const editBtn = document.createElement('button');
                 editBtn.className = 'day-edit-btn';
                 editBtn.type = 'button';
-                editBtn.innerHTML = '<i data-lucide="pencil" style="width:10px;height:10px;"></i> Editar';
+                editBtn.innerHTML = '<i data-lucide="pencil" class="w-2.5 h-2.5"></i> Editar';
                 editBtn.addEventListener('click', e => {
                     e.stopPropagation();
                     openEditPopover(editBtn, iso, TARGET_UID, td, eventsMap);
@@ -177,8 +173,7 @@
             // Feriado
             if (holiday) {
                 const hl = document.createElement('div');
-                hl.className = 'text-[9px] md:text-[10px] font-bold mb-1';
-                hl.style.color = '#f87171';
+                hl.className = 'mb-1 text-[9px] font-bold text-red-400 md:text-[10px]';
                 hl.textContent = '● ' + (holiday.name || 'Feriado');
                 td.appendChild(hl);
             }
@@ -218,19 +213,23 @@
         evs.slice(0, 3).forEach(ev => {
             const badge = document.createElement('div');
             const shift = (ev.shift || '').toUpperCase();
-            let bg = '#4b5563', fg = '#e5e7eb';
-            if (shift.includes('AGENDA'))                              { bg = '#166534'; fg = '#bbf7d0'; }
-            else if (shift.includes('FOLGA'))                         { bg = '#1e40af'; fg = '#bfdbfe'; }
-            else if (shift.includes('FÉRIAS') || shift.includes('FERIAS')) { bg = '#9a3412'; fg = '#fed7aa'; }
-            else if (shift.includes('AUSENTE'))                       { bg = '#4b5563'; fg = '#e5e7eb'; }
-            badge.style.cssText = `background:${bg};color:${fg};border-radius:3px;padding:2px 6px;`
-                + `font-size:10px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;`;
+            let variant = 'bg-gray-600 text-gray-200';
+            if (shift.includes('AGENDA')) {
+                variant = 'bg-green-800 text-green-200';
+            } else if (shift.includes('FOLGA')) {
+                variant = 'bg-blue-800 text-blue-200';
+            } else if (shift.includes('FÉRIAS') || shift.includes('FERIAS')) {
+                variant = 'bg-orange-800 text-orange-200';
+            } else if (shift.includes('AUSENTE')) {
+                variant = 'bg-gray-600 text-gray-200';
+            }
+            badge.className = `overflow-hidden whitespace-nowrap text-ellipsis rounded px-1.5 py-0.5 text-[10px] font-medium ${variant}`;
             badge.textContent = shift.includes('FOLGA') ? 'SEM AGENDA' : (shift || ev.note || '—');
             container.appendChild(badge);
         });
         if (evs.length > 3) {
             const more = document.createElement('div');
-            more.style.cssText = 'font-size:10px;color:#9ca3af;';
+            more.className = 'text-[10px] text-gray-400';
             more.textContent = `+${evs.length - 3} mais`;
             container.appendChild(more);
         }
@@ -262,7 +261,7 @@
         // Título
         const [y, m, d] = iso.split('-');
         const titleEl = document.createElement('div');
-        titleEl.style.cssText = 'font-size:11px;color:#6b7280;padding:2px 4px 6px;font-weight:600;letter-spacing:0.04em;';
+        titleEl.className = 'px-1 py-[2px] pb-1.5 text-[11px] font-semibold tracking-[0.04em] text-gray-500';
         titleEl.textContent = `${d}/${m}/${y}`;
         popover.appendChild(titleEl);
 
@@ -278,8 +277,7 @@
             btn.className = opt.cls;
             btn.textContent = opt.label;
             if (currentShift === opt.value) {
-                btn.style.outline = '2px solid rgba(255,255,255,0.4)';
-                btn.style.outlineOffset = '-2px';
+                btn.classList.add('ring-2', 'ring-inset', 'ring-white/40');
             }
             btn.addEventListener('click', e => {
                 e.stopPropagation();
@@ -311,8 +309,7 @@
         // Ajuste de posição se sair da tela
         const rect = popover.getBoundingClientRect();
         if (rect.right > window.innerWidth - 8) {
-            popover.style.right = '4px';
-            popover.style.left  = 'auto';
+            popover.classList.add('edit-popover--align-right');
         }
 
         if (window.lucide) lucide.createIcons();
@@ -321,8 +318,7 @@
     // ── Salvar alteração via API ────────────────────────────────────────────
     async function saveDay(userId, iso, shift, tdCell, eventsMap, popover) {
         // Feedback visual imediato
-        popover.style.opacity      = '0.5';
-        popover.style.pointerEvents = 'none';
+        popover.classList.add('is-saving');
 
         try {
             const res = await fetch(routes.saveScheduleDay || '/app/actions/schedule/save_schedule_day.php', {
@@ -339,15 +335,13 @@
             } catch (_) {
                 console.error('Resposta não-JSON do servidor:', text);
                 showToast('Erro do servidor. Ver console para detalhes.', 'error');
-                popover.style.opacity      = '1';
-                popover.style.pointerEvents = '';
+                popover.classList.remove('is-saving');
                 return;
             }
 
             if (!data.success) {
                 showToast(data.message || 'Erro ao salvar.', 'error');
-                popover.style.opacity      = '1';
-                popover.style.pointerEvents = '';
+                popover.classList.remove('is-saving');
                 return;
             }
 
@@ -368,8 +362,7 @@
         } catch (err) {
             console.error('Fetch error:', err);
             showToast('Erro de conexão: ' + err.message, 'error');
-            popover.style.opacity      = '1';
-            popover.style.pointerEvents = '';
+            popover.classList.remove('is-saving');
         }
     }
 

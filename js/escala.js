@@ -101,19 +101,11 @@
 
         // WRAPPER DE ROLAGEM
         const tableWrapper = document.createElement('div');
-        tableWrapper.className = 'pb-2';
-
-        // Estilos para forçar a rolagem interna
-        tableWrapper.style.width = '100%';
-        tableWrapper.style.display = 'block';
-        tableWrapper.style.overflowX = 'auto';
-        tableWrapper.style.webkitOverflowScrolling = 'touch';
+        tableWrapper.className = 'block w-full overflow-x-auto pb-2';
 
         // TABELA
         const table = document.createElement('table');
-        table.className = 'border-collapse text-[11px] md:text-base w-full';
-        table.style.minWidth = '700px';
-        table.style.tableLayout = 'fixed';
+        table.className = 'w-full min-w-[700px] table-fixed border-collapse text-[11px] md:text-base';
 
         // Header row
         const thead = document.createElement('thead');
@@ -122,8 +114,7 @@
 
         ['Seg','Ter','Qua','Qui','Sex','Sab','Dom'].forEach(d=>{
             const th = document.createElement('th');
-            th.className = 'px-2 md:px-4 py-2 md:py-3 text-center text-[8px] md:text-xs font-semibold text-gray-400 uppercase';
-            th.style.width = '14.2857%';
+            th.className = 'w-[14.2857%] px-2 py-2 text-center text-[8px] font-semibold uppercase text-gray-400 md:px-4 md:py-3 md:text-xs';
             th.textContent = d;
             headerRow.appendChild(th);
         });
@@ -167,8 +158,7 @@
             if (holidaysMap && holidaysMap[iso]) {
                 const holidayLabel = document.createElement('div');
                 holidayLabel.textContent = 'FERIADO';
-                holidayLabel.className = 'text-[9px] md:text-[10px] font-bold mb-1';
-                holidayLabel.style.color = '#ef4444';
+                holidayLabel.className = 'mb-1 text-[9px] font-bold text-red-500 md:text-[10px]';
                 holidayLabel.title = (holidaysMap[iso].name || 'Feriado');
                 td.appendChild(holidayLabel);
             }
@@ -182,23 +172,18 @@
                 evs.slice(0,2).forEach(e=>{
                     const badge = document.createElement('div');
 
-                    // --- CORES VIA HEX (Para garantir que funcionem sem build) ---
-                    let bgColor = '#4b5563'; // Cinza (Padrão)
+                    let variant = 'bg-gray-600';
                     const s = (e.shift || '').toUpperCase();
 
                     if (s.includes('AGENDA')) {
-                        bgColor = '#16a34a'; // Verde
+                        variant = 'bg-green-600';
                     } else if (s.includes('FOLGA')) {
-                        bgColor = '#60a5fa'; // Azul Claro
+                        variant = 'bg-blue-400';
                     } else if (s.includes('FÉRIAS') || s.includes('FERIAS') || s.includes('AUSENTE')) {
-                        bgColor = '#f97316'; // Laranja
+                        variant = 'bg-orange-500';
                     }
 
-                    badge.style.backgroundColor = bgColor;
-                    badge.className = `text-white px-1 md:px-2 py-0.5 md:py-1 rounded truncate`;
-                    badge.style.display = 'block';
-                    badge.style.width = '100%';
-                    badge.style.boxSizing = 'border-box';
+                    badge.className = `block w-full box-border truncate rounded px-1 py-0.5 text-white md:px-2 md:py-1 ${variant}`;
 
                     const label = s.includes('FOLGA')
                         ? 'SEM AGENDA'

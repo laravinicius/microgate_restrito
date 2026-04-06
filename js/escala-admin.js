@@ -104,18 +104,19 @@
         el.className = 'w-full bg-brand-dark border border-white/10 rounded-xl overflow-hidden';
 
         const tableWrapper = document.createElement('div');
-        tableWrapper.style.cssText = 'width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;';
+        tableWrapper.className = 'block w-full overflow-x-auto';
 
         const table = document.createElement('table');
-        table.className = 'border-collapse w-full';
-        table.style.minWidth = '720px';
+        table.className = 'w-full min-w-[720px] border-collapse';
 
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         headerRow.className = 'border-b border-white/10';
         ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach((d, i) => {
             const th = document.createElement('th');
-            th.style.cssText = 'padding:10px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' + (i >= 5 ? '#6b7280' : '#9ca3af') + ';';
+            th.className = (i >= 5)
+                ? 'px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.05em] text-gray-500'
+                : 'px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.05em] text-gray-400';
             th.textContent = d;
             headerRow.appendChild(th);
         });
@@ -142,19 +143,22 @@
             const isWknd   = (cur.getDay() === 0 || cur.getDay() === 6);
 
             const td = document.createElement('td');
-            td.className = 'border border-white/5 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5';
-            td.style.cssText = 'height:100px;padding:8px;vertical-align:top;' + (isWknd ? 'background:rgba(255,255,255,0.015);' : '');
+            td.className = isWknd
+                ? 'h-[100px] border border-white/5 bg-white/[0.015] p-2 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5'
+                : 'h-[100px] border border-white/5 p-2 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5';
             td.setAttribute('data-date', iso);
 
             // Número do dia
             const dayRow = document.createElement('div');
-            dayRow.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;';
+            dayRow.className = 'mb-[5px] flex items-start justify-between';
 
             const numSpan = document.createElement('span');
             if (isToday) {
-                numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#ffffff;color:#000000;font-size:12px;font-weight:700;flex-shrink:0;';
+                numSpan.className = 'inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-black';
             } else {
-                numSpan.style.cssText = 'font-size:14px;font-weight:700;color:' + (isWknd ? '#6b7280' : '#e5e7eb') + ';';
+                numSpan.className = isWknd
+                    ? 'text-sm font-bold text-gray-500'
+                    : 'text-sm font-bold text-gray-200';
             }
             numSpan.textContent = d;
             dayRow.appendChild(numSpan);
@@ -169,26 +173,23 @@
                 }).length;
 
                 const cntWrap = document.createElement('div');
-                cntWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:1px;';
+                cntWrap.className = 'flex flex-col items-end gap-px';
 
                 if (working > 0) {
                     const w = document.createElement('span');
-                    w.className = 'cal-count';
-                    w.style.cssText = 'font-weight:600;color:#4ade80;white-space:nowrap;';
+                    w.className = 'cal-count whitespace-nowrap font-semibold text-green-400';
                     w.textContent = working + ' trabalhando';
                     cntWrap.appendChild(w);
                 }
                 if (folga > 0) {
                     const f = document.createElement('span');
-                    f.className = 'cal-count';
-                    f.style.cssText = 'color:#60a5fa;white-space:nowrap;';
+                    f.className = 'cal-count whitespace-nowrap text-blue-400';
                     f.textContent = folga + ' sem agenda';
                     cntWrap.appendChild(f);
                 }
                 if (ausente > 0) {
                     const a = document.createElement('span');
-                    a.className = 'cal-count';
-                    a.style.cssText = 'color:#fb923c;white-space:nowrap;';
+                    a.className = 'cal-count whitespace-nowrap text-orange-400';
                     a.textContent = ausente + ' férias/aus.';
                     cntWrap.appendChild(a);
                 }
@@ -199,7 +200,7 @@
             // Feriado
             if (holiday) {
                 const hl = document.createElement('div');
-                hl.style.cssText = 'font-size:10px;font-weight:600;color:#f87171;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;';
+                hl.className = 'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold text-red-400';
                 hl.textContent = '● ' + (holiday.name || 'Feriado');
                 hl.title = holiday.name || 'Feriado';
                 td.appendChild(hl);
@@ -229,8 +230,7 @@
 
     function emptyCell() {
         const td = document.createElement('td');
-        td.className = 'border border-white/5';
-        td.style.cssText = 'height:90px;background:rgba(255,255,255,0.005);';
+        td.className = 'h-[90px] border border-white/5 bg-white/[0.005]';
         return td;
     }
 
@@ -267,19 +267,17 @@
         const panel = document.createElement('div');
         panel.id = 'day-detail-panel';
         panel.setAttribute('data-date', iso);
-        panel.className = 'mt-4 bg-brand-dark border border-white/10 rounded-xl overflow-visible';
-        panel.style.animation = 'slideDown 0.2s ease';
+        panel.className = 'mt-4 overflow-visible rounded-xl border border-white/10 bg-brand-dark animate-slide-down';
 
         panel.innerHTML = `
-        <style>@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}</style>
         <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10">
             <div>
                 <h3 class="text-white font-bold text-xl md:text-lg capitalize">${weekday}, ${dateLabel}</h3>
                 ${holiday ? `<span class="text-red-400 text-sm font-semibold">● ${holiday.name || 'Feriado'}</span>` : ''}
                 <div class="flex flex-wrap gap-3 mt-1 text-sm md:text-xs">
-                    <span style="color:#4ade80;font-weight:500;">${groups['AGENDA'].length} trabalhando</span>
-                    <span style="color:#60a5fa;">${groups['FOLGA'].length} sem agenda</span>
-                    ${groups['FÉRIAS'].length ? `<span style="color:#fb923c;">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
+                    <span class="font-medium text-green-400">${groups['AGENDA'].length} trabalhando</span>
+                    <span class="text-blue-400">${groups['FOLGA'].length} sem agenda</span>
+                    ${groups['FÉRIAS'].length ? `<span class="text-orange-400">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
                     ${groups['OUTRO'].length  ? `<span class="text-gray-400">${groups['OUTRO'].length} outros</span>` : ''}
                 </div>
             </div>
@@ -297,22 +295,32 @@
 
             const order     = ['AGENDA', 'FOLGA', 'FÉRIAS', 'OUTRO'];
             const labels    = { AGENDA: 'Trabalhando', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias / Ausente', OUTRO: 'Outros' };
-            const headColor = { AGENDA: '#4ade80', FOLGA: '#60a5fa', 'FÉRIAS': '#fb923c', OUTRO: '#9ca3af' };
-            const cardBg    = { AGENDA: 'rgba(34,197,94,0.10)',   FOLGA: 'rgba(59,130,246,0.10)',  'FÉRIAS': 'rgba(249,115,22,0.10)',  OUTRO: 'rgba(107,114,128,0.10)' };
-            const avatarBg  = { AGENDA: 'rgba(34,197,94,0.20)',   FOLGA: 'rgba(59,130,246,0.20)',  'FÉRIAS': 'rgba(249,115,22,0.20)',  OUTRO: 'rgba(107,114,128,0.20)' };
+            const headColorClass = { AGENDA: 'text-green-400', FOLGA: 'text-blue-400', 'FÉRIAS': 'text-orange-400', OUTRO: 'text-gray-400' };
+            const cardClass = {
+                AGENDA: 'flex items-center gap-2 rounded-lg bg-green-500/10 px-2.5 py-2 relative',
+                FOLGA: 'flex items-center gap-2 rounded-lg bg-blue-500/10 px-2.5 py-2 relative',
+                'FÉRIAS': 'flex items-center gap-2 rounded-lg bg-orange-500/10 px-2.5 py-2 relative',
+                OUTRO: 'flex items-center gap-2 rounded-lg bg-gray-500/10 px-2.5 py-2 relative'
+            };
+            const avatarClass = {
+                AGENDA: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-green-500/20 text-[13px] font-bold text-white',
+                FOLGA: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-[13px] font-bold text-white',
+                'FÉRIAS': 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-[13px] font-bold text-white',
+                OUTRO: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-gray-500/20 text-[13px] font-bold text-white'
+            };
 
             order.forEach(key => {
                 if (!groups[key] || groups[key].length === 0) return;
 
                 const section = document.createElement('div');
-                section.style.cssText = 'padding:16px 24px;';
-                section.innerHTML = `<p style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${headColor[key]};margin-bottom:10px;">${labels[key]} (${groups[key].length})</p>`;
+                section.className = 'px-6 py-4';
+                section.innerHTML = `<p class="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] ${headColorClass[key]}">${labels[key]} (${groups[key].length})</p>`;
 
                 const grid = document.createElement('div');
-                grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
+                grid.className = 'grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]';
 
                 groups[key].forEach(ev => {
-                    grid.appendChild(buildTechCard(ev, key, iso, cardBg, avatarBg));
+                    grid.appendChild(buildTechCard(ev, key, iso, cardClass, avatarClass));
                 });
 
                 section.appendChild(grid);
@@ -330,23 +338,23 @@
     }
 
     // ── Card de técnico ──────────────────────────────────────────────────────
-    function buildTechCard(ev, groupKey, iso, cardBg, avatarBg) {
+    function buildTechCard(ev, groupKey, iso, cardClass, avatarClass) {
         const card = document.createElement('div');
-        card.style.cssText = `background:${cardBg[groupKey]};border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;position:relative;`;
+        card.className = cardClass[groupKey] || cardClass.OUTRO;
 
         const displayName = ev.full_name || ev.username || '-';
         const initial     = capitalize(displayName.charAt(0));
 
         // Avatar
         const avatar = document.createElement('div');
-        avatar.style.cssText = `width:34px;height:34px;border-radius:50%;background:${avatarBg[groupKey]};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fff;`;
+        avatar.className = avatarClass[groupKey] || avatarClass.OUTRO;
         avatar.textContent = initial;
 
         // Info
         const info = document.createElement('div');
-        info.style.cssText = 'min-width:0;flex:1;';
-        info.innerHTML = `<p style="color:#f9fafb;font-size:14px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</p>
-                          <p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;">${formatShiftLabel(ev.shift || '')}</p>`;
+        info.className = 'min-w-0 flex-1';
+        info.innerHTML = `<p class="m-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-50">${displayName}</p>
+                          <p class="m-0 mt-0.5 text-[11px] text-gray-400">${formatShiftLabel(ev.shift || '')}</p>`;
 
         card.appendChild(avatar);
         card.appendChild(info);
@@ -355,13 +363,11 @@
         if (canEdit) {
             const editBtn = document.createElement('button');
             editBtn.title = 'Editar status';
-            editBtn.style.cssText = 'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:5px 7px;cursor:pointer;display:flex;align-items:center;color:#9ca3af;flex-shrink:0;transition:background 0.15s,color 0.15s;';
-            editBtn.innerHTML = '<i data-lucide="pencil" style="width:12px;height:12px;pointer-events:none;"></i>';
-            editBtn.onmouseover = () => { editBtn.style.background = 'rgba(255,255,255,0.14)'; editBtn.style.color = '#fff'; };
-            editBtn.onmouseout  = () => { editBtn.style.background = 'rgba(255,255,255,0.06)'; editBtn.style.color = '#9ca3af'; };
+            editBtn.className = 'flex flex-shrink-0 items-center rounded-md border border-white/15 bg-white/10 px-1.5 py-1 text-gray-400 transition hover:bg-white/20 hover:text-white';
+            editBtn.innerHTML = '<i data-lucide="pencil" class="h-3 w-3 pointer-events-none"></i>';
             editBtn.onclick = (e) => {
                 e.stopPropagation();
-                openInlineEditor(ev, iso, card, groupKey, cardBg, avatarBg);
+                openInlineEditor(ev, iso, card);
             };
             card.appendChild(editBtn);
         }
@@ -370,10 +376,10 @@
     }
 
     // ── Editor inline de turno ───────────────────────────────────────────────
-    function openInlineEditor(ev, iso, card, groupKey, cardBg, avatarBg) {
+    function openInlineEditor(ev, iso, card) {
         // Fecha outros editores abertos
         document.querySelectorAll('.inline-shift-editor').forEach(el => {
-            el.parentElement.style.zIndex = '';
+            el.parentElement?.classList.remove('z-[30]');
             el.remove();
         });
 
@@ -385,30 +391,35 @@
         const shiftLabels = { AGENDA: 'Agenda', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias', AUSENTE: 'Ausente' };
 
         const editor = document.createElement('div');
-        editor.className = 'inline-shift-editor';
-        editor.style.cssText = 'position:absolute;top:calc(100% + 6px);right:0;z-index:200;background:#1e1e1e;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,0.7);';
-        card.style.zIndex = '30';
+        editor.className = 'inline-shift-editor absolute right-0 top-[calc(100%+6px)] z-[200] min-w-[210px] rounded-[10px] border border-white/15 bg-[#1e1e1e] p-3 shadow-[0_8px_32px_rgba(0,0,0,0.7)]';
+        card.classList.add('z-[30]');
 
         // Cabeçalho do editor
         const editorHeader = document.createElement('p');
-        editorHeader.style.cssText = 'color:#9ca3af;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 10px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+        editorHeader.className = 'm-0 mb-2.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.06em] text-gray-400';
         editorHeader.textContent = displayName;
         editor.appendChild(editorHeader);
 
         // Opções de turno
         const optionsWrap = document.createElement('div');
-        optionsWrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;';
+        optionsWrap.className = 'flex flex-col gap-1';
 
         shifts.forEach(s => {
             const btn = document.createElement('button');
             const isActive = s === currentShift;
-            btn.style.cssText = `display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;border:1px solid ${isActive ? 'rgba(255,255,255,0.15)' : 'transparent'};background:${isActive ? 'rgba(255,255,255,0.07)' : 'transparent'};cursor:pointer;width:100%;text-align:left;transition:background 0.1s;`;
+            btn.className = isActive
+                ? 'flex w-full items-center gap-2 rounded-md border border-white/15 bg-white/10 px-2.5 py-1.5 text-left transition'
+                : 'flex w-full items-center gap-2 rounded-md border border-transparent bg-transparent px-2.5 py-1.5 text-left transition hover:bg-white/10';
+            const dotClass = {
+                AGENDA: 'bg-green-400',
+                FOLGA: 'bg-blue-400',
+                'FÉRIAS': 'bg-orange-400',
+                AUSENTE: 'bg-gray-400'
+            };
             btn.innerHTML = `
-                <span style="width:8px;height:8px;border-radius:50%;background:${shiftColors[s]};flex-shrink:0;"></span>
-                <span style="color:#f9fafb;font-size:13px;font-weight:${isActive ? '600' : '400'};flex:1;">${shiftLabels[s]}</span>
-                ${isActive ? '<span style="color:#6b7280;font-size:10px;">atual</span>' : ''}`;
-            btn.onmouseover = () => { if (!isActive) btn.style.background = 'rgba(255,255,255,0.07)'; };
-            btn.onmouseout  = () => { if (!isActive) btn.style.background = 'transparent'; };
+                <span class="h-2 w-2 flex-shrink-0 rounded-full ${dotClass[s] || 'bg-gray-400'}"></span>
+                <span class="flex-1 text-[13px] ${isActive ? 'font-semibold text-gray-50' : 'font-normal text-gray-50'}">${shiftLabels[s]}</span>
+                ${isActive ? '<span class="text-[10px] text-gray-500">atual</span>' : ''}`;
             btn.onclick = async (e) => {
                 e.stopPropagation();
                 if (isActive) { editor.remove(); return; }
@@ -421,14 +432,12 @@
 
         // Separador + remover
         const sep = document.createElement('div');
-        sep.style.cssText = 'margin:10px 0 8px;border-top:1px solid rgba(255,255,255,0.07);';
+        sep.className = 'my-2 border-t border-white/10';
         editor.appendChild(sep);
 
         const delBtn = document.createElement('button');
-        delBtn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#f87171;font-size:12px;width:100%;transition:background 0.1s;';
-        delBtn.innerHTML = '<i data-lucide="trash-2" style="width:12px;height:12px;pointer-events:none;"></i> Remover do dia';
-        delBtn.onmouseover = () => delBtn.style.background = 'rgba(239,68,68,0.10)';
-        delBtn.onmouseout  = () => delBtn.style.background = 'transparent';
+        delBtn.className = 'flex w-full items-center gap-1.5 rounded-md bg-transparent px-2.5 py-1.5 text-left text-xs text-red-400 transition hover:bg-red-500/10';
+        delBtn.innerHTML = '<i data-lucide="trash-2" class="h-3 w-3 pointer-events-none"></i> Remover do dia';
         delBtn.onclick = async (e) => {
             e.stopPropagation();
             if (!confirm(`Remover ${displayName} da escala de ${iso}?`)) return;
@@ -439,7 +448,7 @@
         // Área de status
         const statusEl = document.createElement('div');
         statusEl.id = `editor-status-${ev.user_id}`;
-        statusEl.style.cssText = 'font-size:11px;color:#9ca3af;margin-top:8px;min-height:14px;text-align:center;';
+        statusEl.className = 'mt-2 min-h-[14px] text-center text-[11px] text-gray-400';
         editor.appendChild(statusEl);
 
         card.appendChild(editor);
@@ -448,7 +457,7 @@
         // Fechar ao clicar fora
         const closeEditor = (e) => {
             if (!editor.contains(e.target)) {
-                card.style.zIndex = '';
+                card.classList.remove('z-[30]');
                 editor.remove();
                 document.removeEventListener('click', closeEditor);
             }
@@ -459,7 +468,10 @@
     // ── Salvar turno via API ─────────────────────────────────────────────────
     async function saveShift(userId, date, shift, editorEl, isDelete = false) {
         const statusEl = editorEl.querySelector(`[id^="editor-status"]`);
-        if (statusEl) { statusEl.textContent = 'Salvando…'; statusEl.style.color = '#9ca3af'; }
+        if (statusEl) {
+            statusEl.textContent = 'Salvando…';
+            statusEl.className = 'mt-2 min-h-[14px] text-center text-[11px] text-gray-400';
+        }
         editorEl.querySelectorAll('button').forEach(b => b.disabled = true);
 
         try {
@@ -478,12 +490,18 @@
             const data = await res.json();
 
             if (!data.success) {
-                if (statusEl) { statusEl.textContent = data.message || 'Erro ao salvar.'; statusEl.style.color = '#f87171'; }
+                if (statusEl) {
+                    statusEl.textContent = data.message || 'Erro ao salvar.';
+                    statusEl.className = 'mt-2 min-h-[14px] text-center text-[11px] text-red-400';
+                }
                 editorEl.querySelectorAll('button').forEach(b => b.disabled = false);
                 return;
             }
 
-            if (statusEl) { statusEl.textContent = '✓ Salvo!'; statusEl.style.color = '#4ade80'; }
+            if (statusEl) {
+                statusEl.textContent = '✓ Salvo!';
+                statusEl.className = 'mt-2 min-h-[14px] text-center text-[11px] text-green-400';
+            }
 
             setTimeout(async () => {
                 editorEl.remove();
@@ -491,7 +509,10 @@
             }, 400);
 
         } catch (err) {
-            if (statusEl) { statusEl.textContent = 'Erro de conexão.'; statusEl.style.color = '#f87171'; }
+            if (statusEl) {
+                statusEl.textContent = 'Erro de conexão.';
+                statusEl.className = 'mt-2 min-h-[14px] text-center text-[11px] text-red-400';
+            }
             editorEl.querySelectorAll('button').forEach(b => b.disabled = false);
         }
     }

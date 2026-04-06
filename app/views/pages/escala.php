@@ -30,14 +30,6 @@ if (isAdmin()) {
     <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
     <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
     <?php require APP_ROOT . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
 </head>
 
 <body>

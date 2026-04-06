@@ -41,221 +41,6 @@ $technicianPayload = array_map(static function (array $tech): array {
     <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
     <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
     <?php require APP_ROOT . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        #header-placeholder nav { top: 0 !important; }
-
-        .filter-input {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 8px;
-            color: white;
-            padding: 10px 14px;
-            font-size: 0.875rem;
-            width: 100%;
-            transition: border-color 0.2s;
-        }
-        .filter-input:focus { outline: none; border-color: rgba(167,139,250,0.5); }
-        .filter-input option { background: #1a1a2e; color: white; }
-
-        .summary-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .km-table { width: 100%; border-collapse: collapse; }
-        .km-table th {
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: rgba(255,255,255,0.03);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            white-space: nowrap;
-        }
-        .km-table td {
-            padding: 12px 16px;
-            font-size: 0.875rem;
-            color: #d1d5db;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            vertical-align: middle;
-        }
-        .km-table tr:hover td { background: rgba(255,255,255,0.03); }
-        .km-table tr:last-child td { border-bottom: none; }
-
-        .km-table--daily {
-            table-layout: fixed;
-        }
-        .km-table--daily th,
-        .km-table--daily td {
-            padding: 9px 8px;
-            font-size: 0.78rem;
-            white-space: normal;
-            word-break: break-word;
-        }
-        .km-table--daily th {
-            font-size: 0.65rem;
-            letter-spacing: 0.04em;
-        }
-        .km-table--daily-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2px 6px;
-            border-radius: 999px;
-            background: rgba(59,130,246,0.15);
-            border: 1px solid rgba(96,165,250,0.35);
-            color: #bfdbfe;
-            font-size: 0.68rem;
-            line-height: 1;
-            white-space: nowrap;
-        }
-
-        .badge {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 8px; border-radius: 20px;
-            font-size: 0.7rem; font-weight: 600; white-space: nowrap;
-        }
-        .badge-done    { background: rgba(74,222,128,0.12);  color: #4ade80; }
-        .badge-partial { background: rgba(251,191,36,0.12);  color: #fbbf24; }
-        .badge-missing { background: rgba(239,68,68,0.12);   color: #f87171; }
-
-        .btn-photo {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 4px 10px; border-radius: 6px;
-            font-size: 0.75rem; font-weight: 500;
-            background: rgba(167,139,250,0.1); color: #a78bfa;
-            border: 1px solid rgba(167,139,250,0.2);
-            cursor: pointer; transition: background 0.2s;
-        }
-        .btn-photo:hover { background: rgba(167,139,250,0.2); }
-
-        #photo-modal {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,0.85);
-            display: none; align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        #photo-modal.open { display: flex; }
-        #photo-modal .modal-box {
-            background: #111827;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; overflow: hidden;
-            max-width: 600px; width: 100%;
-        }
-        #photo-modal img { width: 100%; display: block; max-height: 70vh; object-fit: contain; background: #000; }
-        #photo-modal .modal-footer {
-            padding: 14px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.4s infinite;
-            border-radius: 4px; height: 14px;
-        }
-        @keyframes shimmer { to { background-position: -200% 0; } }
-
-        .btn-primary {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 10px 20px; border-radius: 8px;
-            background: #7c3aed; color: white;
-            font-size: 0.875rem; font-weight: 600;
-            border: none; cursor: pointer; transition: background 0.2s;
-        }
-        .btn-primary:hover { background: #6d28d9; }
-
-        .btn-secondary {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 10px 20px; border-radius: 8px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #d1d5db; font-size: 0.875rem; font-weight: 500;
-            cursor: pointer; transition: background 0.2s;
-        }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-
-        .km-view-tabs {
-            display: inline-flex;
-            padding: 4px;
-            gap: 4px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-        }
-
-        .km-view-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: #9ca3af;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s, border-color 0.15s;
-        }
-
-        .km-view-tab:hover {
-            background: rgba(255,255,255,0.06);
-            color: #f3f4f6;
-        }
-
-        .km-view-tab.active {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.14);
-            color: #ffffff;
-        }
-
-        .km-view-panel.hidden { display: none; }
-
-        .shortcut-btn {
-            padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05); color: #d1d5db;
-            font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: background 0.15s;
-            white-space: nowrap;
-        }
-        .shortcut-btn:hover { background: rgba(255,255,255,0.12); }
-        .shortcut-btn.active { background: rgba(167,139,250,0.15); border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
-
-        #manual-modal {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,0.85);
-            display: none; align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        #manual-modal.open { display: flex; }
-        #manual-modal .modal-box {
-            background: #111827;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 560px;
-            overflow: hidden;
-        }
-        .manual-form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-        @media (min-width: 768px) {
-            .manual-form-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -330,7 +115,7 @@ $technicianPayload = array_map(static function (array $tech): array {
 
                     <div id="day-table-loading" class="p-6 space-y-3">
                         <?php for ($i = 0; $i < 4; $i++): ?>
-                        <div class="skeleton w-full" style="height:18px;"></div>
+                        <div class="skeleton h-[18px] w-full"></div>
                         <?php endfor; ?>
                     </div>
 
@@ -388,7 +173,7 @@ $technicianPayload = array_map(static function (array $tech): array {
 
             <div id="table-loading" class="p-6 space-y-3">
                 <?php for ($i = 0; $i < 5; $i++): ?>
-                <div class="skeleton w-full" style="height:18px;"></div>
+                <div class="skeleton h-[18px] w-full"></div>
                 <?php endfor; ?>
             </div>
 
@@ -640,15 +425,16 @@ function renderCalendar() {
     container.className = 'w-full bg-brand-dark border border-white/10 rounded-xl overflow-hidden';
 
     const table = document.createElement('table');
-    table.className = 'border-collapse w-full';
-    table.style.minWidth = '720px';
+    table.className = 'w-full min-w-[720px] border-collapse';
 
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headerRow.className = 'border-b border-white/10';
     ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].forEach((label, index) => {
         const th = document.createElement('th');
-        th.style.cssText = 'padding:10px 4px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' + (index >= 5 ? '#6b7280' : '#9ca3af') + ';';
+        th.className = (index >= 5)
+            ? 'px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.05em] text-gray-500'
+            : 'px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.05em] text-gray-400';
         th.textContent = label;
         headerRow.appendChild(th);
     });
@@ -673,51 +459,54 @@ function renderCalendar() {
         const selected = iso === selectedDate;
 
         const td = document.createElement('td');
-        td.className = 'border border-white/5 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5';
-        td.style.cssText = 'height:100px;padding:8px;vertical-align:top;' + (isWeekend ? 'background:rgba(255,255,255,0.015);' : '');
+        td.className = isWeekend
+            ? 'h-[100px] border border-white/5 bg-white/[0.015] p-2 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5'
+            : 'h-[100px] border border-white/5 p-2 align-top cursor-pointer transition-colors duration-100 hover:bg-white/5';
         if (selected) td.classList.add('ring-2', 'ring-white/30');
         td.setAttribute('data-date', iso);
 
         const dayRow = document.createElement('div');
-        dayRow.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;gap:8px;';
+        dayRow.className = 'mb-[5px] flex items-start justify-between gap-2';
 
         const numSpan = document.createElement('span');
         if (isToday) {
-            numSpan.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#ffffff;color:#000000;font-size:12px;font-weight:700;flex-shrink:0;';
+            numSpan.className = 'inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-black';
         } else {
-            numSpan.style.cssText = 'font-size:14px;font-weight:700;color:' + (isWeekend ? '#6b7280' : '#e5e7eb') + ';';
+            numSpan.className = isWeekend
+                ? 'text-sm font-bold text-gray-500'
+                : 'text-sm font-bold text-gray-200';
         }
         numSpan.textContent = day;
         dayRow.appendChild(numSpan);
 
         const countWrap = document.createElement('div');
-        countWrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right;';
+        countWrap.className = 'flex flex-col items-end gap-px text-right';
 
         if (records.length > 0) {
             const completed = records.filter(record => record.km_start !== null && record.km_end !== null).length;
             const partial = records.filter(record => record.km_start !== null && record.km_end === null).length;
 
             const launched = document.createElement('span');
-            launched.style.cssText = 'font-weight:600;color:#4ade80;white-space:nowrap;';
+            launched.className = 'whitespace-nowrap font-semibold text-green-400';
             launched.textContent = `${records.length} lançamento${records.length !== 1 ? 's' : ''}`;
             countWrap.appendChild(launched);
 
             if (completed > 0) {
                 const complete = document.createElement('span');
-                complete.style.cssText = 'color:#60a5fa;white-space:nowrap;';
+                complete.className = 'whitespace-nowrap text-blue-400';
                 complete.textContent = `${completed} completo${completed !== 1 ? 's' : ''}`;
                 countWrap.appendChild(complete);
             }
 
             if (partial > 0) {
                 const partialLabel = document.createElement('span');
-                partialLabel.style.cssText = 'color:#fb923c;white-space:nowrap;';
+                partialLabel.className = 'whitespace-nowrap text-orange-400';
                 partialLabel.textContent = `${partial} parcial${partial !== 1 ? 'is' : ''}`;
                 countWrap.appendChild(partialLabel);
             }
         } else {
             const emptyState = document.createElement('span');
-            emptyState.style.cssText = 'color:#6b7280;white-space:nowrap;';
+            emptyState.className = 'whitespace-nowrap text-gray-500';
             emptyState.textContent = 'Sem lançamento';
             countWrap.appendChild(emptyState);
         }
@@ -746,7 +535,7 @@ function renderCalendar() {
 
     table.appendChild(tbody);
     const tableWrapper = document.createElement('div');
-    tableWrapper.style.cssText = 'width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;';
+    tableWrapper.className = 'block w-full overflow-x-auto';
     tableWrapper.appendChild(table);
     container.appendChild(tableWrapper);
 
@@ -764,8 +553,7 @@ function newWeekRow() {
 
 function emptyCell() {
     const td = document.createElement('td');
-    td.className = 'border border-white/5';
-    td.style.cssText = 'height:90px;background:rgba(255,255,255,0.005);';
+    td.className = 'h-[90px] border border-white/5 bg-white/[0.005]';
     return td;
 }
 
@@ -797,15 +585,14 @@ function renderDayPanel(iso) {
     const partialCount = records.filter(record => record.km_start !== null && record.km_end === null).length;
 
     container.innerHTML = `
-        <style>@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}</style>
-        <div class="mt-1 bg-brand-dark border border-white/10 rounded-xl overflow-visible" style="animation:slideDown 0.2s ease;">
+        <div class="mt-1 bg-brand-dark border border-white/10 rounded-xl overflow-visible animate-slide-down">
             <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10">
                 <div>
                     <h3 class="text-white font-bold text-xl md:text-lg capitalize">${weekday}, ${dateLabel}</h3>
                     <div class="flex flex-wrap gap-3 mt-1 text-sm md:text-xs">
-                        <span style="color:#4ade80;font-weight:500;">${records.length} lançamento${records.length !== 1 ? 's' : ''}</span>
-                        <span style="color:#60a5fa;">${completeCount} completo${completeCount !== 1 ? 's' : ''}</span>
-                        <span style="color:#fb923c;">${partialCount} parcial${partialCount !== 1 ? 'is' : ''}</span>
+                        <span class="font-medium text-green-400">${records.length} lançamento${records.length !== 1 ? 's' : ''}</span>
+                        <span class="text-blue-400">${completeCount} completo${completeCount !== 1 ? 's' : ''}</span>
+                        <span class="text-orange-400">${partialCount} parcial${partialCount !== 1 ? 'is' : ''}</span>
                         <span class="text-gray-400">${missingTechnicians.length} sem lançamento</span>
                     </div>
                 </div>
@@ -820,12 +607,12 @@ function renderDayPanel(iso) {
     body.className = 'divide-y divide-white/5';
 
     const presentSection = document.createElement('div');
-    presentSection.style.cssText = 'padding:16px 24px;';
-    presentSection.innerHTML = `<p style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#4ade80;margin-bottom:10px;">Com lançamento (${records.length})</p>`;
+    presentSection.className = 'px-6 py-4';
+    presentSection.innerHTML = `<p class="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-green-400">Com lançamento (${records.length})</p>`;
 
     if (records.length > 0) {
         const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;';
+        grid.className = 'grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]';
         records.forEach(record => {
             grid.appendChild(buildKmCard(record));
         });
@@ -836,23 +623,23 @@ function renderDayPanel(iso) {
     body.appendChild(presentSection);
 
     const missingSection = document.createElement('div');
-    missingSection.style.cssText = 'padding:16px 24px;';
-    missingSection.innerHTML = `<p style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:10px;">Sem lançamento (${missingTechnicians.length})</p>`;
+    missingSection.className = 'px-6 py-4';
+    missingSection.innerHTML = `<p class="mb-2.5 text-xs font-bold uppercase tracking-[0.08em] text-gray-400">Sem lançamento (${missingTechnicians.length})</p>`;
 
     if (missingTechnicians.length > 0) {
         const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;';
+        grid.className = 'grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]';
         missingTechnicians.forEach(tech => {
             const card = document.createElement('div');
-            card.style.cssText = 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;';
+            card.className = 'flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5';
 
             const avatar = document.createElement('div');
-            avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#fecaca;';
+            avatar.className = 'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-500/20 text-[13px] font-bold text-red-200';
             avatar.textContent = capitalize((tech.full_name || tech.username || '-').charAt(0));
 
             const info = document.createElement('div');
-            info.style.cssText = 'min-width:0;flex:1;';
-            info.innerHTML = `<p style="color:#f9fafb;font-size:14px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(tech.full_name || tech.username || '-')}</p><p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;">Sem registro</p>`;
+            info.className = 'min-w-0 flex-1';
+            info.innerHTML = `<p class="m-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-50">${esc(tech.full_name || tech.username || '-')}</p><p class="m-0 mt-0.5 text-[11px] text-gray-400">Sem registro</p>`;
 
             card.appendChild(avatar);
             card.appendChild(info);
@@ -872,14 +659,14 @@ function renderDayPanel(iso) {
 
 function buildKmCard(record) {
     const card = document.createElement('div');
-    card.style.cssText = 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;';
+    card.className = 'flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5';
 
     const avatar = document.createElement('div');
-    avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;background:rgba(34,197,94,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;color:#dcfce7;';
+    avatar.className = 'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-500/20 text-[13px] font-bold text-green-100';
     avatar.textContent = capitalize((record.full_name || record.username || '-').charAt(0));
 
     const info = document.createElement('div');
-    info.style.cssText = 'min-width:0;flex:1;';
+    info.className = 'min-w-0 flex-1';
 
     const [year, month, day] = record.log_date.split('-');
     const dateLabel = `${day}/${month}/${year}`;
@@ -889,8 +676,8 @@ function buildKmCard(record) {
         : 'Sem total';
 
     info.innerHTML = `
-        <p style="color:#f9fafb;font-size:14px;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(record.full_name || record.username || '-')}</p>
-        <p style="color:#9ca3af;font-size:11px;margin:2px 0 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <p class="m-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-gray-50">${esc(record.full_name || record.username || '-')}</p>
+        <p class="m-0 mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
             <span>${dateLabel}</span>
             <span>${kmLabel}</span>
         </p>
@@ -904,14 +691,14 @@ function buildKmCard(record) {
 
 function buildStatusBadge(record) {
     if (record.km_start !== null && record.km_end !== null) {
-        return '<span class="badge badge-done"><i data-lucide="check" style="width:11px;height:11px;"></i> Completo</span>';
+        return '<span class="badge badge-done"><i data-lucide="check" class="h-3 w-3"></i> Completo</span>';
     }
 
     if (record.km_start !== null) {
-        return '<span class="badge badge-partial"><i data-lucide="clock" style="width:11px;height:11px;"></i> Só inicial</span>';
+        return '<span class="badge badge-partial"><i data-lucide="clock" class="h-3 w-3"></i> Só inicial</span>';
     }
 
-    return '<span class="badge badge-missing"><i data-lucide="x" style="width:11px;height:11px;"></i> Incompleto</span>';
+    return '<span class="badge badge-missing"><i data-lucide="x" class="h-3 w-3"></i> Incompleto</span>';
 }
 
 function renderSummary(summary) {
@@ -1065,18 +852,18 @@ function buildDailyRows(records) {
 
         let badge;
         if (r.km_start !== null && r.km_end !== null)
-            badge = '<span class="badge badge-done"><i data-lucide="check" style="width:11px;height:11px;"></i> Completo</span>';
+            badge = '<span class="badge badge-done"><i data-lucide="check" class="h-3 w-3"></i> Completo</span>';
         else if (r.km_start !== null)
-            badge = '<span class="badge badge-partial"><i data-lucide="clock" style="width:11px;height:11px;"></i> Só inicial</span>';
+            badge = '<span class="badge badge-partial"><i data-lucide="clock" class="h-3 w-3"></i> Só inicial</span>';
         else
-            badge = '<span class="badge badge-missing"><i data-lucide="x" style="width:11px;height:11px;"></i> Incompleto</span>';
+            badge = '<span class="badge badge-missing"><i data-lucide="x" class="h-3 w-3"></i> Incompleto</span>';
 
         const photoStart = r.photo_start_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Inicial</button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')"><i data-lucide="image" class="h-3 w-3"></i> Inicial</button>`
             : '';
 
         const photoEnd = r.photo_end_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Final</button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')"><i data-lucide="image" class="h-3 w-3"></i> Final</button>`
             : '';
 
         const evidencias = (photoStart || photoEnd)
@@ -1150,18 +937,18 @@ function buildRecordsRows(records) {
 
         let badge;
         if (r.km_start !== null && r.km_end !== null)
-            badge = '<span class="badge badge-done"><i data-lucide="check" style="width:11px;height:11px;"></i> Completo</span>';
+            badge = '<span class="badge badge-done"><i data-lucide="check" class="h-3 w-3"></i> Completo</span>';
         else if (r.km_start !== null)
-            badge = '<span class="badge badge-partial"><i data-lucide="clock" style="width:11px;height:11px;"></i> Só inicial</span>';
+            badge = '<span class="badge badge-partial"><i data-lucide="clock" class="h-3 w-3"></i> Só inicial</span>';
         else
-            badge = '<span class="badge badge-missing"><i data-lucide="x" style="width:11px;height:11px;"></i> Incompleto</span>';
+            badge = '<span class="badge badge-missing"><i data-lucide="x" class="h-3 w-3"></i> Incompleto</span>';
 
         const photoStart = r.photo_start_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Inicial</button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_start_url)}','${esc(r.full_name)}','KM Inicial - ${dateLabel}')"><i data-lucide="image" class="h-3 w-3"></i> Inicial</button>`
             : '<span class="text-gray-600 text-xs">—</span>';
 
         const photoEnd = r.photo_end_url
-            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')"><i data-lucide="image" style="width:12px;height:12px;"></i> Final</button>`
+            ? `<button class="btn-photo" onclick="openPhoto('${esc(r.photo_end_url)}','${esc(r.full_name)}','KM Final - ${dateLabel}')"><i data-lucide="image" class="h-3 w-3"></i> Final</button>`
             : '<span class="text-gray-600 text-xs">—</span>';
 
         const kmStart  = r.km_start  !== null ? r.km_start.toLocaleString('pt-BR')  : '<span class="text-gray-600">—</span>';
@@ -1240,20 +1027,9 @@ function showToast(msg, type) {
     const toast = document.createElement('div');
     toast.id = 'manual-toast';
     toast.textContent = msg;
-    toast.style.cssText = [
-        'position:fixed',
-        'bottom:24px',
-        'left:50%',
-        'transform:translateX(-50%)',
-        'padding:12px 20px',
-        'border-radius:10px',
-        'z-index:10000',
-        'font-size:14px',
-        'font-weight:600',
-        type === 'success'
-            ? 'background:#166534;color:#dcfce7;border:1px solid #4ade80'
-            : 'background:#7f1d1d;color:#fecaca;border:1px solid #ef4444'
-    ].join(';');
+    toast.className = type === 'success'
+        ? 'manual-toast manual-toast-success'
+        : 'manual-toast manual-toast-error';
 
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3200);

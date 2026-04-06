@@ -40,135 +40,6 @@ if (empty($_SESSION['csrf_token'])) {
     <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
     <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
     <?php require APP_ROOT . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-
-        @media (min-width: 768px) {
-            main { margin-top: 120px !important; }
-        }
-
-        .km-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 24px;
-        }
-        .km-card.done   { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.04); }
-        .km-card.locked { opacity: 0.55; pointer-events: none; }
-
-        .km-input {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-            padding: 12px 16px;
-            width: 100%;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-        .km-input:focus { outline: none; border-color: rgba(167,139,250,0.6); background: rgba(255,255,255,0.08); }
-        .km-input::placeholder { color: rgba(255,255,255,0.2); font-size: 1rem; letter-spacing: 0; }
-
-        .photo-area {
-            border: 2px dashed rgba(255,255,255,0.15);
-            border-radius: 10px;
-            overflow: hidden;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: border-color 0.2s;
-            background: rgba(0,0,0,0.2);
-            position: relative;
-        }
-        .photo-area:hover { border-color: rgba(167,139,250,0.5); }
-        .photo-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-        .photo-area .photo-placeholder {
-            display: flex; flex-direction: column;
-            align-items: center; gap: 8px;
-            color: rgba(255,255,255,0.35);
-            font-size: 0.85rem;
-        }
-
-        .status-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 10px; border-radius: 20px;
-            font-size: 0.75rem; font-weight: 600;
-        }
-        .status-badge.pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
-        .status-badge.done    { background: rgba(74,222,128,0.15);  color: #4ade80; }
-
-        .btn-primary {
-            background: #7c3aed;
-            border: none; border-radius: 8px;
-            color: white; font-weight: 600;
-            padding: 14px 24px; width: 100%;
-            cursor: pointer; font-size: 1rem;
-            transition: background 0.2s, opacity 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-primary:hover:not(:disabled) { background: #6d28d9; }
-        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        #toast {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            padding: 12px 24px; border-radius: 8px;
-            font-size: 0.9rem; font-weight: 500;
-            opacity: 0; transition: opacity 0.3s;
-            z-index: 9999; white-space: nowrap;
-            pointer-events: none;
-        }
-        #toast.show    { opacity: 1; }
-        #toast.success { background: #166534; color: #bbf7d0; border: 1px solid #4ade80; }
-        #toast.error   { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; }
-
-        .step-line { height: 2px; flex: 1; background: rgba(255,255,255,0.1); transition: background 0.4s; }
-        .step-line.done { background: #4ade80; }
-
-        #location-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: rgba(0,0,0,0.82);
-            backdrop-filter: blur(6px);
-        }
-        #location-overlay.open { display: flex; }
-        .location-overlay-box {
-            width: 100%;
-            max-width: 420px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: #171717;
-            padding: 28px 24px;
-            text-align: center;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.45);
-        }
-        .location-spinner {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 16px;
-            border-radius: 999px;
-            border: 3px solid rgba(255,255,255,0.16);
-            border-top-color: #4ade80;
-            animation: spin 0.9s linear infinite;
-        }
-        .location-overlay-note {
-            color: #9ca3af;
-            font-size: 0.85rem;
-            line-height: 1.45;
-            margin-top: 10px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
 </head>
 
 <body>
@@ -228,7 +99,7 @@ if (empty($_SESSION['csrf_token'])) {
                                 </p>
                             <?php endif; ?>
                             <?php if ($existingLog['photo_start']): ?>
-                            <div class="photo-area" style="cursor:default;">
+                            <div class="photo-area km-photo-static">
                                 <img src="<?= htmlspecialchars(action_url('km/serve_km_photo.php') . '?file=' . urlencode($existingLog['photo_start'])) ?>" alt="Foto KM inicial">
                             </div>
                             <?php endif; ?>
@@ -242,7 +113,7 @@ if (empty($_SESSION['csrf_token'])) {
                                     <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Foto do painel</label>
                                     <div class="photo-area" id="photo-start-area" onclick="document.getElementById('photo-start-input').click()">
                                         <div class="photo-placeholder">
-                                            <i data-lucide="camera" style="width:32px;height:32px;"></i>
+                                            <i data-lucide="camera" class="w-8 h-8"></i>
                                             <span>Toque para tirar foto</span>
                                         </div>
                                     </div>
@@ -291,7 +162,7 @@ if (empty($_SESSION['csrf_token'])) {
                                 </p>
                             </div>
                             <?php if ($existingLog['photo_end']): ?>
-                            <div class="photo-area mt-3" style="cursor:default;">
+                            <div class="photo-area mt-3 km-photo-static">
                                 <img src="<?= htmlspecialchars(action_url('km/serve_km_photo.php') . '?file=' . urlencode($existingLog['photo_end'])) ?>" alt="Foto KM final">
                             </div>
                             <?php endif; ?>
@@ -305,7 +176,7 @@ if (empty($_SESSION['csrf_token'])) {
                                     <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Foto do painel</label>
                                     <div class="photo-area" id="photo-end-area" onclick="document.getElementById('photo-end-input').click()">
                                         <div class="photo-placeholder">
-                                            <i data-lucide="camera" style="width:32px;height:32px;"></i>
+                                            <i data-lucide="camera" class="w-8 h-8"></i>
                                             <span>Toque para tirar foto</span>
                                         </div>
                                     </div>
@@ -461,8 +332,8 @@ if (empty($_SESSION['csrf_token'])) {
                 canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                 const compressed = canvas.toDataURL('image/jpeg', 0.70);
                 const area = document.getElementById(areaId);
-                area.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">
-                    <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);padding:4px 8px;border-radius:4px;color:white;font-size:0.7rem;">
+                area.innerHTML = `<img src="${compressed}" class="km-preview-image">
+                    <div class="km-preview-note">
                         Toque para trocar
                     </div>`;
                 document.getElementById(dataId).value = compressed.split(',')[1];
@@ -550,12 +421,13 @@ if (empty($_SESSION['csrf_token'])) {
 
     // ─── STEP VISUAL ──────────────────────────────────────────────────────────
     <?php if ($existingLog && $existingLog['km_start'] !== null): ?>
-    document.getElementById('step-start').style.cssText = 'background:#166534;border-color:#4ade80;color:#bbf7d0;';
+    document.getElementById('step-start').classList.add('step-circle-done');
     document.getElementById('step-line').classList.add('done');
-    document.getElementById('step-end').style.cssText = 'background:rgba(139,92,246,0.2);border-color:#7c3aed;color:white;';
+    document.getElementById('step-end').classList.add('step-circle-active');
     <?php endif; ?>
     <?php if ($existingLog && $existingLog['km_end'] !== null): ?>
-    document.getElementById('step-end').style.cssText = 'background:#166534;border-color:#4ade80;color:#bbf7d0;';
+    document.getElementById('step-end').classList.remove('step-circle-active');
+    document.getElementById('step-end').classList.add('step-circle-done');
     <?php endif; ?>
 
     lucide.createIcons();

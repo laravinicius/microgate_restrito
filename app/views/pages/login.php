@@ -69,20 +69,12 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
     <script src="<?= htmlspecialchars(asset_url('js/session-guard.js')) ?>"></script>
     <script src="<?= htmlspecialchars(asset_url('js/components.js')) ?>" defer></script>
     <?php require APP_ROOT . '/components/google-analytics.php'; ?>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
 </head>
 
 <body class="min-h-screen bg-[#0f0f10] text-white">
     <main class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
         <div class="absolute inset-0">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('<?= htmlspecialchars(asset_url('img/background.jpg')) ?>');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat login-hero-bg"></div>
             <div class="absolute inset-0 bg-[rgba(8,8,10,0.72)]"></div>
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_38%)]"></div>
             <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[rgba(8,8,10,0.75)] to-transparent"></div>
