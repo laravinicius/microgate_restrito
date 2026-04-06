@@ -296,7 +296,7 @@ $technicianPayload = array_map(static function (array $tech): array {
                             <i data-lucide="calendar-days" class="w-6 h-6 md:w-5 md:h-5 text-gray-400"></i>
                             Calendário de km
                         </h2>
-                        <p class="text-gray-400 text-sm md:text-xs mt-1">Clique em uma data para ver quem lançou km e quem ficou sem lançamento.</p>
+                        <p class="text-gray-400 text-sm md:text-xs mt-1">Clique em um dia para ver o status dos lançamentos.</p>
                     </div>
                     <button class="btn-secondary justify-center self-start md:self-auto" onclick="openManualModal()">
                         <i data-lucide="square-pen" class="w-4 h-4"></i>
@@ -305,9 +305,9 @@ $technicianPayload = array_map(static function (array $tech): array {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3 text-xs md:text-[11px] text-gray-400">
-                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--green"></span><span>Lançamento</span></span>
-                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--blue"></span><span>Sem lançamento</span></span>
-                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--orange"></span><span>Parcial</span></span>
+                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--green"></span><span class="legend-label--green">Com lançamento</span></span>
+                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--blue"></span><span class="legend-label--blue">Sem lançamento</span></span>
+                    <span class="flex items-center gap-1.5"><span class="legend-swatch legend-swatch--orange"></span><span class="legend-label--orange">Parcial</span></span>
                 </div>
             </div>
 
@@ -636,6 +636,9 @@ function renderCalendar() {
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const todayIso = fmtDate(new Date());
 
+    const container = document.createElement('div');
+    container.className = 'w-full bg-brand-dark border border-white/10 rounded-xl overflow-hidden';
+
     const table = document.createElement('table');
     table.className = 'border-collapse w-full';
     table.style.minWidth = '720px';
@@ -742,12 +745,13 @@ function renderCalendar() {
     }
 
     table.appendChild(tbody);
-    wrap.innerHTML = '';
-
     const tableWrapper = document.createElement('div');
     tableWrapper.style.cssText = 'width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;';
     tableWrapper.appendChild(table);
-    wrap.appendChild(tableWrapper);
+    container.appendChild(tableWrapper);
+
+    wrap.innerHTML = '';
+    wrap.appendChild(container);
 
     if (window.lucide) lucide.createIcons();
 }
