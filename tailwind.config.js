@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./*.php", "./components/**/*.html", "./js/**/*.js"],
+  content: ["./*.php", "./app/**/*.php", "./components/**/*.html", "./js/**/*.js"],
   safelist: [
     // Classes geradas dinamicamente em JS (template literals não são detectados pelo scanner)
     "text-green-400",

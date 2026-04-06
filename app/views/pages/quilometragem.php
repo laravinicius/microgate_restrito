@@ -433,10 +433,7 @@ if (empty($_SESSION['csrf_token'])) {
         try {
             return await requestCurrentLocation({ timeout: 12000, maximumAge: 0, enableHighAccuracy: true });
         } catch (error) {
-            if (locationState.cached) {
-                return locationState.cached;
-            }
-            throw error;
+            return locationState.cached || null;
         }
     }
 
@@ -504,6 +501,9 @@ if (empty($_SESSION['csrf_token'])) {
         try {
             showLocationOverlay('Aguarde enquanto enviamos o registro com a localizacao atual do dispositivo.');
             const coords = await getLocationForSave();
+            if (!coords) {
+                document.getElementById('location-overlay-message').textContent = 'Nao foi possivel obter a localizacao. Salvando apenas a imagem e o KM.';
+            }
 
             const res = await fetch(window.APP_ROUTES?.saveKm || '/app/actions/km/save_km.php', {
                 method: 'POST',
@@ -514,8 +514,8 @@ if (empty($_SESSION['csrf_token'])) {
                     km:         parseInt(kmVal, 10),
                     photo:      photo,
                     log_date:   getDeviceDate(),
-                    lat:        coords.lat,
-                    lng:        coords.lng
+                    lat:        coords ? coords.lat : null,
+                    lng:        coords ? coords.lng : null
                 })
             });
 

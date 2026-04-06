@@ -47,7 +47,6 @@ if ($lng !== null && ($lng < -180 || $lng > 180)) $lng = null;
 
 if (!in_array($type, ['start', 'end'], true)) jsonError('Tipo inválido.');
 if ($km < 0 || $km > 9_999_999)               jsonError('Quilometragem fora do intervalo (0–9.999.999).');
-if ($lat === null || $lng === null)           jsonError('Nao foi possivel obter a localizacao atual. Tente novamente.');
 
 $dt = new DateTimeImmutable($logDate);
 $serverToday = new DateTimeImmutable('today', new DateTimeZone('America/Sao_Paulo'));
