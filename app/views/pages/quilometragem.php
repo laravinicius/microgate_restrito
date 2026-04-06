@@ -202,7 +202,7 @@ if (empty($_SESSION['csrf_token'])) {
             <div class="location-spinner"></div>
             <h2 id="location-overlay-title" class="text-white text-xl font-bold">Enviando dados</h2>
             <p id="location-overlay-message" class="location-overlay-note">
-                Aguarde enquanto enviamos o registro com a localização atual do dispositivo.
+                Enviando dados, não feche a janela
             </p>
         </div>
     </div>
@@ -370,11 +370,8 @@ if (empty($_SESSION['csrf_token'])) {
         lucide.createIcons();
 
         try {
-            showLocationOverlay('Aguarde enquanto enviamos o registro com a localizacao atual do dispositivo.');
+            showLocationOverlay('Enviando dados, não feche a janela');
             const coords = await getLocationForSave();
-            if (!coords) {
-                document.getElementById('location-overlay-message').textContent = 'Nao foi possivel obter a localizacao. Salvando apenas a imagem e o KM.';
-            }
 
             const res = await fetch(window.APP_ROUTES?.saveKm || '/app/actions/km/save_km.php', {
                 method: 'POST',
