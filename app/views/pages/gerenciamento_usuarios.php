@@ -26,6 +26,36 @@ if (empty($_SESSION['csrf_token'])) {
 
 // ── Ações POST ────────────────────────────────────────────────────────────────
 
+// Desabilitar/habilitar usuário (apenas Super Admin)
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_user_status') {
+    $id_to_toggle = (int)($_POST['user_id'] ?? 0);
+    $token        = (string)($_POST['csrf_token'] ?? '');
+
+    if (!hash_equals($_SESSION['csrf_token'], $token)) {
+        header('Location: ' . route_url('gerenciamento_usuarios.php?error=csrf'));
+        exit;
+    }
+
+    if ($id_to_toggle > 0 && $id_to_toggle !== (int)$_SESSION['user_id']) {
+        // Obtém o status atual
+        $checkStmt = $pdo->prepare("SELECT is_active FROM users WHERE id = ?");
+        $checkStmt->execute([$id_to_toggle]);
+        $user = $checkStmt->fetch();
+
+        if ($user) {
+            $currentStatus = (int)$user['is_active'];
+            $newStatus = $currentStatus === 1 ? 0 : 1;
+            
+            $updateStmt = $pdo->prepare("UPDATE users SET is_active = ? WHERE id = ?");
+            $updateStmt->execute([$newStatus, $id_to_toggle]);
+            
+            $msgKey = $newStatus === 1 ? 'user_enabled' : 'user_disabled';
+            header('Location: ' . route_url('gerenciamento_usuarios.php?msg=' . $msgKey));
+            exit;
+        }
+    }
+}
+
 // Deletar usuário
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_user') {
     $id_to_delete = (int)($_POST['delete_user_id'] ?? 0);
@@ -85,7 +115,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? ''
 }
 
 // ── Consultas ──────────────────────────────────────────────────────────────────
-$stmt   = $pdo->query("SELECT id, username, full_name, is_admin FROM users ORDER BY is_admin DESC, full_name ASC");
+$stmt   = $pdo->query("SELECT id, username, full_name, is_admin, is_active FROM users ORDER BY is_admin DESC, full_name ASC");
 $usuarios = $stmt->fetchAll();
 
 $resetStmt = $pdo->query(
@@ -143,6 +173,8 @@ foreach ($resetRequests as $r) {
                                     'deleted'       => 'Usuário excluído com sucesso.',
                                     'user_created'  => 'Usuário criado com sucesso.',
                                     'user_updated'  => 'Usuário atualizado com sucesso.',
+                                    'user_enabled'  => 'Usuário habilitado com sucesso.',
+                                    'user_disabled' => 'Usuário desabilitado com sucesso.',
                                     'reset_handled' => 'Solicitação de reset marcada como atendida.',
                                     'reset_deleted' => 'Notificação de reset excluída.',
                                     default         => 'Operação realizada com sucesso.'
@@ -290,6 +322,7 @@ foreach ($resetRequests as $r) {
                                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuário</th>
                                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Completo</th>
                                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                                         <?php if ($isAdmin): ?>
                                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                                         <?php endif; ?>
@@ -328,6 +361,18 @@ foreach ($resetRequests as $r) {
                                                 <?= $levelLabel ?>
                                             </span>
                                         </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <?php
+                                            $isActive = (int)($user['is_active'] ?? 1);
+                                            $statusClass = $isActive === 1 
+                                                ? 'bg-green-500/15 text-green-400' 
+                                                : 'bg-red-500/15 text-red-400';
+                                            $statusLabel = $isActive === 1 ? '✓ Ativo' : '✗ Desabilitado';
+                                            ?>
+                                            <span class="<?= $statusClass ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
+                                                <?= $statusLabel ?>
+                                            </span>
+                                        </td>
                                         <?php if ($isAdmin): ?>
                                         <td class="px-6 py-4">
                                             <div class="flex items-center justify-center gap-3">
@@ -338,6 +383,15 @@ foreach ($resetRequests as $r) {
                                                     Editar
                                                 </button>
                                                 <?php if ((int)$user['id'] !== (int)$_SESSION['user_id']): ?>
+                                                    <form method="POST" class="inline-flex">
+                                                        <input type="hidden" name="action" value="toggle_user_status">
+                                                        <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                                                        <button type="submit" class="text-gray-400 hover:text-blue-400 transition inline-flex items-center gap-1 text-sm" title="<?= (int)$user['is_active'] === 1 ? 'Desabilitar usuário' : 'Habilitar usuário' ?>">
+                                                            <i data-lucide="<?= (int)$user['is_active'] === 1 ? 'lock-open' : 'lock' ?>" class="w-4 h-4"></i>
+                                                            <?= (int)$user['is_active'] === 1 ? 'Desabilitar' : 'Habilitar' ?>
+                                                        </button>
+                                                    </form>
                                                     <form method="POST" onsubmit="return confirm('Excluir usuário «<?= htmlspecialchars($user['username']) ?>»?')" class="inline-flex">
                                                         <input type="hidden" name="action" value="delete_user">
                                                         <input type="hidden" name="delete_user_id" value="<?= (int)$user['id'] ?>">

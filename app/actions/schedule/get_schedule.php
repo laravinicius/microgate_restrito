@@ -49,7 +49,8 @@ try {
     $sql = "SELECT s.id, s.user_id, u.username, u.full_name, s.date, s.shift, s.note
             FROM schedules s
             JOIN users u ON u.id = s.user_id
-            WHERE s.date BETWEEN ? AND ?";
+            WHERE s.date BETWEEN ? AND ?
+              AND u.is_active = 1";
     $params[] = $start;
     $params[] = $end;
 
