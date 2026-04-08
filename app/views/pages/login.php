@@ -58,7 +58,7 @@ $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar | Sistema de Compras</title>
+    <title>Entrar | Restrito</title>
     <link rel="shortcut icon" href="<?= htmlspecialchars(asset_url('img/ico.ico')) ?>" type="image/x-icon">
     <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/style.css')) ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(asset_url('css/output.css')) ?>">
