@@ -18,8 +18,11 @@
     // ── Abas de meses ──────────────────────────────────────────────────────
     const months = [];
     const now = new Date();
-    for (let i = 0; i < 6; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const historyOnly = window.HISTORY_ONLY === true;
+    const monthOffsets = historyOnly ? [-1, -2] : [-2, -1, 0, 1, 2, 3];
+
+    for (const offset of monthOffsets) {
+        const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
         months.push({
             year: d.getFullYear(),
             month: d.getMonth(),
@@ -27,13 +30,15 @@
         });
     }
 
+    const currentMonthIndex = historyOnly ? 0 : 2;
+
     const tabsContainer = document.createElement('div');
-    tabsContainer.className = 'mb-6 flex gap-2 overflow-x-auto pb-2 border-b border-white/10';
+    tabsContainer.className = 'mb-6 flex flex-wrap gap-2 pb-2 border-b border-white/10';
 
     months.forEach((m, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = idx === 0
+        btn.className = idx === currentMonthIndex
             ? 'px-4 py-2 rounded-t-lg bg-gray-600 text-white font-semibold whitespace-nowrap transition'
             : 'px-4 py-2 rounded-t-lg bg-white/5 text-gray-300 hover:bg-white/10 font-semibold whitespace-nowrap transition';
         btn.textContent = m.label;
@@ -399,9 +404,9 @@
     }
 
     // ── Inicializa no mês atual ────────────────────────────────────────────
-    const firstBtn = tabsContainer.querySelector('button');
-    if (firstBtn) {
-        await selectTab(firstBtn, months[0].year, months[0].month);
+    const currentBtn = tabsContainer.querySelectorAll('button')[currentMonthIndex];
+    if (currentBtn) {
+        await selectTab(currentBtn, months[currentMonthIndex].year, months[currentMonthIndex].month);
     }
 
 })();

@@ -52,17 +52,30 @@ if (isAdmin()) {
                         <strong><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username']) ?></strong>
                     </p>
 
-                    <!-- Card de acesso rápido: Quilometragem — padrão visual do projeto -->
-                    <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 mb-10 transition group flex items-start justify-between">
-                        <div>
-                            <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                                <i data-lucide="gauge" class="w-6 h-6"></i>
-                                Quilometragem
-                            </h3>
-                            <p class="text-gray-300 text-sm">Registre o KM do veículo no início e fim do turno</p>
-                        </div>
-                        <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
-                    </a>
+                    <!-- Acesso rápido -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                        <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                    <i data-lucide="gauge" class="w-6 h-6"></i>
+                                    Quilometragem
+                                </h3>
+                                <p class="text-gray-300 text-sm">Registre o KM do veículo no início e fim do turno</p>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
+                        </a>
+
+                        <a href="historico.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                    <i data-lucide="history" class="w-6 h-6"></i>
+                                    Histórico
+                                </h3>
+                                <p class="text-gray-300 text-sm">Veja os meses anteriores da sua escala</p>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
+                        </a>
+                    </div>
 
                     <!-- Calendário de escala -->
                     <div class="mt-8">

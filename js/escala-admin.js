@@ -19,7 +19,7 @@
     // ── Abas de meses ───────────────────────────────────────────────────────
     const months = [];
     const now = new Date();
-    for (let i = 0; i < 6; i++) {
+    for (let i = -2; i <= 3; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         months.push({
             year:  d.getFullYear(),
@@ -523,6 +523,7 @@
     }
 
     // ── Inicializa com o mês atual ──────────────────────────────────────────
-    const firstBtn = tabsContainer.querySelector('button');
-    if (firstBtn) await selectTab(firstBtn, months[0].year, months[0].month);
+    const currentMonthIndex = 2;
+    const currentBtn = tabsContainer.querySelectorAll('button')[currentMonthIndex];
+    if (currentBtn) await selectTab(currentBtn, months[currentMonthIndex].year, months[currentMonthIndex].month);
 })();
