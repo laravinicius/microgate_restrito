@@ -2,90 +2,140 @@
 
 Sistema web em PHP para gestão de escalas técnicas, usuários, auditoria de acesso e controle de quilometragem.
 
-## Tecnologias
+## Stack atual
 
 - PHP 8.x
-- MySQL com PDO
-- Tailwind CSS
+- MySQL (PDO)
 - JavaScript vanilla
-- Lucide Icons
+- Tailwind CSS 3
+- Node.js (apenas para build de CSS)
 
-## Funcionalidades
+## Principais funcionalidades
 
-- Painel administrativo com gestão de usuários
-- Calendário de escala para técnicos e administradores
-- Importação de escala por CSV
-- Relatório e registro de quilometragem
-- Auditoria de login/logout
-- Proteção com sessão, CSRF e variáveis de ambiente
+- Autenticação com sessão e timeout por inatividade
+- Recuperação de acesso com solicitação de reset de senha
+- Gestão de usuários (cadastro, edição e controle de status)
+- Gestão de escala (visualização, edição e importação)
+- Consulta de agenda disponível
+- Registro de quilometragem com upload de foto
+- Relatório de quilometragem e lançamento manual
+- Histórico e auditoria de acessos
+- Proteções com token CSRF em fluxos críticos
 
-## Estrutura Atual
+## Estrutura do projeto
 
-### Raiz pública
+### Entrypoints públicos (raiz)
 
-Os arquivos PHP da raiz são entrypoints públicos e mantêm as URLs estáveis do sistema:
+Arquivos PHP da raiz que mantêm as URLs públicas do sistema:
 
-- [index.php](/var/www/microgate_restrito/index.php)
-- [login.php](/var/www/microgate_restrito/login.php)
-- [restricted.php](/var/www/microgate_restrito/restricted.php)
-- [escala.php](/var/www/microgate_restrito/escala.php)
-- [quilometragem.php](/var/www/microgate_restrito/quilometragem.php)
-- [km_report.php](/var/www/microgate_restrito/km_report.php)
-- [gerenciamento_usuarios.php](/var/www/microgate_restrito/gerenciamento_usuarios.php)
-- [access_logs.php](/var/www/microgate_restrito/access_logs.php)
-- [visualizar_agenda.php](/var/www/microgate_restrito/visualizar_agenda.php)
-- [logout.php](/var/www/microgate_restrito/logout.php)
+- index.php
+- login.php
+- logout.php
+- restricted.php
+- escala.php
+- visualizar_agenda.php
+- historico.php
+- quilometragem.php
+- km_report.php
+- gerenciamento_usuarios.php
+- access_logs.php
 
-### App interno
+Arquivos PHP de suporte na raiz (compatibilidade/infra):
 
-- `app/bootstrap.php`: bootstrap da aplicação
-- `app/config/`: configuração de banco
-- `app/auth/`: autenticação e auditoria
-- `app/helpers/`: helpers compartilhados, como URLs
-- `app/views/pages/`: implementação real das telas
-- `app/actions/`: endpoints e ações do sistema
-- `app/support/debug/`: utilitários de debug
+- forgot_password_requests.php
+- page_header.php
 
-### Assets
+### Núcleo da aplicação
 
-- `css/`: CSS gerado e estilos globais
-- `js/`: scripts de frontend e mapa central de rotas
-- `img/`: imagens do sistema
-- `uploads/`: uploads de evidências
+- app/bootstrap.php: bootstrap global, sessão e timezone
+- app/config/database.php: conexão PDO e leitura de variáveis do .env
+- app/auth/: autenticação e auditoria
+- app/helpers/: helpers utilitários (incluindo URLs)
+- app/views/pages/: implementação real das telas
+- app/actions/: endpoints internos (POST/AJAX)
+- app/support/debug/: utilitários de debug
 
-## Fluxo de Organização
+### Endpoints internos atuais
 
-- A raiz expõe apenas as entradas públicas
-- As telas reais ficam em `app/views/pages`
-- As ações HTTP ficam em `app/actions`
-- Rotas e assets usam helpers no PHP e `js/app-routes.js` no frontend
+- app/actions/auth/login_post.php
+- app/actions/auth/forgot_password_request_post.php
+- app/actions/schedule/get_schedule.php
+- app/actions/schedule/get_available.php
+- app/actions/schedule/save_schedule_day.php
+- app/actions/schedule/import_schedules.php
+- app/actions/km/save_km.php
+- app/actions/km/get_km_report.php
+- app/actions/km/save_manual_km.php
+- app/actions/km/serve_km_photo.php
+- app/actions/users/cadastro_usuario_post.php
+- app/actions/users/edit_user_post.php
 
-## Configuração
+### Frontend e assets
 
-1. Configure o arquivo `.env` na raiz do projeto:
+- src/input.css: entrada do Tailwind
+- css/output.css: CSS compilado
+- js/: scripts da interface e mapa central de rotas
+- components/: cabeçalho e componentes compartilhados
+- img/: imagens estáticas
+- uploads/: evidências (ex.: fotos de KM)
+
+### App Android (estrutura inicial)
+
+- android_st/: esqueleto de app Android com AndroidManifest.xml e MainActivity.kt
+
+## Configuração local
+
+1. Garanta os pré-requisitos:
+- PHP 8.x com PDO MySQL
+- MySQL
+- Node.js 18+ e npm
+
+2. Configure o .env na raiz do projeto:
 
 ```env
 DB_HOST=localhost
-DB_NAME=nome_do_banco
-DB_USER=usuario
-DB_PASS=senha
+DB_NAME=microgate_db
+DB_USER=root
+DB_PASS=
 ```
 
-2. Garanta permissão de leitura e escrita para `uploads/` quando necessário.
-3. Configure o servidor web para servir este diretório como raiz pública.
-4. Certifique-se de que as tabelas principais existam no banco, como:
+3. Instale dependências frontend:
 
-- `users`
-- `schedules`
-- `holidays`
-- `mileage_logs`
-- `auth_access_logs`
-- `password_reset_requests`
+```bash
+npm install
+```
 
-## Observações
+4. Build de estilos:
 
-- O arquivo `.env` continua na raiz do projeto.
-- As URLs públicas antigas foram preservadas de propósito.
-- O arquivo [page_header.php](/var/www/microgate_restrito/page_header.php) na raiz existe só como compatibilidade e delega para [components/page_header.php](/var/www/microgate_restrito/components/page_header.php).
+```bash
+npm run build
+```
 
-Desenvolvido para **Microgate Informática**.
+5. Durante desenvolvimento, rode o watch do Tailwind:
+
+```bash
+npm run dev
+```
+
+6. Garanta permissão de leitura/escrita em uploads/ e configure o servidor web apontando para a raiz do projeto.
+
+## Banco de dados
+
+Tabelas usadas pelo sistema (entre outras):
+
+- users
+- schedules
+- holidays
+- mileage_logs
+- auth_access_logs
+- password_reset_requests
+
+Observação: a tabela password_reset_requests pode ser criada automaticamente pelo fluxo de solicitação de reset.
+
+## Notas de manutenção
+
+- O scanner do Tailwind está configurado para evitar varredura em uploads/.
+- URLs públicas da raiz foram preservadas por compatibilidade.
+- page_header.php na raiz delega para components/page_header.php.
+
+Desenvolvido para Microgate Informática.
