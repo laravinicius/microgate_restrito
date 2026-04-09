@@ -318,19 +318,51 @@ foreach ($resetRequests as $r) {
                             <table class="w-full">
                                 <thead>
                                     <tr class="border-b border-white/10 bg-white/3">
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuário</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome Completo</th>
-                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Nível</th>
-                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="id">
+                                                <span>ID</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="username">
+                                                <span>Usuário</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="full_name">
+                                                <span>Nome Completo</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center justify-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="level">
+                                                <span>Nível</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center justify-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="status">
+                                                <span>Status</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
                                         <?php if ($isAdmin): ?>
                                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                                         <?php endif; ?>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-white/5">
+                                <tbody class="divide-y divide-white/5" data-users-table-body>
                                     <?php foreach ($usuarios as $user): ?>
-                                    <tr class="hover:bg-white/3 transition">
+                                    <tr
+                                        class="hover:bg-white/3 transition"
+                                        data-sort-id="<?= (int)$user['id'] ?>"
+                                        data-sort-username="<?= htmlspecialchars((string)($user['username'] ?? ''), ENT_QUOTES) ?>"
+                                        data-sort-full_name="<?= htmlspecialchars((string)($user['full_name'] ?? ''), ENT_QUOTES) ?>"
+                                        data-sort-level="<?= (int)$user['is_admin'] ?>"
+                                        data-sort-status="<?= (int)($user['is_active'] ?? 1) ?>"
+                                    >
                                         <td class="px-6 py-4 text-sm text-gray-400"><?= $user['id'] ?></td>
                                         <td class="px-6 py-4 text-sm">
                                             <button type="button"
@@ -478,6 +510,73 @@ foreach ($resetRequests as $r) {
     </div>
 
     <script>
+        const sortState = {
+            key: null,
+            direction: 'asc'
+        };
+
+        function normalizeSortValue(row, key) {
+            const rawValue = row.getAttribute('data-sort-' + key) ?? '';
+
+            if (key === 'id' || key === 'level' || key === 'status') {
+                const numericValue = Number(rawValue);
+                return Number.isFinite(numericValue) ? numericValue : 0;
+            }
+
+            return rawValue.toString().trim().toLocaleLowerCase('pt-BR');
+        }
+
+        function updateSortIndicators(activeKey, direction) {
+            document.querySelectorAll('[data-sort-indicator]').forEach((indicator) => {
+                const button = indicator.closest('[data-sort-key]');
+                const isActive = button && button.dataset.sortKey === activeKey;
+
+                indicator.setAttribute('data-lucide', isActive
+                    ? (direction === 'asc' ? 'arrow-up' : 'arrow-down')
+                    : 'arrow-up-down');
+
+                indicator.classList.toggle('text-blue-400', isActive);
+                indicator.classList.toggle('text-gray-500', !isActive);
+            });
+
+            document.querySelectorAll('[data-sort-key]').forEach((button) => {
+                const isActive = button.dataset.sortKey === activeKey;
+                button.setAttribute('aria-sort', isActive ? (direction === 'asc' ? 'ascending' : 'descending') : 'none');
+            });
+
+            lucide.createIcons();
+        }
+
+        function sortUsersBy(key) {
+            const tbody = document.querySelector('[data-users-table-body]');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            if (sortState.key === key) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.key = key;
+                sortState.direction = 'asc';
+            }
+
+            const directionMultiplier = sortState.direction === 'asc' ? 1 : -1;
+
+            rows.sort((leftRow, rightRow) => {
+                const leftValue = normalizeSortValue(leftRow, key);
+                const rightValue = normalizeSortValue(rightRow, key);
+
+                if (leftValue < rightValue) return -1 * directionMultiplier;
+                if (leftValue > rightValue) return 1 * directionMultiplier;
+                return 0;
+            });
+
+            rows.forEach((row) => tbody.appendChild(row));
+            updateSortIndicators(sortState.key, sortState.direction);
+        }
+
+        window.sortUsersBy = sortUsersBy;
+
         function openEditModal(userId, username, fullName, isAdmin) {
             document.getElementById('editUserId').value  = userId;
             document.getElementById('editUsername').value = username;
@@ -514,18 +613,36 @@ foreach ($resetRequests as $r) {
             document.body.classList.remove('no-scroll');
         }
 
-        document.getElementById('agendaModal').addEventListener('click', function (e) {
-            if (e.target === this) closeAgendaModal();
-        });
+        function initializePageInteractions() {
+            const agendaModal = document.getElementById('agendaModal');
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeAgendaModal();
-                closeEditModal();
+            if (agendaModal) {
+                agendaModal.addEventListener('click', function (e) {
+                    if (e.target === this) closeAgendaModal();
+                });
             }
-        });
 
-        lucide.createIcons();
+            document.querySelectorAll('[data-user-sort-button]').forEach((button) => {
+                button.addEventListener('click', function () {
+                    sortUsersBy(this.dataset.sortKey);
+                });
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeAgendaModal();
+                    closeEditModal();
+                }
+            });
+
+            lucide.createIcons();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePageInteractions);
+        } else {
+            initializePageInteractions();
+        }
     </script>
 
     <!-- ── Modal de Agenda (iframe) ── -->
