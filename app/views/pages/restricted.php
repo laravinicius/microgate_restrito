@@ -16,6 +16,10 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
 }
 
 $isAdmin = ((int)$_SESSION['is_admin'] === 1);
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 ?><!DOCTYPE html>
 <html lang="pt-br" class="dark">
 
@@ -165,10 +169,6 @@ $isAdmin = ((int)$_SESSION['is_admin'] === 1);
         </div>
     </div>
 
-    <script>
-        window.IS_ADMIN   = <?= (int)$_SESSION['is_admin'] === 1 ? 'true' : 'false' ?>;
-        window.CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
-    </script>
     <script>
         window.IS_ADMIN   = <?= $isAdmin ? 'true' : 'false' ?>;
         window.CSRF_TOKEN = <?= json_encode($_SESSION['csrf_token'] ?? '') ?>;
