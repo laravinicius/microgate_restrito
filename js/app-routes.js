@@ -13,6 +13,7 @@ window.APP_ROUTES = {
     saveKm: '/app/actions/km/save_km.php',
     saveFuel: '/app/actions/km/save_fuel.php',
     getKmReport: '/app/actions/km/get_km_report.php',
+    getKmFuelReport: '/app/actions/km/get_km_fuel_report.php',
     saveManualKm: '/app/actions/km/save_manual_km.php',
     serveKmPhoto: '/app/actions/km/serve_km_photo.php',
 };

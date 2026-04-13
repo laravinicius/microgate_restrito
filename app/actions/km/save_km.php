@@ -70,8 +70,27 @@ $stmt = $pdo->prepare(
 $stmt->execute([':uid' => $userId, ':date' => $logDate]);
 $existing = $stmt->fetch();
 
+$lastEndStmt = $pdo->prepare(
+    "SELECT km_end, log_date
+     FROM mileage_logs
+     WHERE user_id = :uid
+       AND km_end IS NOT NULL
+       AND log_date <= :date
+     ORDER BY log_date DESC, saved_at_end DESC, id DESC
+     LIMIT 1"
+);
+$lastEndStmt->execute([':uid' => $userId, ':date' => $logDate]);
+$lastEnd = $lastEndStmt->fetch();
+
 if ($type === 'start' && $existing && $existing['km_start'] !== null) {
     jsonError('KM inicial já registrado para hoje.');
+}
+if ($type === 'start' && $lastEnd && $lastEnd['km_end'] !== null && $km < (int)$lastEnd['km_end']) {
+    jsonError(
+        'KM inicial não pode ser menor que o último KM final (' .
+        number_format((int)$lastEnd['km_end'], 0, ',', '.') .
+        ') em ' . date('d/m/Y', strtotime((string)$lastEnd['log_date'])) . '.'
+    );
 }
 if ($type === 'end') {
     if (!$existing || $existing['km_start'] === null) jsonError('Registre o KM inicial antes do final.');
