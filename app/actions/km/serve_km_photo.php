@@ -47,6 +47,11 @@ $currentUserId = (int)$_SESSION['user_id'];
 // Admin (1, 2) vê qualquer foto
 $canViewAll = isAdmin();
 
+if (!$canViewAll && !hasFuelAccess()) {
+    http_response_code(403);
+    exit('Acesso a abastecimento não permitido para este usuário.');
+}
+
 if (!$canViewAll && $currentUserId !== $fileUserId) {
     http_response_code(403);
     exit('Sem permissão para acessar esta foto.');

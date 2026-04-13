@@ -14,6 +14,7 @@ $username     = trim($_POST['username'] ?? '');
 $full_name    = trim($_POST['full_name'] ?? '');
 $new_password = $_POST['new_password'] ?? '';
 $is_admin     = (int)($_POST['is_admin'] ?? 0);
+$allow_fuel   = (int)($_POST['allow_fuel'] ?? 0);
 $csrf_token   = (string)($_POST['csrf_token'] ?? '');
 
 if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrf_token)) {
@@ -31,6 +32,11 @@ if (!in_array($is_admin, [0, 1, 2], true)) {
     exit;
 }
 
+if (!in_array($allow_fuel, [0, 1], true)) {
+    header('Location: ' . route_url('gerenciamento_usuarios.php?error=invalid_fuel'));
+    exit;
+}
+
 $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
 $stmt->execute([$username, $user_id]);
 if ($stmt->fetch()) {
@@ -45,11 +51,11 @@ try {
             exit;
         }
         $hash = password_hash($new_password, PASSWORD_BCRYPT);
-        $stmt = $pdo->prepare("UPDATE users SET username=?, full_name=?, password_hash=?, is_admin=? WHERE id=?");
-        $stmt->execute([$username, $full_name, $hash, $is_admin, $user_id]);
+        $stmt = $pdo->prepare("UPDATE users SET username=?, full_name=?, password_hash=?, is_admin=?, allow_fuel=? WHERE id=?");
+        $stmt->execute([$username, $full_name, $hash, $is_admin, $allow_fuel, $user_id]);
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET username=?, full_name=?, is_admin=? WHERE id=?");
-        $stmt->execute([$username, $full_name, $is_admin, $user_id]);
+        $stmt = $pdo->prepare("UPDATE users SET username=?, full_name=?, is_admin=?, allow_fuel=? WHERE id=?");
+        $stmt->execute([$username, $full_name, $is_admin, $allow_fuel, $user_id]);
     }
 
     header('Location: ' . route_url('gerenciamento_usuarios.php?msg=user_updated'));

@@ -46,7 +46,7 @@ if ($username === '' || $password === '') {
 
 try {
     $stmt = $pdo->prepare(
-        "SELECT id, username, full_name, password_hash, is_admin, is_active
+        "SELECT id, username, full_name, password_hash, is_admin, is_active, allow_fuel
          FROM users WHERE username = ? LIMIT 1"
     );
     $stmt->execute([$username]);
@@ -69,6 +69,7 @@ $_SESSION['user_id']   = (int)$user['id'];
 $_SESSION['username']  = $user['username'];
 $_SESSION['full_name'] = $user['full_name'];
 $_SESSION['is_admin']  = (int)$user['is_admin'];
+$_SESSION['allow_fuel'] = (int)($user['allow_fuel'] ?? 0);
 
 logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 

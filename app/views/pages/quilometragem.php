@@ -9,6 +9,11 @@ if (isAdmin()) {
     exit;
 }
 
+if (!hasFuelAccess()) {
+    header('Location: ' . route_url('escala.php'));
+    exit;
+}
+
 $today  = date('Y-m-d');
 $userId = (int)$_SESSION['user_id'];
 

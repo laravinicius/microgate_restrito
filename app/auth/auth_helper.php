@@ -27,6 +27,12 @@ function isSuperAdmin(): bool
     return (int)($_SESSION['is_admin'] ?? 0) === 1;
 }
 
+/** Indica se o usuario logado pode acessar rotinas de abastecimento/quilometragem. */
+function hasFuelAccess(): bool
+{
+    return (int)($_SESSION['allow_fuel'] ?? 0) === 1;
+}
+
 /** Exige login, redireciona para login.php se não autenticado. */
 function requireLogin(): void
 {

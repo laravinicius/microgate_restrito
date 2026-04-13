@@ -59,10 +59,10 @@ if ($kmEnd < $kmStart) {
     manualJsonError('KM final nao pode ser menor que o KM inicial.');
 }
 
-$userStmt = $pdo->prepare("SELECT id FROM users WHERE id = :id AND is_admin = 0 AND is_active = 1 LIMIT 1");
+$userStmt = $pdo->prepare("SELECT id FROM users WHERE id = :id AND is_admin = 0 AND is_active = 1 AND allow_fuel = 1 LIMIT 1");
 $userStmt->execute([':id' => $userId]);
 if (!$userStmt->fetch()) {
-    manualJsonError('Tecnico nao encontrado.');
+    manualJsonError('Tecnico nao encontrado ou sem permissao de abastecimento.');
 }
 
 try {

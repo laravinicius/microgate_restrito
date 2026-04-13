@@ -115,7 +115,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? ''
 }
 
 // ── Consultas ──────────────────────────────────────────────────────────────────
-$stmt   = $pdo->query("SELECT id, username, full_name, is_admin, is_active FROM users ORDER BY is_admin DESC, full_name ASC");
+$stmt   = $pdo->query("SELECT id, username, full_name, is_admin, is_active, allow_fuel FROM users ORDER BY is_admin DESC, full_name ASC");
 $usuarios = $stmt->fetchAll();
 
 $resetStmt = $pdo->query(
@@ -197,6 +197,7 @@ foreach ($resetRequests as $r) {
                                     'password_short'   => 'Senha deve ter pelo menos 8 caracteres.',
                                     'password_invalid' => 'Senha deve ter pelo menos 8 caracteres.',
                                     'invalid_role'     => 'Nível de acesso inválido.',
+                                    'invalid_fuel'     => 'Permissão de abastecimento inválida.',
                                     'csrf'             => 'Sessão expirada ou requisição inválida. Tente novamente.',
                                     'db_error'         => 'Erro no banco de dados. Tente novamente.',
                                     default            => 'Ocorreu um erro. Tente novamente.'
@@ -264,7 +265,7 @@ foreach ($resetRequests as $r) {
                             <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i>
                             Cadastrar Novo Usuário
                         </h2>
-                        <form action="<?= htmlspecialchars(action_url('users/cadastro_usuario_post.php')) ?>" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <form action="<?= htmlspecialchars(action_url('users/cadastro_usuario_post.php')) ?>" method="POST" class="grid grid-cols-1 md:grid-cols-6 gap-4">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                             <div>
                                 <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Usuário</label>
@@ -292,6 +293,14 @@ foreach ($resetRequests as $r) {
                                     <option value="2">Gerente</option>
                                     <option value="1">Administrador</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Abastecimento</label>
+                                <label class="w-full h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                                    <input type="hidden" name="allow_fuel" value="0">
+                                    <input type="checkbox" name="allow_fuel" value="1" class="w-4 h-4 accent-blue-600">
+                                    <span>Permitir acesso à quilometragem</span>
+                                </label>
                             </div>
                             <div class="flex items-end">
                                 <button type="submit"
@@ -347,6 +356,12 @@ foreach ($resetRequests as $r) {
                                                 <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
                                             </button>
                                         </th>
+                                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                            <button type="button" class="sort-header-btn inline-flex items-center justify-center gap-1.5 whitespace-nowrap" data-user-sort-button data-sort-key="fuel">
+                                                <span>Abastecimento</span>
+                                                <i data-sort-indicator data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-500 transition"></i>
+                                            </button>
+                                        </th>
                                         <?php if ($isAdmin): ?>
                                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Ações</th>
                                         <?php endif; ?>
@@ -361,6 +376,7 @@ foreach ($resetRequests as $r) {
                                         data-sort-full_name="<?= htmlspecialchars((string)($user['full_name'] ?? ''), ENT_QUOTES) ?>"
                                         data-sort-level="<?= (int)$user['is_admin'] ?>"
                                         data-sort-status="<?= (int)($user['is_active'] ?? 1) ?>"
+                                        data-sort-fuel="<?= (int)($user['allow_fuel'] ?? 0) ?>"
                                     >
                                         <td class="px-6 py-4 text-sm text-gray-400"><?= $user['id'] ?></td>
                                         <td class="px-6 py-4 text-sm">
@@ -404,11 +420,23 @@ foreach ($resetRequests as $r) {
                                                 <?= $statusLabel ?>
                                             </span>
                                         </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <?php
+                                            $allowFuel = (int)($user['allow_fuel'] ?? 0);
+                                            $fuelClass = $allowFuel === 1
+                                                ? 'bg-blue-500/15 text-blue-400'
+                                                : 'bg-gray-500/15 text-gray-400';
+                                            $fuelLabel = $allowFuel === 1 ? 'Sim' : 'Não';
+                                            ?>
+                                            <span class="<?= $fuelClass ?> px-3 py-1 rounded-full text-xs font-medium inline-block">
+                                                <?= $fuelLabel ?>
+                                            </span>
+                                        </td>
                                         <?php if ($isAdmin): ?>
                                         <td class="px-6 py-4">
                                             <div class="flex items-center justify-center gap-3">
                                                 <button type="button"
-                                                    onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username'], ENT_QUOTES) ?>', '<?= htmlspecialchars($user['full_name'] ?? '', ENT_QUOTES) ?>', <?= $user['is_admin'] ?>)"
+                                                    onclick="openEditModal(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username'], ENT_QUOTES) ?>', '<?= htmlspecialchars($user['full_name'] ?? '', ENT_QUOTES) ?>', <?= $user['is_admin'] ?>, <?= (int)($user['allow_fuel'] ?? 0) ?>)"
                                                     class="text-gray-400 hover:text-white transition inline-flex items-center gap-1 text-sm">
                                                     <i data-lucide="edit-2" class="w-4 h-4"></i>
                                                     Editar
@@ -492,6 +520,15 @@ foreach ($resetRequests as $r) {
                     </select>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Abastecimento</label>
+                    <label class="w-full border border-white/10 rounded-lg px-3 py-2.5 flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                        <input type="hidden" name="allow_fuel" value="0">
+                        <input type="checkbox" name="allow_fuel" id="editAllowFuel" value="1" class="w-4 h-4 accent-blue-600">
+                        <span>Permitir acesso à quilometragem</span>
+                    </label>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="submit"
                         class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition flex items-center justify-center gap-2 text-sm">
@@ -516,7 +553,7 @@ foreach ($resetRequests as $r) {
         function normalizeSortValue(row, key) {
             const rawValue = row.getAttribute('data-sort-' + key) ?? '';
 
-            if (key === 'id' || key === 'level' || key === 'status') {
+            if (key === 'id' || key === 'level' || key === 'status' || key === 'fuel') {
                 const numericValue = Number(rawValue);
                 return Number.isFinite(numericValue) ? numericValue : 0;
             }
@@ -575,11 +612,12 @@ foreach ($resetRequests as $r) {
 
         window.sortUsersBy = sortUsersBy;
 
-        function openEditModal(userId, username, fullName, isAdmin) {
+        function openEditModal(userId, username, fullName, isAdmin, allowFuel) {
             document.getElementById('editUserId').value  = userId;
             document.getElementById('editUsername').value = username;
             document.getElementById('editFullName').value = fullName;
             document.getElementById('editAdmin').value   = (Number(isAdmin) === 3 ? 2 : isAdmin);
+            document.getElementById('editAllowFuel').checked = Number(allowFuel) === 1;
             document.getElementById('editModal').classList.remove('hidden');
         }
 

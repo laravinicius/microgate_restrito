@@ -13,6 +13,8 @@ if (isAdmin()) {
     header('Location: ' . route_url('restricted.php'));
     exit;
 }
+
+$canAccessFuel = hasFuelAccess();
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +55,8 @@ if (isAdmin()) {
                     </p>
 
                     <!-- Acesso rápido -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                    <div class="grid grid-cols-1 <?= $canAccessFuel ? 'md:grid-cols-2' : 'md:grid-cols-1' ?> gap-4 mb-10">
+                        <?php if ($canAccessFuel): ?>
                         <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
                             <div>
                                 <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
@@ -64,6 +67,7 @@ if (isAdmin()) {
                             </div>
                             <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
                         </a>
+                        <?php endif; ?>
 
                         <a href="historico.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
                             <div>

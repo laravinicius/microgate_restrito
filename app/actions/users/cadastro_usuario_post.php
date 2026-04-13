@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $password  = $_POST['password'] ?? '';
     $is_admin  = (int)($_POST['is_admin'] ?? 0);
+    $allow_fuel = (int)($_POST['allow_fuel'] ?? 0);
     $error     = '';
 
     if (empty($username))               $error = 'username_empty';
@@ -23,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (strlen($username) < 3)      $error = 'username_short';
     elseif (strlen($password) < 8)      $error = 'password_short';
     elseif (!in_array($is_admin,[0,1,2],true)) $error = 'invalid_role';
+    elseif (!in_array($allow_fuel,[0,1],true)) $error = 'invalid_fuel';
     else {
         $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
@@ -37,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
         $stmt = $pdo->prepare(
-            "INSERT INTO users (username, full_name, password_hash, is_admin, is_active) VALUES (?,?,?,?,1)"
+            "INSERT INTO users (username, full_name, password_hash, is_admin, is_active, allow_fuel) VALUES (?,?,?,?,1,?)"
         );
-        $stmt->execute([$username, $full_name, $hash, $is_admin]);
+        $stmt->execute([$username, $full_name, $hash, $is_admin, $allow_fuel]);
         header('Location: ' . route_url('gerenciamento_usuarios.php?msg=user_created'));
     } catch (PDOException $e) {
         error_log('Erro em cadastro_usuario_post.php: ' . $e->getMessage());

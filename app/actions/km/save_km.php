@@ -20,6 +20,7 @@ function jsonOk(array $data = []): void
 
 if (!isLoggedIn()) jsonError('Não autenticado.', 401);
 if (isAdmin())     jsonError('Acesso não permitido.', 403);
+if (!hasFuelAccess()) jsonError('Acesso a abastecimento não permitido para este usuário.', 403);
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') jsonError('Método inválido.', 405);
 
 $raw  = file_get_contents('php://input');
