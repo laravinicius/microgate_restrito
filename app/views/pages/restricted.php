@@ -81,6 +81,7 @@ if (empty($_SESSION['csrf_token'])) {
                             <i data-lucide="chevron-right" class="w-5 h-5 md:w-4 md:h-4 text-gray-500 flex-shrink-0 ml-2"></i>
                         </a>
 
+                        <?php if ($isAdmin): ?>
                         <a href="<?= htmlspecialchars(debug_url('test_location.php')) ?>" class="nav-card">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="icon bg-emerald-500/15">
@@ -93,6 +94,7 @@ if (empty($_SESSION['csrf_token'])) {
                             </div>
                             <i data-lucide="chevron-right" class="w-5 h-5 md:w-4 md:h-4 text-gray-500 flex-shrink-0 ml-2"></i>
                         </a>
+                        <?php endif; ?>
 
                         <?php if ($isAdmin): ?>
                         <a href="<?= htmlspecialchars(action_url('schedule/import_schedules.php')) ?>" class="nav-card">

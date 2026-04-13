@@ -12,6 +12,11 @@ if (empty($_SESSION['is_admin']) || (int)$_SESSION['is_admin'] === 0) {
     header('Location: ' . route_url('escala.php'));
     exit;
 }
+
+if (!isSuperAdmin()) {
+    header('Location: ' . route_url('restricted.php'));
+    exit;
+}
 ?><!DOCTYPE html>
 <html lang="pt-br" class="dark">
 
