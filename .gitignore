@@ -20,6 +20,7 @@ uploads/*.csv
 uploads/*.xlsx
 uploads/*.xls
 uploads/km
+uploads/abastecimento
 
 #android
 android
