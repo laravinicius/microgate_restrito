@@ -502,8 +502,8 @@ select option {
 /* ── Quilometragem ────────────────────────────────────────────────────────── */
 
 .km-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 12px;
     padding: 24px;
 }

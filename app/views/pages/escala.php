@@ -55,7 +55,7 @@ $canAccessFuel = hasFuelAccess();
                     </p>
 
                     <!-- Acesso rápido -->
-                    <div class="grid grid-cols-1 <?= $canAccessFuel ? 'md:grid-cols-2' : 'md:grid-cols-1' ?> gap-4 mb-10">
+                    <div class="grid grid-cols-1 <?= $canAccessFuel ? 'md:grid-cols-3' : 'md:grid-cols-1' ?> gap-4 mb-10">
                         <?php if ($canAccessFuel): ?>
                         <a href="quilometragem.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
                             <div>
@@ -64,6 +64,17 @@ $canAccessFuel = hasFuelAccess();
                                     Quilometragem
                                 </h3>
                                 <p class="text-gray-300 text-sm">Registre o KM do veículo no início e fim do turno</p>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
+                        </a>
+
+                        <a href="abastecimento.php" class="bg-brand-dark border border-white/10 rounded-lg p-8 transition group flex items-start justify-between">
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                    <i data-lucide="fuel" class="w-6 h-6"></i>
+                                    Abastecimento
+                                </h3>
+                                <p class="text-gray-300 text-sm">Registre os abastecimentos do dia com comprovante</p>
                             </div>
                             <i data-lucide="arrow-right" class="w-5 h-5 text-gray-200 group-hover:translate-x-1 transition flex-shrink-0 mt-1"></i>
                         </a>
