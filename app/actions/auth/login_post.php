@@ -74,9 +74,7 @@ logAuthEvent($pdo, 'login_success', (int)$user['id'], $user['username'], true);
 
 $level = (int)$user['is_admin'];
 
-if ($level === 3) {
-    header('Location: ' . route_url('km_report.php'));
-} elseif ($level >= 1) {
+if ($level >= 1) {
     header('Location: ' . route_url('restricted.php'));
 } else {
     header('Location: ' . route_url('escala.php'));

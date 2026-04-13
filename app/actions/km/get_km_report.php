@@ -11,8 +11,7 @@ if (!isLoggedIn()) {
     exit;
 }
 
-// Permite acesso a admins (1, 2) e Gerente KM (3)
-if (!isAdmin() && !isKmManager()) {
+if (!isAdmin()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso restrito.']);
     exit;

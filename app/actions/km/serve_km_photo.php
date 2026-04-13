@@ -44,8 +44,8 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}_(start|end)\.jpg$/', $filename)) {
 $currentUserId = (int)$_SESSION['user_id'];
 
 // Técnico só vê as próprias fotos
-// Admin (1, 2) e Gerente KM (3) veem qualquer foto
-$canViewAll = isAdmin() || isKmManager();
+// Admin (1, 2) vê qualquer foto
+$canViewAll = isAdmin();
 
 if (!$canViewAll && $currentUserId !== $fileUserId) {
     http_response_code(403);

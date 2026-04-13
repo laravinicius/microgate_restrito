@@ -8,7 +8,6 @@ declare(strict_types=1);
  *   0 = Padrão        — acessa apenas escala.php
  *   1 = Administrador — acesso total ao painel
  *   2 = Gerente       — acesso ao painel (sem gestão de usuários)
- *   3 = Gerente KM    — acessa apenas km_report.php
  */
 
 function isLoggedIn(): bool
@@ -16,7 +15,7 @@ function isLoggedIn(): bool
     return !empty($_SESSION['user_id']);
 }
 
-/** Admin completo ou gerente (níveis 1 e 2). NÃO inclui Gerente KM (3). */
+/** Admin completo ou gerente (níveis 1 e 2). */
 function isAdmin(): bool
 {
     return in_array((int)($_SESSION['is_admin'] ?? 0), [1, 2], true);
@@ -26,12 +25,6 @@ function isAdmin(): bool
 function isSuperAdmin(): bool
 {
     return (int)($_SESSION['is_admin'] ?? 0) === 1;
-}
-
-/** Gerente KM — nível 3. */
-function isKmManager(): bool
-{
-    return (int)($_SESSION['is_admin'] ?? 0) === 3;
 }
 
 /** Exige login, redireciona para login.php se não autenticado. */
@@ -48,12 +41,7 @@ function requireAdmin(): void
 {
     requireLogin();
     if (!isAdmin()) {
-        // Gerente KM vai para o próprio painel de KM
-        if (isKmManager()) {
-            header('Location: /km_report.php');
-        } else {
-            header('Location: /escala.php');
-        }
+        header('Location: /escala.php');
         exit;
     }
 }

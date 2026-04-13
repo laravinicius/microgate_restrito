@@ -19,7 +19,7 @@ function manualJsonOk(array $data = []): void
 }
 
 requireLogin();
-if (!isAdmin() && !isKmManager()) {
+if (!isAdmin()) {
     manualJsonError('Acesso restrito.', 403);
 }
 

@@ -26,7 +26,7 @@ if ($user_id <= 0 || empty($username) || strlen($username) < 3 || empty($full_na
     exit;
 }
 
-if (!in_array($is_admin, [0, 1, 2, 3], true)) {
+if (!in_array($is_admin, [0, 1, 2], true)) {
     header('Location: ' . route_url('gerenciamento_usuarios.php?error=invalid_role'));
     exit;
 }

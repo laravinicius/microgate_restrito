@@ -3,12 +3,7 @@ declare(strict_types=1);
 
 require dirname(__DIR__, 3) . '/app/bootstrap.php';
 
-// Gerente KM (nível 3) também tem acesso
-requireLogin();
-if (!isAdmin() && !isKmManager()) {
-    header('Location: ' . route_url('escala.php'));
-    exit;
-}
+requireAdmin();
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -54,7 +49,7 @@ $technicianPayload = array_map(static function (array $tech): array {
     <?php
         $pageTitle    = 'Quilometragem';
         $pageSubtitle = 'Calendário mensal dos lançamentos de km';
-        $backUrl      = isKmManager() ? '' : 'restricted.php';
+        $backUrl      = 'restricted.php';
         require APP_ROOT . '/components/page_header.php';
     ?>
 
