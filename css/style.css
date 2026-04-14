@@ -27,6 +27,10 @@ body.no-scroll {
     overflow: hidden;
 }
 
+:root {
+    --app-fixed-nav-height: 4rem;
+}
+
 /* ── Layout base ───────────────────────────────────────────────────────────── */
 
 .content-wrapper {
@@ -822,9 +826,27 @@ select option {
     padding: 20px;
 }
 
+.report-table-scroll {
+    overflow-x: visible;
+    overflow-y: visible;
+}
+
+@media (max-width: 1279px) {
+    .report-table-scroll {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
 .km-table {
     width: 100%;
     border-collapse: collapse;
+}
+
+.km-table--sticky-head {
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .km-table th {
@@ -871,6 +893,24 @@ select option {
 .km-table--daily th {
     font-size: 0.65rem;
     letter-spacing: 0.04em;
+}
+
+.km-table--sticky-head thead th {
+    position: sticky;
+    top: var(--app-fixed-nav-height);
+    z-index: 15;
+    background: #1f1f1f;
+    color: #f8fafc;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.km-table--sticky-head tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 14;
+    background: #1b1b1b;
+    color: #f8fafc;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .km-table--daily-link {

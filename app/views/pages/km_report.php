@@ -120,7 +120,7 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                             </div>
                         </div>
 
-                        <div class="bg-brand-dark border border-white/10 rounded-xl overflow-hidden">
+                        <div class="bg-brand-dark border border-white/10 rounded-xl">
                             <div class="px-4 md:px-6 pt-4 pb-3 border-b border-white/10">
                                 <div id="month-tab-wrap" class="flex gap-2 overflow-x-auto flex-wrap"></div>
                             </div>
@@ -137,8 +137,8 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                                     <p>Nenhum dado para o periodo selecionado.</p>
                                 </div>
 
-                                <div id="report-wrap" class="hidden overflow-x-auto">
-                                    <table class="km-table">
+                                <div id="report-wrap" class="hidden report-table-scroll">
+                                    <table class="km-table km-table--sticky-head">
                                         <thead>
                                             <tr>
                                                 <th>Data</th>
