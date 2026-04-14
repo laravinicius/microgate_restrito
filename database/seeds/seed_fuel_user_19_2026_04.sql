@@ -3,8 +3,6 @@
 --
 -- Este script e idempotente no periodo porque remove os abastecimentos do mes antes de inserir.
 
-START TRANSACTION;
-
 DELETE FROM fuel_logs
 WHERE user_id = 19
   AND fueled_at BETWEEN '2026-04-01 00:00:00' AND '2026-04-30 23:59:59';
@@ -50,5 +48,3 @@ INSERT INTO fuel_logs (
 (19, '2026-04-28 18:01:00', 6.16, 19.500, 120.12, 4620, 'uploads/abastecimento/19/2026-04-28_1.jpg', NOW(), NOW()),
 (19, '2026-04-29 18:18:00', 6.14, 20.700, 127.10, 4752, 'uploads/abastecimento/19/2026-04-29_1.jpg', NOW(), NOW()),
 (19, '2026-04-30 18:04:00', 6.22, 21.600, 134.35, 4868, 'uploads/abastecimento/19/2026-04-30_1.jpg', NOW(), NOW());
-
-COMMIT;
