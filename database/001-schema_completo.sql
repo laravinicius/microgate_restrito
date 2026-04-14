@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS mileage_logs (
     log_date DATE NOT NULL,
     km_start INT DEFAULT NULL,
     km_end INT DEFAULT NULL,
+    km_outside_shift INT DEFAULT NULL,
+    km_inside_shift INT DEFAULT NULL,
     photo_start VARCHAR(255) DEFAULT NULL,
     photo_end VARCHAR(255) DEFAULT NULL,
     lat_start DECIMAL(10,7) DEFAULT NULL,
@@ -61,6 +63,7 @@ CREATE TABLE IF NOT EXISTS mileage_logs (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_mileage_user_date (user_id, log_date),
     KEY idx_mileage_log_date (log_date),
+    KEY idx_mileage_user_date_shift (user_id, log_date, km_outside_shift, km_inside_shift),
     CONSTRAINT fk_mileage_user
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
@@ -132,5 +135,6 @@ CREATE TABLE IF NOT EXISTS password_reset_requests (
 -- Migrations refletidas neste baseline:
 -- 002-add_allow_fuel_to_users.sql
 -- 003-create_fuel_logs.sql
+-- 004-add_shift_km_columns_to_mileage_logs.sql
 ALTER TABLE users
     ADD COLUMN IF NOT EXISTS allow_fuel TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active;

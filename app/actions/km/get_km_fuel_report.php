@@ -53,6 +53,8 @@ $mileageStmt = $pdo->prepare(
         log_date,
         km_start,
         km_end,
+                km_outside_shift,
+                km_inside_shift,
         photo_start,
         photo_end
      FROM mileage_logs
@@ -76,9 +78,34 @@ foreach ($mileageRows as $row) {
         'km_start' => $kmStart,
         'km_end' => $kmEnd,
         'km_driven' => ($kmStart !== null && $kmEnd !== null) ? ($kmEnd - $kmStart) : null,
+        'km_outside_shift' => $row['km_outside_shift'] !== null ? (int)$row['km_outside_shift'] : null,
+        'km_inside_shift' => $row['km_inside_shift'] !== null ? (int)$row['km_inside_shift'] : null,
         'km_start_by_tech' => $kmStart !== null && !empty($row['photo_start']),
         'km_end_by_tech' => $kmEnd !== null && !empty($row['photo_end']),
     ];
+}
+
+$prevKmStmt = $pdo->prepare(
+    "SELECT km_end, km_start
+     FROM mileage_logs
+     WHERE user_id = :uid
+       AND log_date < :date_from
+       AND (km_end IS NOT NULL OR km_start IS NOT NULL)
+     ORDER BY log_date DESC, saved_at_end DESC, id DESC
+     LIMIT 1"
+);
+$prevKmStmt->execute([
+    ':uid' => $userId,
+    ':date_from' => $dateFrom,
+]);
+$prevKmRow = $prevKmStmt->fetch();
+$rollingReferenceKm = null;
+if ($prevKmRow) {
+    if ($prevKmRow['km_end'] !== null) {
+        $rollingReferenceKm = (int)$prevKmRow['km_end'];
+    } elseif ($prevKmRow['km_start'] !== null) {
+        $rollingReferenceKm = (int)$prevKmRow['km_start'];
+    }
 }
 
 $fuelStmt = $pdo->prepare(
@@ -114,6 +141,8 @@ foreach ($fuelRows as $row) {
 
 $records = [];
 $totalKmDriven = 0;
+$totalKmOutsideShift = 0;
+$totalKmInsideShift = 0;
 $totalLiters = 0.0;
 $totalAmount = 0.0;
 $kmForKml = 0;
@@ -131,6 +160,21 @@ while ($cursor <= $end) {
     $kmStart = $mileage['km_start'] ?? null;
     $kmEnd = $mileage['km_end'] ?? null;
     $kmDriven = $mileage['km_driven'] ?? null;
+    $kmOutsideShift = null;
+    if ($kmStart !== null) {
+        $kmOutsideShift = $rollingReferenceKm !== null ? abs($kmStart - $rollingReferenceKm) : 0;
+    }
+
+    $kmInsideShift = null;
+    if ($kmDriven !== null) {
+        $kmInsideShift = max(0, $kmDriven - (int)($kmOutsideShift ?? 0));
+    }
+
+    if ($kmEnd !== null) {
+        $rollingReferenceKm = $kmEnd;
+    } elseif ($kmStart !== null) {
+        $rollingReferenceKm = $kmStart;
+    }
 
     $entriesCount = $fuel['entries_count'] ?? 0;
     $fuelPrice = $fuel['avg_fuel_price'] ?? null;
@@ -139,6 +183,12 @@ while ($cursor <= $end) {
 
     if ($kmDriven !== null) {
         $totalKmDriven += $kmDriven;
+    }
+    if ($kmOutsideShift !== null) {
+        $totalKmOutsideShift += $kmOutsideShift;
+    }
+    if ($kmInsideShift !== null) {
+        $totalKmInsideShift += $kmInsideShift;
     }
     if ($liters !== null) {
         $totalLiters += $liters;
@@ -160,6 +210,8 @@ while ($cursor <= $end) {
         'km_start' => $kmStart,
         'km_end' => $kmEnd,
         'km_driven' => $kmDriven,
+        'km_outside_shift' => $kmOutsideShift,
+        'km_inside_shift' => $kmInsideShift,
         'had_fuel' => $entriesCount > 0,
         'fuel_price' => $fuelPrice,
         'liters' => $liters,
@@ -179,6 +231,9 @@ usort($records, static function (array $a, array $b): int {
 
 $averageFuelPrice = $totalLiters > 0 ? ($totalAmount / $totalLiters) : null;
 $overallKml = $litersForKml > 0 ? ($kmForKml / $litersForKml) : null;
+$paymentAmount = $totalKmDriven > 0
+    ? ($totalAmount * ($totalKmInsideShift / $totalKmDriven))
+    : 0.0;
 
 $fullName = (string)($technician['full_name'] ?: $technician['username']);
 
@@ -194,10 +249,13 @@ echo json_encode([
     'records' => $records,
     'totals' => [
         'total_km_driven' => $totalKmDriven,
+        'total_km_outside_shift' => $totalKmOutsideShift,
+        'total_km_inside_shift' => $totalKmInsideShift,
         'fuel_days' => $fuelDays,
         'average_fuel_price' => $averageFuelPrice,
         'total_liters' => $totalLiters,
         'total_amount' => $totalAmount,
+        'payment_amount' => round($paymentAmount, 2),
         'overall_kml' => $overallKml,
     ],
 ]);

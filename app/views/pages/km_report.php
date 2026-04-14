@@ -145,10 +145,13 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                                                 <th class="text-right">KM inicial</th>
                                                 <th class="text-right">KM final</th>
                                                 <th class="text-right">KM rodado</th>
+                                                <th class="text-right">KM rodado por fora</th>
+                                                <th class="text-right">Diferenca (KM interno)</th>
                                                 <th class="text-center">Abastecimento</th>
                                                 <th class="text-right">Valor gasolina</th>
                                                 <th class="text-right">Litros abastecidos</th>
                                                 <th class="text-right">Valor total</th>
+                                                <th class="text-right">Valor a pagar</th>
                                                 <th class="text-right">Media do carro</th>
                                             </tr>
                                         </thead>
@@ -253,10 +256,13 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                 <td class="text-right">${record.km_start !== null ? formatInteger(record.km_start) : '-'}</td>
                 <td class="text-right">${record.km_end !== null ? formatInteger(record.km_end) : '-'}</td>
                 <td class="text-right">${record.km_driven !== null ? formatInteger(record.km_driven) : '-'}</td>
+                <td class="text-right">${record.km_outside_shift !== null ? formatInteger(record.km_outside_shift) : '-'}</td>
+                <td class="text-right">${record.km_inside_shift !== null ? formatInteger(record.km_inside_shift) : '-'}</td>
                 <td class="text-center">${record.had_fuel ? '<span class="badge badge-done">Sim</span>' : '<span class="badge badge-partial">Nao</span>'}</td>
                 <td class="text-right">${record.fuel_price !== null ? formatMoney(record.fuel_price) : '-'}</td>
                 <td class="text-right">${record.liters !== null ? formatLiters(record.liters) : '-'}</td>
                 <td class="text-right">${record.total_amount !== null ? formatMoney(record.total_amount) : '-'}</td>
+                <td class="text-right">-</td>
                 <td class="text-right">-</td>
             `;
 
@@ -269,10 +275,13 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                 <td class="text-right">-</td>
                 <td class="text-right">-</td>
                 <td class="text-right">${formatInteger(totals.total_km_driven || 0)}</td>
+                <td class="text-right">${formatInteger(totals.total_km_outside_shift || 0)}</td>
+                <td class="text-right">${formatInteger(totals.total_km_inside_shift || 0)}</td>
                 <td class="text-center">${Number(totals.fuel_days || 0)} dia(s)</td>
                 <td class="text-right">${totals.average_fuel_price !== null && totals.average_fuel_price !== undefined ? formatMoney(totals.average_fuel_price) : '-'}</td>
                 <td class="text-right">${totals.total_liters !== null && totals.total_liters !== undefined ? formatLiters(totals.total_liters) : '-'}</td>
                 <td class="text-right">${totals.total_amount !== null && totals.total_amount !== undefined ? formatMoney(totals.total_amount) : '-'}</td>
+                <td class="text-right">${totals.payment_amount !== null && totals.payment_amount !== undefined ? formatMoney(totals.payment_amount) : '-'}</td>
                 <td class="text-right">${totals.overall_kml !== null && totals.overall_kml !== undefined ? `${Number(totals.overall_kml).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km/L` : '-'}</td>
             </tr>
         `;

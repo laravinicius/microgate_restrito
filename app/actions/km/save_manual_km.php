@@ -18,6 +18,96 @@ function manualJsonOk(array $data = []): void
     exit;
 }
 
+function recalculateShiftKm(PDO $pdo, int $userId, string $logDate): void
+{
+    $rowStmt = $pdo->prepare(
+        "SELECT id, km_start, km_end
+         FROM mileage_logs
+         WHERE user_id = :uid AND log_date = :log_date
+         LIMIT 1"
+    );
+    $rowStmt->execute([
+        ':uid' => $userId,
+        ':log_date' => $logDate,
+    ]);
+    $row = $rowStmt->fetch();
+    if (!$row) {
+        return;
+    }
+
+    $kmStart = $row['km_start'] !== null ? (int)$row['km_start'] : null;
+    $kmEnd = $row['km_end'] !== null ? (int)$row['km_end'] : null;
+
+    $prevKmStmt = $pdo->prepare(
+        "SELECT km_end, km_start
+         FROM mileage_logs
+         WHERE user_id = :uid
+           AND log_date < :log_date
+           AND (km_end IS NOT NULL OR km_start IS NOT NULL)
+         ORDER BY log_date DESC, saved_at_end DESC, id DESC
+         LIMIT 1"
+    );
+    $prevKmStmt->execute([
+        ':uid' => $userId,
+        ':log_date' => $logDate,
+    ]);
+    $prevKmRow = $prevKmStmt->fetch();
+    $prevReferenceKm = null;
+    if ($prevKmRow) {
+        if ($prevKmRow['km_end'] !== null) {
+            $prevReferenceKm = (int)$prevKmRow['km_end'];
+        } elseif ($prevKmRow['km_start'] !== null) {
+            $prevReferenceKm = (int)$prevKmRow['km_start'];
+        }
+    }
+
+    $kmOutsideShift = null;
+    if ($kmStart !== null) {
+        $kmOutsideShift = $prevReferenceKm !== null ? abs($kmStart - $prevReferenceKm) : 0;
+    }
+
+    $kmInsideShift = null;
+    if ($kmStart !== null && $kmEnd !== null) {
+        $kmDriven = $kmEnd - $kmStart;
+        $kmInsideShift = max(0, $kmDriven - (int)($kmOutsideShift ?? 0));
+    }
+
+    $updateStmt = $pdo->prepare(
+        "UPDATE mileage_logs
+         SET km_outside_shift = :outside_shift,
+             km_inside_shift = :inside_shift,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = :id"
+    );
+    $updateStmt->execute([
+        ':outside_shift' => $kmOutsideShift,
+        ':inside_shift' => $kmInsideShift,
+        ':id' => (int)$row['id'],
+    ]);
+}
+
+function recalculateNextShiftKm(PDO $pdo, int $userId, string $fromDate): void
+{
+    $nextStmt = $pdo->prepare(
+        "SELECT log_date
+         FROM mileage_logs
+         WHERE user_id = :uid
+           AND log_date > :log_date
+         ORDER BY log_date ASC, id ASC
+         LIMIT 1"
+    );
+    $nextStmt->execute([
+        ':uid' => $userId,
+        ':log_date' => $fromDate,
+    ]);
+    $nextRow = $nextStmt->fetch();
+    if (!$nextRow || empty($nextRow['log_date'])) {
+        return;
+    }
+
+    recalculateShiftKm($pdo, $userId, (string)$nextRow['log_date']);
+}
+
 requireLogin();
 if (!isAdmin()) {
     manualJsonError('Acesso restrito.', 403);
@@ -66,6 +156,8 @@ if (!$userStmt->fetch()) {
 }
 
 try {
+    $pdo->beginTransaction();
+
     $stmt = $pdo->prepare(
         "INSERT INTO mileage_logs (user_id, log_date, km_start, km_end, updated_at)
          VALUES (:uid, :log_date, :km_start, :km_end, CURRENT_TIMESTAMP)
@@ -81,7 +173,16 @@ try {
         ':km_start' => $kmStart,
         ':km_end' => $kmEnd,
     ]);
+
+    recalculateShiftKm($pdo, $userId, $logDate);
+    recalculateNextShiftKm($pdo, $userId, $logDate);
+
+    $pdo->commit();
 } catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
     error_log('save_manual_km.php DB error: ' . $e->getMessage());
     manualJsonError('Erro ao salvar cadastro manual.', 500);
 }
