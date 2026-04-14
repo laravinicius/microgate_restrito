@@ -21,7 +21,7 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?><!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -127,7 +127,7 @@ if (empty($_SESSION['csrf_token'])) {
                     </div>
 
                     <!-- Calendário de escalas -->
-                    <div class="bg-brand-dark border border-white/10 rounded-xl overflow-visible">
+                    <div class="theme-zone-calendar bg-brand-dark border border-white/10 rounded-xl overflow-visible">
 
                         <!-- Header do calendário -->
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 md:px-6 py-4 border-b border-white/10">

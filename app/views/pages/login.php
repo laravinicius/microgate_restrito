@@ -53,7 +53,7 @@ if (!empty($_GET['forgot_msg']) && $_GET['forgot_msg'] === 'requested') {
 $show_forgot_panel = ($forgot_error_msg !== '' || $forgot_success_msg !== '');
 ?>
 <!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
