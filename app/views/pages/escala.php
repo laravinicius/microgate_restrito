@@ -18,7 +18,7 @@ $canAccessFuel = hasFuelAccess();
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -93,7 +93,7 @@ $canAccessFuel = hasFuelAccess();
                     </div>
 
                     <!-- Calendário de escala -->
-                    <div class="mt-8">
+                    <div class="theme-zone-calendar mt-8">
                         <div class="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center md:justify-between">
                             <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
                                 <i data-lucide="calendar" class="w-6 h-6"></i>

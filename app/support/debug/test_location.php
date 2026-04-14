@@ -18,7 +18,7 @@ if (!isSuperAdmin()) {
     exit;
 }
 ?><!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">

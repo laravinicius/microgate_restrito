@@ -37,7 +37,7 @@ $isDetailMode = $selectedTechnician !== null;
 $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
 ?>
 <!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -120,7 +120,7 @@ $invalidSelection = $selectedUserId > 0 && !$isDetailMode;
                             </div>
                         </div>
 
-                        <div class="bg-brand-dark border border-white/10 rounded-xl">
+                        <div class="theme-zone-report bg-brand-dark border border-white/10 rounded-xl">
                             <div class="px-4 md:px-6 pt-4 pb-3 border-b border-white/10">
                                 <div id="month-tab-wrap" class="flex gap-2 overflow-x-auto flex-wrap"></div>
                             </div>

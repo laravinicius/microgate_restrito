@@ -38,7 +38,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 $tech_name = htmlspecialchars($user['full_name'] ?: $user['username']);
 ?><!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +50,7 @@ $tech_name = htmlspecialchars($user['full_name'] ?: $user['username']);
     <script src="<?= htmlspecialchars(asset_url('js/theme.js')) ?>"></script>
 </head>
 <body class="agenda-embed-page">
-    <div class="agenda-page-shell">
+    <div class="agenda-page-shell theme-zone-calendar">
         <div id="calendar-wrap" class="w-full overflow-hidden">
             <div class="agenda-loading">Carregando...</div>
         </div>

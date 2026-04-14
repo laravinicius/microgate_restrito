@@ -31,6 +31,14 @@ body.no-scroll {
     --app-fixed-nav-height: 4rem;
 }
 
+html.light {
+    color-scheme: light;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
 /* ── Layout base ───────────────────────────────────────────────────────────── */
 
 .content-wrapper {
@@ -48,6 +56,39 @@ body.no-scroll {
 /* Header injetado via JS deve ficar colado no topo */
 #header-placeholder nav {
     top: 0 !important;
+}
+
+/* Botao global de alternancia de tema */
+.theme-toggle-button {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 80;
+    border-radius: 9999px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(15, 23, 42, 0.88);
+    color: #f8fafc;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.theme-toggle-button:hover {
+    transform: translateY(-1px);
+    background: rgba(15, 23, 42, 0.96);
+}
+
+html.light .theme-toggle-button {
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    border-color: rgba(148, 163, 184, 0.45);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
 }
 
 /* Espaçamento padrão abaixo do header fixo nas páginas internas */
@@ -227,6 +268,140 @@ select option {
     .cal-count {
         font-size: 13px;
     }
+}
+
+/* ── Modo claro escopado: calendario e planilha ───────────────────────────── */
+
+html.light .theme-zone-calendar .bg-brand-dark,
+html.light .theme-zone-calendar .bg-brand-dark\/95,
+html.light .theme-zone-report .bg-brand-dark,
+html.light .theme-zone-report .bg-brand-dark\/95 {
+    background-color: #ffffff !important;
+}
+
+html.light .theme-zone-calendar,
+html.light .theme-zone-report,
+html.light .theme-zone-calendar #calendar-wrap,
+html.light .theme-zone-report #report-wrap,
+html.light .theme-zone-report .report-table-scroll,
+html.light .theme-zone-report .km-table,
+html.light .theme-zone-report .km-table tbody,
+html.light .theme-zone-report .km-table tr {
+    background-color: #f3f4f6 !important;
+}
+
+html.light .theme-zone-calendar table,
+html.light .theme-zone-calendar thead,
+html.light .theme-zone-calendar tbody,
+html.light .theme-zone-calendar tr,
+html.light .theme-zone-calendar td {
+    background-color: #f3f4f6 !important;
+}
+
+html.light .theme-zone-calendar th {
+    background-color: #e6ebf2 !important;
+}
+
+html.light .theme-zone-calendar .border-white\/10,
+html.light .theme-zone-calendar .border-white\/15,
+html.light .theme-zone-calendar .border-white\/5,
+html.light .theme-zone-calendar .border-white\/20,
+html.light .theme-zone-report .border-white\/10,
+html.light .theme-zone-report .border-white\/15,
+html.light .theme-zone-report .border-white\/5,
+html.light .theme-zone-report .border-white\/20 {
+    border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+html.light .theme-zone-calendar .text-white,
+html.light .theme-zone-report .text-white {
+    color: #0f172a !important;
+}
+
+html.light .theme-zone-calendar .text-gray-200,
+html.light .theme-zone-calendar .text-gray-300,
+html.light .theme-zone-calendar .text-gray-400,
+html.light .theme-zone-calendar .text-gray-50,
+html.light .theme-zone-report .text-gray-400,
+html.light .theme-zone-report .text-gray-500,
+html.light .theme-zone-report .text-gray-600 {
+    color: #475569 !important;
+}
+
+html.light .theme-zone-calendar .text-gray-500 {
+    color: #64748b !important;
+}
+
+html.light .theme-zone-calendar .bg-white\/5,
+html.light .theme-zone-report .bg-white\/5 {
+    background-color: #eef2f7 !important;
+}
+
+html.light .theme-zone-calendar .bg-white\/10,
+html.light .theme-zone-calendar .bg-white\/15,
+html.light .theme-zone-calendar .hover\:bg-white\/10:hover,
+html.light .theme-zone-calendar .hover\:bg-white\/15:hover,
+html.light .theme-zone-report .bg-white\/10,
+html.light .theme-zone-report .bg-white\/15,
+html.light .theme-zone-report .hover\:bg-white\/10:hover,
+html.light .theme-zone-report .hover\:bg-white\/15:hover {
+    background-color: #e9eef5 !important;
+}
+
+html.light .theme-zone-calendar .bg-white\/2,
+html.light .theme-zone-calendar .bg-white\/\[0\.015\],
+html.light .theme-zone-calendar .bg-white\/\[0\.005\] {
+    background-color: #f3f4f6 !important;
+}
+
+html.light .theme-zone-calendar .hover\:bg-white\/5:hover {
+    background-color: #e5ebf3 !important;
+}
+
+html.light .theme-zone-calendar .bg-green-500\/10 {
+    background-color: rgba(22, 163, 74, 0.16) !important;
+}
+
+html.light .theme-zone-calendar .bg-blue-500\/10 {
+    background-color: rgba(37, 99, 235, 0.16) !important;
+}
+
+html.light .theme-zone-calendar .bg-orange-500\/10 {
+    background-color: rgba(234, 88, 12, 0.16) !important;
+}
+
+html.light .theme-zone-calendar .bg-gray-500\/10 {
+    background-color: rgba(100, 116, 139, 0.16) !important;
+}
+
+html.light .theme-zone-calendar .text-green-400,
+html.light .theme-zone-calendar .text-blue-400,
+html.light .theme-zone-calendar .text-orange-400 {
+    font-weight: 700 !important;
+}
+
+html.light .theme-zone-calendar .text-green-400 {
+    color: #15803d !important;
+}
+
+html.light .theme-zone-calendar .text-blue-400 {
+    color: #1d4ed8 !important;
+}
+
+html.light .theme-zone-calendar .text-orange-400 {
+    color: #c2410c !important;
+}
+
+html.light .theme-zone-calendar .ring-white\/30 {
+    --tw-ring-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+html.light .theme-zone-calendar .legend-label--green { color: #166534; }
+html.light .theme-zone-calendar .legend-label--blue { color: #1d4ed8; }
+html.light .theme-zone-calendar .legend-label--orange { color: #b45309; }
+
+html.light .theme-zone-calendar .agenda-loading {
+    color: #334155;
 }
 
 /* ── Modal de edição de usuário ────────────────────────────────────────────── */
@@ -819,11 +994,31 @@ select option {
     color: #ffffff;
 }
 
+html.light .theme-zone-report .filter-input {
+    background: #ffffff;
+    border-color: rgba(148, 163, 184, 0.55);
+    color: #0f172a;
+}
+
+html.light .theme-zone-report .filter-input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+}
+
+html.light .theme-zone-report .filter-input option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
 .summary-card {
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 20px;
+}
+
+html.light .theme-zone-report .summary-card {
+    background: #ffffff;
+    border-color: rgba(148, 163, 184, 0.35);
 }
 
 .report-table-scroll {
@@ -862,6 +1057,12 @@ select option {
     white-space: nowrap;
 }
 
+html.light .theme-zone-report .km-table th {
+    color: #334155;
+    background: #f8fafc;
+    border-bottom-color: rgba(148, 163, 184, 0.45);
+}
+
 .km-table td {
     padding: 12px 16px;
     font-size: 0.875rem;
@@ -870,8 +1071,18 @@ select option {
     vertical-align: middle;
 }
 
+html.light .theme-zone-report .km-table td {
+    color: #0f172a;
+    border-bottom-color: rgba(148, 163, 184, 0.32);
+    background: #f3f4f6;
+}
+
 .km-table tr:hover td {
     background: rgba(255, 255, 255, 0.03);
+}
+
+html.light .theme-zone-report .km-table tr:hover td {
+    background: #e9eef5;
 }
 
 .km-table tr:last-child td {
@@ -904,6 +1115,12 @@ select option {
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+html.light .theme-zone-report .km-table--sticky-head thead th {
+    background: #e2e8f0;
+    color: #0f172a;
+    box-shadow: 0 1px 0 rgba(148, 163, 184, 0.4);
+}
+
 .km-table--sticky-head tfoot td {
     position: sticky;
     bottom: 0;
@@ -911,6 +1128,12 @@ select option {
     background: #1b1b1b;
     color: #f8fafc;
     box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+html.light .theme-zone-report .km-table--sticky-head tfoot td {
+    background: #f1f5f9;
+    color: #0f172a;
+    box-shadow: 0 -1px 0 rgba(148, 163, 184, 0.4);
 }
 
 .km-table--daily-link {

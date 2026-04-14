@@ -12,7 +12,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt-br" class="dark">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
@@ -43,8 +43,10 @@ if (empty($_SESSION['csrf_token'])) {
                         require APP_ROOT . '/components/page_header.php';
                     ?>
 
-                    <div id="calendar-wrap" class="w-full overflow-hidden mb-8">
-                        <div class="agenda-loading">Carregando...</div>
+                    <div class="theme-zone-calendar">
+                        <div id="calendar-wrap" class="w-full overflow-hidden mb-8">
+                            <div class="agenda-loading">Carregando...</div>
+                        </div>
                     </div>
 
                 </div>
