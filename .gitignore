@@ -2,6 +2,8 @@
 /vendor/
 node_modules/
 *.log
+npm-debug.log*
+yarn-error.log*
 .DS_Store
 config/database.php.bak
 downloads/
@@ -19,8 +21,16 @@ db/*.csv
 uploads/*.csv
 uploads/*.xlsx
 uploads/*.xls
-uploads/km
-uploads/abastecimento
+uploads/km/
+uploads/abastecimento/
+uploads/**/*.jpg
+uploads/**/*.jpeg
+uploads/**/*.png
+uploads/**/*.webp
+uploads/**/*.heic
+
+# Build CSS (gerado por Tailwind)
+css/output.css
 
 #android
 android
