@@ -17,6 +17,9 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
+      maxWidth: {
+        site: '1700px'
+      },
       colors: {
         brand: {
           dark: '#1f1f1f',

@@ -225,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <div class="content-wrapper min-h-screen flex flex-col">
             <div id="header-placeholder"></div>
             <main class="page-main flex-1">
-                <div class="max-w-7xl mx-auto px-4">
+                <div class="max-w-site mx-auto px-4">
 
                     <?php
                         $pageTitle    = 'Importar Escala';

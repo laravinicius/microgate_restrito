@@ -65,7 +65,7 @@ $logs = $stmt->fetchAll();
             <div id="header-placeholder"></div>
 
             <main class="page-main flex-1">
-                <div class="max-w-7xl mx-auto px-4">
+                <div class="max-w-site mx-auto px-4">
 
                     <?php
                         $pageTitle    = 'Logs de Auditoria';
