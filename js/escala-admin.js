@@ -154,7 +154,7 @@
 
             const numSpan = document.createElement('span');
             if (isToday) {
-                numSpan.className = 'inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-black';
+                numSpan.className = 'inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[rgb(204,204,204)] text-xs font-bold text-black';
             } else {
                 numSpan.className = isWknd
                     ? 'text-sm font-bold text-gray-500'

@@ -153,7 +153,7 @@
 
             const numSpan = document.createElement('span');
             if (isToday) {
-                numSpan.className = 'inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-black';
+                numSpan.className = 'inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-[rgb(204,204,204)] text-[11px] font-bold text-black';
             } else {
                 numSpan.className = 'text-sm md:text-lg text-gray-300 font-bold';
             }
