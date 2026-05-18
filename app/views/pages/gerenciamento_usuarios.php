@@ -319,8 +319,23 @@ foreach ($resetRequests as $r) {
                             <h2 class="text-xl font-bold text-white flex items-center gap-2">
                                 <i data-lucide="users" class="w-5 h-5 text-gray-400"></i>
                                 Usuários Cadastrados
-                                <span class="text-gray-500 font-normal text-sm">(<?= count($usuarios) ?>)</span>
+                                <span id="usersCount" class="text-gray-500 font-normal text-sm">(<?= count($usuarios) ?>)</span>
                             </h2>
+                        </div>
+                        <!-- Barra de filtros: usuário, nome completo e checkbox para apenas habilitados -->
+                        <div class="mt-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div class="flex items-center gap-2 w-full md:w-auto">
+                                <input id="filterUsername" type="search" placeholder="Buscar por usuário"
+                                    class="w-full md:w-48 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
+
+                                <input id="filterFullName" type="search" placeholder="Buscar por nome completo"
+                                    class="w-full md:w-64 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
+                            </div>
+
+                            <label class="flex items-center gap-2 text-sm text-gray-300">
+                                <input id="onlyActiveCheckbox" type="checkbox" class="w-4 h-4 accent-blue-600" checked>
+                                <span>Apenas habilitados</span>
+                            </label>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full">
@@ -612,6 +627,51 @@ foreach ($resetRequests as $r) {
 
         window.sortUsersBy = sortUsersBy;
 
+        // Filtragem client-side por usuário, nome completo e status (apenas habilitados)
+        function filterUsers() {
+            const tbody = document.querySelector('[data-users-table-body]');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const uterm = (document.getElementById('filterUsername')?.value || '').toString().trim().toLowerCase();
+            const fterm = (document.getElementById('filterFullName')?.value || '').toString().trim().toLowerCase();
+            const onlyActive = !!document.getElementById('onlyActiveCheckbox')?.checked;
+
+            let visible = 0;
+            rows.forEach((row) => {
+                const rUser = (row.getAttribute('data-sort-username') || '').toString().toLowerCase();
+                const rFull = (row.getAttribute('data-sort-full_name') || '').toString().toLowerCase();
+                const rStatus = Number(row.getAttribute('data-sort-status') || 1);
+
+                const matchUser = uterm === '' || rUser.includes(uterm);
+                const matchFull = fterm === '' || rFull.includes(fterm);
+                const matchStatus = !onlyActive || rStatus === 1;
+
+                if (matchUser && matchFull && matchStatus) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const countEl = document.getElementById('usersCount');
+            if (countEl) countEl.textContent = '(' + visible + ')';
+        }
+
+        function initUserFilters() {
+            const fUser = document.getElementById('filterUsername');
+            const fFull = document.getElementById('filterFullName');
+            const onlyActive = document.getElementById('onlyActiveCheckbox');
+
+            if (fUser) fUser.addEventListener('input', filterUsers);
+            if (fFull) fFull.addEventListener('input', filterUsers);
+            if (onlyActive) onlyActive.addEventListener('change', filterUsers);
+
+            // Aplica filtro inicial para respeitar o checkbox marcado por padrão
+            filterUsers();
+        }
+
         function openEditModal(userId, username, fullName, isAdmin, allowFuel) {
             document.getElementById('editUserId').value  = userId;
             document.getElementById('editUsername').value = username;
@@ -663,6 +723,9 @@ foreach ($resetRequests as $r) {
                     sortUsersBy(this.dataset.sortKey);
                 });
             });
+
+            // Inicializa filtros de usuário
+            initUserFilters();
 
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
