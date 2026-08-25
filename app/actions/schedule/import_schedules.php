@@ -70,6 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['schedule_file'])) {
                     '/^(\d{2})\/(\d{2})\/(\d{4})$/',
                     '/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/',
                     '/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/',
+                    '/^(\d{2})-(\d{2})-(\d{2})$/',
+                    '/^(\d{1,2})-(\d{1,2})-(\d{2})$/',
                 ];
                 foreach ($formatos as $fmt) {
                     if (preg_match($fmt, $dateStr, $m)) {
