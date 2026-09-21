@@ -323,16 +323,16 @@ foreach ($resetRequests as $r) {
                             </h2>
                         </div>
                         <!-- Barra de filtros: usuário, nome completo e checkbox para apenas habilitados -->
-                        <div class="mt-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                            <div class="flex items-center gap-2 w-full md:w-auto">
+                        <div class="mt-4 mb-6 px-6 flex flex-col md:block relative">
+                            <div class="mx-auto flex w-full max-w-xl flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center md:translate-x-8">
                                 <input id="filterUsername" type="search" placeholder="Buscar por usuário"
-                                    class="w-full md:w-48 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
+                                    class="w-full sm:w-48 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
 
                                 <input id="filterFullName" type="search" placeholder="Buscar por nome completo"
-                                    class="w-full md:w-64 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
+                                    class="w-full sm:w-64 bg-white/3 border border-white/10 rounded-lg px-3 py-2.5 placeholder-gray-500 focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none text-sm text-white">
                             </div>
 
-                            <label class="flex items-center gap-2 text-sm text-gray-300">
+                            <label class="mt-3 md:mt-0 md:absolute md:right-6 md:top-1/2 md:-translate-y-1/2 flex items-center justify-center gap-2 text-sm text-gray-300">
                                 <input id="onlyActiveCheckbox" type="checkbox" class="w-4 h-4 accent-blue-600" checked>
                                 <span>Apenas habilitados</span>
                             </label>
