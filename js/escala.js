@@ -175,7 +175,9 @@
                     let variant = 'bg-gray-600';
                     const s = (e.shift || '').toUpperCase();
 
-                    if (s.includes('AGENDA')) {
+                    if (s.includes('FOLGA VENDIDA')) {
+                        variant = 'bg-yellow-500';
+                    } else if (s.includes('AGENDA')) {
                         variant = 'bg-green-600';
                     } else if (s.includes('FOLGA')) {
                         variant = 'bg-blue-400';
@@ -185,7 +187,7 @@
 
                     badge.className = `block w-full box-border truncate rounded px-1 py-0.5 text-white md:px-2 md:py-1 ${variant}`;
 
-                    const label = s.includes('FOLGA')
+                    const label = s.includes('FOLGA') && !s.includes('VENDIDA')
                         ? 'SEM AGENDA'
                         : (s || (e.note || '').toString().slice(0,15));
                     badge.textContent = label;

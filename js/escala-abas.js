@@ -219,7 +219,9 @@
             const badge = document.createElement('div');
             const shift = (ev.shift || '').toUpperCase();
             let variant = 'bg-gray-600 text-gray-200';
-            if (shift.includes('AGENDA')) {
+            if (shift.includes('FOLGA VENDIDA')) {
+                variant = 'bg-yellow-700 text-yellow-100';
+            } else if (shift.includes('AGENDA')) {
                 variant = 'bg-green-800 text-green-200';
             } else if (shift.includes('FOLGA')) {
                 variant = 'bg-blue-800 text-blue-200';
@@ -229,7 +231,7 @@
                 variant = 'bg-gray-600 text-gray-200';
             }
             badge.className = `overflow-hidden whitespace-nowrap text-ellipsis rounded px-1.5 py-0.5 text-[10px] font-medium ${variant}`;
-            badge.textContent = shift.includes('FOLGA') ? 'SEM AGENDA' : (shift || ev.note || '—');
+            badge.textContent = shift.includes('FOLGA') && !shift.includes('VENDIDA') ? 'SEM AGENDA' : (shift || ev.note || '—');
             container.appendChild(badge);
         });
         if (evs.length > 3) {
@@ -273,6 +275,7 @@
         const options = [
             { label: '✓ Agenda',  value: 'AGENDA',  cls: 'popover-agenda'  },
             { label: '◌ Sem agenda', value: 'FOLGA', cls: 'popover-folga' },
+            { label: '◆ Folga vendida', value: 'FOLGA VENDIDA', cls: 'popover-folga-vendida' },
             { label: '✈ Férias',  value: 'FÉRIAS',  cls: 'popover-ferias'  },
             { label: '— Ausente', value: 'AUSENTE', cls: 'popover-ausente' },
         ];

@@ -166,7 +166,8 @@
             // Contadores
             if (evs.length > 0) {
                 const working = evs.filter(e => (e.shift || '').toUpperCase().includes('AGENDA')).length;
-                const folga   = evs.filter(e => (e.shift || '').toUpperCase().includes('FOLGA')).length;
+                const folga   = evs.filter(e => ['FOLGA', 'SEM AGENDA'].includes((e.shift || '').toUpperCase())).length;
+                const folgaVendida = evs.filter(e => (e.shift || '').toUpperCase().includes('FOLGA VENDIDA')).length;
                 const ausente = evs.filter(e => {
                     const s = (e.shift || '').toUpperCase();
                     return s.includes('FÉRIAS') || s.includes('FERIAS') || s.includes('AUSENTE');
@@ -186,6 +187,12 @@
                     f.className = 'cal-count whitespace-nowrap text-blue-400';
                     f.textContent = folga + ' sem agenda';
                     cntWrap.appendChild(f);
+                }
+                if (folgaVendida > 0) {
+                    const fv = document.createElement('span');
+                    fv.className = 'cal-count whitespace-nowrap font-semibold text-yellow-400';
+                    fv.textContent = folgaVendida + ' folga vendida';
+                    cntWrap.appendChild(fv);
                 }
                 if (ausente > 0) {
                     const a = document.createElement('span');
@@ -236,7 +243,8 @@
 
     function formatShiftLabel(shift) {
         const normalized = (shift || '').toUpperCase();
-        if (normalized.includes('FOLGA')) return 'Sem agenda';
+        if (normalized.includes('FOLGA VENDIDA')) return 'Folga vendida';
+        if (normalized === 'FOLGA' || normalized === 'SEM AGENDA') return 'Sem agenda';
         if (normalized.includes('AGENDA')) return 'Agenda';
         if (normalized.includes('FÉRIAS') || normalized.includes('FERIAS')) return 'Férias';
         if (normalized.includes('AUSENTE')) return 'Ausente';
@@ -255,11 +263,12 @@
         const [y, m, d] = iso.split('-');
         const dateLabel = `${d}/${m}/${y}`;
 
-        const groups = { AGENDA: [], FOLGA: [], 'FÉRIAS': [], OUTRO: [] };
+        const groups = { AGENDA: [], FOLGA: [], 'FOLGA VENDIDA': [], 'FÉRIAS': [], OUTRO: [] };
         evs.forEach(ev => {
             const s = (ev.shift || '').toUpperCase();
             if (s.includes('AGENDA'))                                                   groups['AGENDA'].push(ev);
-            else if (s.includes('FOLGA'))                                               groups['FOLGA'].push(ev);
+            else if (s.includes('FOLGA VENDIDA'))                                       groups['FOLGA VENDIDA'].push(ev);
+            else if (s === 'FOLGA' || s === 'SEM AGENDA')                               groups['FOLGA'].push(ev);
             else if (s.includes('FÉRIAS') || s.includes('FERIAS') || s.includes('AUSENTE')) groups['FÉRIAS'].push(ev);
             else                                                                        groups['OUTRO'].push(ev);
         });
@@ -277,6 +286,7 @@
                 <div class="flex flex-wrap gap-3 mt-1 text-sm md:text-xs">
                     <span class="font-medium text-green-400">${groups['AGENDA'].length} trabalhando</span>
                     <span class="text-blue-400">${groups['FOLGA'].length} sem agenda</span>
+                    ${groups['FOLGA VENDIDA'].length ? `<span class="text-yellow-400">${groups['FOLGA VENDIDA'].length} folga vendida</span>` : ''}
                     ${groups['FÉRIAS'].length ? `<span class="text-orange-400">${groups['FÉRIAS'].length} férias/ausente</span>` : ''}
                     ${groups['OUTRO'].length  ? `<span class="text-gray-400">${groups['OUTRO'].length} outros</span>` : ''}
                 </div>
@@ -293,18 +303,20 @@
             const body = document.createElement('div');
             body.className = 'divide-y divide-white/5';
 
-            const order     = ['AGENDA', 'FOLGA', 'FÉRIAS', 'OUTRO'];
-            const labels    = { AGENDA: 'Trabalhando', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias / Ausente', OUTRO: 'Outros' };
-            const headColorClass = { AGENDA: 'text-green-400', FOLGA: 'text-blue-400', 'FÉRIAS': 'text-orange-400', OUTRO: 'text-gray-400' };
+            const order     = ['AGENDA', 'FOLGA', 'FOLGA VENDIDA', 'FÉRIAS', 'OUTRO'];
+            const labels    = { AGENDA: 'Trabalhando', FOLGA: 'Sem agenda', 'FOLGA VENDIDA': 'Folga vendida', 'FÉRIAS': 'Férias / Ausente', OUTRO: 'Outros' };
+            const headColorClass = { AGENDA: 'text-green-400', FOLGA: 'text-blue-400', 'FOLGA VENDIDA': 'text-yellow-400', 'FÉRIAS': 'text-orange-400', OUTRO: 'text-gray-400' };
             const cardClass = {
                 AGENDA: 'flex items-center gap-2 rounded-lg bg-green-500/10 px-2.5 py-2 relative',
                 FOLGA: 'flex items-center gap-2 rounded-lg bg-blue-500/10 px-2.5 py-2 relative',
+                'FOLGA VENDIDA': 'flex items-center gap-2 rounded-lg bg-yellow-500/10 px-2.5 py-2 relative',
                 'FÉRIAS': 'flex items-center gap-2 rounded-lg bg-orange-500/10 px-2.5 py-2 relative',
                 OUTRO: 'flex items-center gap-2 rounded-lg bg-gray-500/10 px-2.5 py-2 relative'
             };
             const avatarClass = {
                 AGENDA: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-green-500/20 text-[13px] font-bold text-white',
                 FOLGA: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-[13px] font-bold text-white',
+                'FOLGA VENDIDA': 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-[13px] font-bold text-white',
                 'FÉRIAS': 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-[13px] font-bold text-white',
                 OUTRO: 'flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full bg-gray-500/20 text-[13px] font-bold text-white'
             };
@@ -386,9 +398,8 @@
         const displayName  = ev.full_name || ev.username || '-';
         const currentShift = (ev.shift || '').toUpperCase();
 
-        const shifts      = ['AGENDA', 'FOLGA', 'FÉRIAS', 'AUSENTE'];
-        const shiftColors = { AGENDA: '#4ade80', FOLGA: '#60a5fa', 'FÉRIAS': '#fb923c', AUSENTE: '#9ca3af' };
-        const shiftLabels = { AGENDA: 'Agenda', FOLGA: 'Sem agenda', 'FÉRIAS': 'Férias', AUSENTE: 'Ausente' };
+        const shifts      = ['AGENDA', 'FOLGA', 'FOLGA VENDIDA', 'FÉRIAS', 'AUSENTE'];
+        const shiftLabels = { AGENDA: 'Agenda', FOLGA: 'Sem agenda', 'FOLGA VENDIDA': 'Folga vendida', 'FÉRIAS': 'Férias', AUSENTE: 'Ausente' };
 
         const editor = document.createElement('div');
         editor.className = 'inline-shift-editor absolute right-0 top-[calc(100%+6px)] z-[200] min-w-[210px] rounded-[10px] border border-white/15 bg-[#1e1e1e] p-3 shadow-[0_8px_32px_rgba(0,0,0,0.7)]';
@@ -413,6 +424,7 @@
             const dotClass = {
                 AGENDA: 'bg-green-400',
                 FOLGA: 'bg-blue-400',
+                'FOLGA VENDIDA': 'bg-yellow-400',
                 'FÉRIAS': 'bg-orange-400',
                 AUSENTE: 'bg-gray-400'
             };

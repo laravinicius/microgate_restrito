@@ -136,5 +136,3 @@ CREATE TABLE IF NOT EXISTS password_reset_requests (
 -- 002-add_allow_fuel_to_users.sql
 -- 003-create_fuel_logs.sql
 -- 004-add_shift_km_columns_to_mileage_logs.sql
-ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS allow_fuel TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active;

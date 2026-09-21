@@ -85,6 +85,29 @@ Arquivos PHP de suporte na raiz (compatibilidade/infra):
 
 ## Configuração local
 
+### Ambiente isolado com Docker
+
+Requisitos: Docker Desktop com Docker Compose.
+
+```bash
+docker compose up -d --build
+```
+
+O sistema ficará em <http://localhost:8080>. O Compose cria um MySQL local separado, importa `database/001-schema_completo.sql` na primeira inicialização e mantém banco e uploads em volumes próprios. O `.env` da máquina e o banco de produção não são usados. Para testar alterações, reconstrua e reinicie com `docker compose up -d --build`.
+
+O schema não inclui usuários. Para criar o administrador inicial de teste no PowerShell, execute o bloco abaixo; a senha local será `Local123!`:
+
+```powershell
+$hash = (docker compose exec app php -r 'echo password_hash("Local123!", PASSWORD_BCRYPT);').Trim()
+docker compose exec -T db mysql -umicrogate_local -pmicrogate_local_dev_only microgate_local -e "INSERT INTO users (username, full_name, password_hash, is_admin, is_active, allow_fuel) VALUES ('localadmin', 'Administrador Local', '$hash', 1, 1, 0);"
+```
+
+Entre com usuário `localadmin` e a senha `Local123!`. Esses dados são somente para o ambiente local.
+
+Para parar mantendo os dados, use `docker compose down`. Para apagar também o banco e uploads de teste e reinicializar do zero, use `docker compose down -v`. As portas padrão são 8080 (web) e 3307 (MySQL); se estiverem ocupadas, defina `MICROGATE_LOCAL_HTTP_PORT` ou `MICROGATE_LOCAL_DB_PORT` no ambiente antes de subir.
+
+### Execução manual
+
 1. Garanta os pré-requisitos:
 - PHP 8.x com PDO MySQL
 - MySQL

@@ -609,6 +609,7 @@ html.light .theme-zone-calendar .agenda-loading {
 
 .popover-agenda  { background: #166534; color: #bbf7d0; }
 .popover-folga   { background: #1e40af; color: #bfdbfe; }
+.popover-folga-vendida { background: #a16207; color: #fef08a; }
 .popover-ferias  { background: #9a3412; color: #fed7aa; }
 .popover-ausente { background: #4b5563; color: #e5e7eb; }
 .popover-remover { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25) !important; }

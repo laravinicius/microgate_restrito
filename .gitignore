@@ -32,6 +32,11 @@ uploads/**/*.heic
 # Build CSS (gerado por Tailwind)
 css/output.css
 
+# Configuração local do Docker (não enviar ao repositório)
+.dockerignore
+Dockerfile
+docker-compose.yml
+
 #android
 android
 android/*

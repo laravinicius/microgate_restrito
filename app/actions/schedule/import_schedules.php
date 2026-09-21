@@ -32,6 +32,7 @@ function normalizeScheduleShift($shift) {
     $upper = strtoupper($shift);
 
     if ($upper === 'SEM AGENDA') return 'FOLGA';
+    if ($upper === 'FOLGA VENDIDA') return 'FOLGA VENDIDA';
     if ($upper === 'FERIAS') return 'FÉRIAS';
 
     return $shift;
@@ -260,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <ul class="text-gray-400 text-sm mt-2 ml-4 list-disc">
                                     <li>Primeira coluna: Nomes dos técnicos</li>
                                     <li>Próximas colunas: Datas no formato <strong>DD/MM/YYYY</strong></li>
-                                    <li>Valores nas células: AGENDA, SEM AGENDA, FÉRIAS ou vazio</li>
+                                    <li>Valores nas células: AGENDA, SEM AGENDA, FOLGA VENDIDA, FÉRIAS, AUSENTE ou vazio</li>
                                     <li>Separador: Ponto-e-vírgula (;)</li>
                                 </ul>
                                 <div class="bg-orange-500/20 border border-orange-500/50 rounded p-2 mt-3">
