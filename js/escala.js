@@ -170,28 +170,24 @@
 
             if (evs.length > 0){
                 evs.slice(0,2).forEach(e=>{
-                    const badge = document.createElement('div');
-
                     let variant = 'bg-gray-600';
                     const s = (e.shift || '').toUpperCase();
+                    const statuses = s.includes('FOLGA VENDIDA')
+                        ? ['AGENDA', 'FOLGA VENDIDA']
+                        : [s || (e.note || '').toString().slice(0,15)];
 
-                    if (s.includes('FOLGA VENDIDA')) {
-                        variant = 'bg-yellow-500';
-                    } else if (s.includes('AGENDA')) {
-                        variant = 'bg-green-600';
-                    } else if (s.includes('FOLGA')) {
-                        variant = 'bg-blue-400';
-                    } else if (s.includes('FÉRIAS') || s.includes('FERIAS') || s.includes('AUSENTE')) {
-                        variant = 'bg-orange-500';
-                    }
+                    statuses.forEach(status => {
+                        variant = 'bg-gray-600';
+                        if (status === 'FOLGA VENDIDA') variant = 'bg-yellow-500';
+                        else if (status.includes('AGENDA')) variant = 'bg-green-600';
+                        else if (status.includes('FOLGA')) variant = 'bg-blue-400';
+                        else if (status.includes('FÉRIAS') || status.includes('FERIAS') || status.includes('AUSENTE')) variant = 'bg-orange-500';
 
-                    badge.className = `block w-full box-border truncate rounded px-1 py-0.5 text-white md:px-2 md:py-1 ${variant}`;
-
-                    const label = s.includes('FOLGA') && !s.includes('VENDIDA')
-                        ? 'SEM AGENDA'
-                        : (s || (e.note || '').toString().slice(0,15));
-                    badge.textContent = label;
-                    list.appendChild(badge);
+                        const badge = document.createElement('div');
+                        badge.className = `block w-full box-border truncate rounded px-1 py-0.5 text-white md:px-2 md:py-1 ${variant}`;
+                        badge.textContent = status.includes('FOLGA') && !status.includes('VENDIDA') ? 'SEM AGENDA' : status;
+                        list.appendChild(badge);
+                    });
                 });
 
                 if (evs.length > 2){

@@ -216,23 +216,24 @@
     function renderBadges(container, evs) {
         container.innerHTML = '';
         evs.slice(0, 3).forEach(ev => {
-            const badge = document.createElement('div');
             const shift = (ev.shift || '').toUpperCase();
-            let variant = 'bg-gray-600 text-gray-200';
-            if (shift.includes('FOLGA VENDIDA')) {
-                variant = 'bg-yellow-700 text-yellow-100';
-            } else if (shift.includes('AGENDA')) {
-                variant = 'bg-green-800 text-green-200';
-            } else if (shift.includes('FOLGA')) {
-                variant = 'bg-blue-800 text-blue-200';
-            } else if (shift.includes('FÉRIAS') || shift.includes('FERIAS')) {
-                variant = 'bg-orange-800 text-orange-200';
-            } else if (shift.includes('AUSENTE')) {
-                variant = 'bg-gray-600 text-gray-200';
-            }
-            badge.className = `overflow-hidden whitespace-nowrap text-ellipsis rounded px-1.5 py-0.5 text-[10px] font-medium ${variant}`;
-            badge.textContent = shift.includes('FOLGA') && !shift.includes('VENDIDA') ? 'SEM AGENDA' : (shift || ev.note || '—');
-            container.appendChild(badge);
+            const statuses = shift.includes('FOLGA VENDIDA')
+                ? ['AGENDA', 'FOLGA VENDIDA']
+                : [shift || ev.note || '—'];
+
+            statuses.forEach(status => {
+                let variant = 'bg-gray-600 text-gray-200';
+                if (status === 'FOLGA VENDIDA') variant = 'bg-yellow-700 text-yellow-100';
+                else if (status.includes('AGENDA')) variant = 'bg-green-800 text-green-200';
+                else if (status.includes('FOLGA')) variant = 'bg-blue-800 text-blue-200';
+                else if (status.includes('FÉRIAS') || status.includes('FERIAS')) variant = 'bg-orange-800 text-orange-200';
+                else if (status.includes('AUSENTE')) variant = 'bg-gray-600 text-gray-200';
+
+                const badge = document.createElement('div');
+                badge.className = `overflow-hidden whitespace-nowrap text-ellipsis rounded px-1.5 py-0.5 text-[10px] font-medium ${variant}`;
+                badge.textContent = status.includes('FOLGA') && !status.includes('VENDIDA') ? 'SEM AGENDA' : status;
+                container.appendChild(badge);
+            });
         });
         if (evs.length > 3) {
             const more = document.createElement('div');
@@ -284,12 +285,18 @@
             const btn = document.createElement('button');
             btn.className = opt.cls;
             btn.textContent = opt.label;
-            if (currentShift === opt.value) {
+            const selected = opt.value === 'AGENDA'
+                ? currentShift === 'AGENDA' || currentShift === 'AGENDA + FOLGA VENDIDA'
+                : opt.value === 'FOLGA VENDIDA'
+                    ? currentShift === 'FOLGA VENDIDA' || currentShift === 'AGENDA + FOLGA VENDIDA'
+                    : currentShift === opt.value;
+            if (selected) {
                 btn.classList.add('ring-2', 'ring-inset', 'ring-white/40');
             }
             btn.addEventListener('click', e => {
                 e.stopPropagation();
-                saveDay(userId, iso, opt.value, tdCell, eventsMap, popover);
+                const value = opt.value === 'FOLGA VENDIDA' ? 'AGENDA + FOLGA VENDIDA' : opt.value;
+                saveDay(userId, iso, value, tdCell, eventsMap, popover);
             });
             popover.appendChild(btn);
         });

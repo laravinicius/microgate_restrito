@@ -61,7 +61,7 @@ if (!$dt || $dt->format('Y-m-d') !== $date) {
 }
 
 $shiftUpper    = $shift !== '' ? strtoupper($shift) : '';
-$allowedShifts = ['AGENDA', 'FOLGA', 'FOLGA VENDIDA', 'SEM AGENDA', 'FÉRIAS', 'FERIAS', 'AUSENTE', ''];
+$allowedShifts = ['AGENDA', 'FOLGA', 'FOLGA VENDIDA', 'AGENDA + FOLGA VENDIDA', 'SEM AGENDA', 'FÉRIAS', 'FERIAS', 'AUSENTE', ''];
 
 if (!in_array($shiftUpper, $allowedShifts, true)) {
     http_response_code(400);
